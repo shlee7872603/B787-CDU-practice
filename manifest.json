@@ -1,7 +1,7 @@
 {
   "name": "B787 CDU Practice",
   "short_name": "B787 CDU",
-  "start_url": "./B787_CDU_Practice_v2_8_25b.html",
+  "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#050505",
   "theme_color": "#050505",
