@@ -9,7 +9,7 @@
 <meta name="theme-color" content="#050505">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>B787 CDU Practice v2.8.25c</title>
+<title>B787 CDU Practice v2.8.26</title>
 <style>*{margin:0;padding:0;box-sizing:border-box;-webkit-user-select:none;user-select:none}body{background:#050505;overflow-x:hidden}</style>
 </head>
 <body>
@@ -19613,7 +19613,7 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
       /* Scratchpad + Help */
       , React.createElement('div', { style: {padding:"2px 24px",minHeight:"32px",borderTop:"1px solid #222",flexShrink:0},}
         , fms.helpMsg && React.createElement('div', { style: {color:C.amber,fontSize:"12px",fontFamily:M},}, fms.helpMsg)
-        , React.createElement('span', { style: {color:C.white,fontSize:"14px",fontFamily:M},}, fms.scratchpad, React.createElement('span', { style: {animation:"blink 1s infinite"},}, "_"))
+        , React.createElement('span', { style: {color:C.white,fontSize:"20px",fontWeight:"bold",fontFamily:M},}, fms.scratchpad, React.createElement('span', { style: {animation:"blink 1s infinite"},}, "_"))
       )
       /* Function keys — FCOM 11.10.1: bigger buttons, ~25% of CDU */
       , React.createElement('div', { style: {padding:"6px 8px",borderTop:"1px solid #222",flexShrink:0},}
@@ -21893,7 +21893,7 @@ function CDUMiniView({fms,setFms}){
         )
       ))
       , React.createElement('div', { style: {borderTop:"1px solid #222",padding:"2px 4px",marginTop:4},}
-        , React.createElement('span', { style: {color:C.white,fontSize:10},}, fms.scratchpad||"", React.createElement('span', { style: {animation:"blink 1s infinite"},}, "_"))
+        , React.createElement('span', { style: {color:C.white,fontSize:13,fontWeight:"bold"},}, fms.scratchpad||"", React.createElement('span', { style: {animation:"blink 1s infinite"},}, "_"))
       )
     )
   );
@@ -21932,17 +21932,18 @@ function B787Cockpit(){
         React.createElement('div', {style:{color:"#00cccc",fontSize:33,fontWeight:"bold",letterSpacing:4,marginBottom:4}}, "B787 DREAMLINER"),
         React.createElement('div', {style:{color:"#aaa",fontSize:14,letterSpacing:2}}, "COCKPIT PROCEDURE SIMULATOR"),
         React.createElement('div', {style:{color:"#777",fontSize:14,marginTop:4}}, "FOR TRAINING PURPOSE ONLY"),
-        React.createElement('div', {style:{color:"#00bb00",fontSize:11,marginTop:12,letterSpacing:1}}, "v2.8.25c \u00a0|\u00a0 by SHLee7872603")
+        React.createElement('div', {style:{color:"#00bb00",fontSize:11,marginTop:12,letterSpacing:1}}, "v2.8.26 \u00a0|\u00a0 by SHLee7872603")
       ),
       React.createElement('div', {style:{borderTop:"1px solid #333",borderBottom:"1px solid #333",padding:"14px 0",marginBottom:16}},
         React.createElement(ChkRow, {checked:ckIPad,onToggle:function(){setCkIPad(function(p){return!p;});}},
-          React.createElement('div', {style:{color:"#00cccc",fontSize:17,fontWeight:"bold",marginBottom:8,letterSpacing:1}}, "PATCH NOTES v2.8.25c"),
+          React.createElement('div', {style:{color:"#00cccc",fontSize:17,fontWeight:"bold",marginBottom:8,letterSpacing:1}}, "PATCH NOTES v2.8.26"),
           React.createElement('div', {style:{color:"#aaa",fontSize:14,fontWeight:"bold",lineHeight:1.8}},
+            React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginBottom:2}}, "v2.8.26"),
+            React.createElement('div', null, "\u2022 Scratchpad \uae00\uc790 \ud655\ub300 \ubc0f Bold \ucc98\ub9ac"),
+            React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginTop:8,marginBottom:2}}, "v2.8.25"),
+            React.createElement('div', null, "\u2022 WIND DATA Request/Load/Exec \uad6c\ud604"),
             React.createElement('div', null, "\u2022 Checklist \uc644\ub8cc \ud6c4 \uc774\uc804 \ud654\uba74 \ubcf5\uadc0"),
-            React.createElement('div', null, "\u2022 LEG \ud398\uc774\uc9c0 Course/Distance 3\uc5f4 \ub808\uc774\uc544\uc6c3"),
-            React.createElement('div', null, "\u2022 WIND DATA Request \u2192 Load \u2192 Exec \ub85c\uc9c1 \uad6c\ud604"),
-            React.createElement('div', null, "\u2022 \uccab \ud398\uc774\uc9c0 \uac00\uc2dc\uc131 \uac1c\uc120"),
-            React.createElement('div', null, "\u2022 \ud328\uce58\ub178\ud2b8 \ud45c\uc2dc \ucd94\uac00")
+            React.createElement('div', null, "\u2022 LEG Course/Distance 3\uc5f4 \ub808\uc774\uc544\uc6c3")
           )
         )
       ),
