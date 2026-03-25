@@ -9,7 +9,7 @@
 <meta name="theme-color" content="#050505">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>B787 CDU Practice v2.8.33</title>
+<title>B787 CDU Practice v2.8.34</title>
 <style>*{margin:0;padding:0;box-sizing:border-box;-webkit-user-select:none;user-select:none}body{background:#050505;overflow-x:hidden}</style>
 </head>
 <body>
@@ -17314,6 +17314,7 @@ const FLIGHT_DB = {
     missedApproach:[
       {wpt:"MA334",crs:"334°",dist:"",spdAlt:"3000",pred:"V2/ 3000"},
       {wpt:"GE973",crs:"010°",dist:"6NM",spdAlt:"5000",pred:"210/ 5000"},
+      {wpt:"GE973",crs:"",dist:"",spdAlt:"5000",pred:"210/ 5000",isHold:true,holdCrs:"190°",holdTurn:"R",holdTime:"1.0MIN"},
     ],
   },
   // ═══ KAL787: ICN → FUK (from Flight Plan) ═══
@@ -17410,8 +17411,12 @@ const FLIGHT_DB = {
     },
     // Missed approach: RNP RW16L → climb 5000, to YAMEK hold
     missedApproach:[
-      {wpt:"MA158",crs:"158°",dist:"",spdAlt:"5000",pred:"V2/ 3000"},
-      {wpt:"YAMEK",crs:"338°",dist:"8NM",spdAlt:"5000",pred:"210/ 5000"},
+      {wpt:"F6L52",crs:"338°",dist:"1.5NM",spdAlt:"",pred:"V2+15"},
+      {wpt:"YAMEK",crs:"338°",dist:"0.5NM",spdAlt:"5000",pred:"V2+15/ 3000"},
+      {wpt:"FF601",crs:"338°",dist:"3.0NM",spdAlt:"6000",pred:"250/ 5000"},
+      {wpt:"IGDER",crs:"338°",dist:"2.0NM",spdAlt:"6000",pred:"250/ 6000"},
+      {wpt:"IKE",  crs:"328°",dist:"13.2NM",spdAlt:"6000",pred:"250/ 6000"},
+      {wpt:"IKE",  crs:"",dist:"",spdAlt:"6000",pred:"250/ 6000",isHold:true,holdCrs:"158°",holdTurn:"R",holdTime:"1.0MIN"},
     ],
   },
 };
@@ -17591,14 +17596,22 @@ const NAV_DATA = {
     {wpt:"ADMUB",crs:"158°",dist:"2.1NM",spdAlt:"1400A",pred:"180/ 1400A"},
     {wpt:"F6L50",crs:"158°",dist:"1.7NM",spdAlt:"1028A",pred:"170/ 1028A"},
     {wpt:"F6L51",crs:"158°",dist:"1.0NM",spdAlt:"",pred:"Vapp/ 700"},
-    {wpt:"F6L52",crs:"158°",dist:"1.5NM",spdAlt:"",pred:"Vapp/ 500"},
-    {wpt:"YAMEK",crs:"158°",dist:"0.5NM",spdAlt:"",pred:"Vapp"},
-    {wpt:"RW16L",crs:"158°",dist:"0.3NM",spdAlt:"",pred:"Vref+5",isDest:true}]},
+    {wpt:"RW16L",crs:"158°",dist:"1.5NM",spdAlt:"",pred:"Vref+5",isDest:true}],
+    missedApproach:[
+      {wpt:"F6L52",crs:"338°",dist:"1.5NM",spdAlt:"",pred:"V2+15"},
+      {wpt:"YAMEK",crs:"338°",dist:"0.5NM",spdAlt:"5000",pred:"V2+15/ 3000"},
+      {wpt:"FF601",crs:"338°",dist:"3.0NM",spdAlt:"6000",pred:"250/ 5000"},
+      {wpt:"IGDER",crs:"338°",dist:"2.0NM",spdAlt:"6000",pred:"250/ 6000"},
+      {wpt:"IKE",  crs:"328°",dist:"13.2NM",spdAlt:"6000",pred:"250/ 6000"},
+      {wpt:"IKE",  crs:"",dist:"",spdAlt:"6000",pred:"250/ 6000",isHold:true,holdCrs:"158°",holdTurn:"R",holdTime:"1.0MIN"}]},
   ILS16L:{type:"APP",trans:["ENTIX"],wpts:[
     {wpt:"AKTIB",crs:"158°",dist:"",spdAlt:"2000",pred:"210/ 2000"},
     {wpt:"ADMUB",crs:"158°",dist:"4.0NM",spdAlt:"1600A",pred:"180/ 1600A"},
-    {wpt:"YAMEK",crs:"158°",dist:"3.0NM",spdAlt:"",pred:"Vapp"},
-    {wpt:"RW16L",crs:"158°",dist:"1.7NM",spdAlt:"",pred:"Vref+5",isDest:true}]},
+    {wpt:"RW16L",crs:"158°",dist:"4.6NM",spdAlt:"",pred:"Vref+5",isDest:true}],
+    missedApproach:[
+      {wpt:"YAMEK",crs:"158°",dist:"5.0NM",spdAlt:"5000",pred:"V2+15/ 3000"},
+      {wpt:"IKE",  crs:"328°",dist:"13.2NM",spdAlt:"6000",pred:"250/ 6000"},
+      {wpt:"IKE",  crs:"",dist:"",spdAlt:"6000",pred:"250/ 6000",isHold:true,holdCrs:"158°",holdTurn:"R",holdTime:"1.0MIN"}]},
   RNAV34R:{type:"APP",trans:["SAKOX"],wpts:[
     {wpt:"SAKOX",crs:"338°",dist:"",spdAlt:"3000",pred:"210/ 3000"},
     {wpt:"FF340",crs:"338°",dist:"8NM",spdAlt:"2000",pred:"180/ 2000"},
@@ -17648,6 +17661,19 @@ function buildLegs(fms){
   var db=FLIGHT_DB[fltKey];
   var legs=[];
 
+  // Determine last enroute TO from routeLegs (user may have modified via RTE page)
+  var enrouteRouteLegs=(fms.routeLegs||[]).filter(function(l){return !l._star&&!l._app&&!l._disc&&!l._appTrans&&!l._sid&&!l._missed&&!l._manual;});
+  var lastEnrouteTo=enrouteRouteLegs.length?enrouteRouteLegs[enrouteRouteLegs.length-1].to:"";
+
+  // Trim enroute waypoints to end at lastEnrouteTo (if it exists in enroute list)
+  if(lastEnrouteTo&&enroute.length){
+    var trimIdx=-1;
+    for(var ei=0;ei<enroute.length;ei++){if(enroute[ei].wpt===lastEnrouteTo){trimIdx=ei;break;}}
+    if(trimIdx>=0){
+      enroute=enroute.slice(0,trimIdx+1);
+    }
+  }
+
   // SID
   var sid=NAV_DATA[fms.depSid];
   if(sid&&sid.type==="SID"){
@@ -17661,7 +17687,17 @@ function buildLegs(fms){
   // Enroute — add as-is, full waypoints
   legs=legs.concat(enroute);
 
-  // STAR — DISC check: last enroute wpt vs STAR entry. Merge if same, DISC if different.
+  // User-added legs after enroute (e.g. DISC + DIRECT/RJFF from RTE page)
+  var rl=fms.routeLegs||[];
+  for(var ri=0;ri<rl.length;ri++){
+    if(rl[ri]._manual&&rl[ri]._disc){
+      legs.push({wpt:"-----",isDisc:true,discFrom:"",discTo:""});
+    } else if(rl[ri]._manual&&!rl[ri]._disc&&rl[ri].to){
+      legs.push({wpt:rl[ri].to,crs:"---°",dist:"---",spdAlt:"",pred:"",via:rl[ri].via||"DIRECT",inserted:true});
+    }
+  }
+
+  // STAR — DISC check: last leg wpt vs STAR entry. Merge if same, DISC if different.
   var star=NAV_DATA[fms.arrStar];
   if(star&&star.type==="STAR"){
     var starWpts=star.wpts.map(function(w){return Object.assign({},w,{via:fms.arrStar});});
@@ -17705,17 +17741,19 @@ function buildLegs(fms){
     }
   }
 
-  // Missed Approach
-  if(db&&db.missedApproach&&app){
-    legs=legs.concat(db.missedApproach.map(function(w){return Object.assign({},w,{via:"MISSED",isMissed:true});}));
+  // Missed Approach — prefer APP-specific (NAV_DATA), fallback to FLIGHT_DB
+  var missedSrc=(app&&app.missedApproach)?app.missedApproach:(db&&db.missedApproach?db.missedApproach:null);
+  if(missedSrc&&app){
+    legs=legs.concat(missedSrc.map(function(w){return Object.assign({},w,{via:"MISSED",isMissed:true});}));
   }
+
   return legs;
 }
 
 // ═══════ Update routeLegs for RTE page display ═══════
 function updateRouteLegs(fms){
-  // 1) Strip existing SID/STAR/APP/APPR TRANS/DISC tags — enroute untouched
-  fms.routeLegs=fms.routeLegs.filter(function(l){return !l._star && !l._app && !l._disc && !l._appTrans && !l._sid;});
+  // 1) Strip existing SID/STAR/APP/APPR TRANS/DISC tags — enroute and manual DISC untouched
+  fms.routeLegs=fms.routeLegs.filter(function(l){return !l._star && !l._app && !(l._disc&&!l._manual) && !l._appTrans && !l._sid && !l._missed;});
   // 2) SID: if routeLegs has enroute, update first leg VIA. If empty, add SID leg.
   var sid=NAV_DATA[fms.depSid];
   if(sid){
@@ -17738,10 +17776,15 @@ function updateRouteLegs(fms){
     fms.routeLegs.push({via:fms.arrStar,to:starExit,_star:true});
   }
   // 3.5) APPR TRANS — FCOM 11.40.23: show as VIA=APPR TRANS / TO=trans fix
+  // Skip if STAR exit already equals the transition fix (no separate row needed)
   var appKey=(fms.arrApp||"").replace(/\s/g,"");
   var app=NAV_DATA[appKey];
   if(fms.arrTrans&&app&&app.trans){
-    fms.routeLegs.push({via:"APPR TRANS",to:fms.arrTrans,_appTrans:true});
+    var prevLegTrans=fms.routeLegs[fms.routeLegs.length-1];
+    var prevToTrans=prevLegTrans?prevLegTrans.to:"";
+    if(prevToTrans!==fms.arrTrans){
+      fms.routeLegs.push({via:"APPR TRANS",to:fms.arrTrans,_appTrans:true});
+    }
   }
   // 4) APP — FCOM 11.40.23: VIA=APP name, TO=runway (last wpt)
   // DISC check: prev TO vs APP start wpt (= arrTrans if selected, else first APP wpt)
@@ -17754,6 +17797,14 @@ function updateRouteLegs(fms){
       fms.routeLegs.push({via:"DISCONTINUITY",to:"",_disc:true});
     }
     fms.routeLegs.push({via:appKey,to:appRwy,_app:true});
+    // 5) MISSED APPROACH — VIA=MISSED APPR / TO=last missed approach fix (hold fix)
+    var missedSrc2=(app&&app.missedApproach)?app.missedApproach:null;
+    if(!missedSrc2){var fltKey=(fms.fltNo||"").toUpperCase();var db=FLIGHT_DB[fltKey];if(db&&db.missedApproach)missedSrc2=db.missedApproach;}
+    if(missedSrc2&&missedSrc2.length){
+      var lastMissed=missedSrc2.filter(function(m){return !m.isHold;});
+      var missedFix=lastMissed.length?lastMissed[lastMissed.length-1].wpt:"";
+      if(missedFix)fms.routeLegs.push({via:"MISSED APPR",to:missedFix,_missed:true});
+    }
   }
 }
 function updateRouteForSid(fms){updateRouteLegs(fms);}
@@ -17762,7 +17813,7 @@ var CUR={}; // shared cursor controller
 const initFMS = () => ({
   phase:"PREFLIGHT",page:"IDENT",scratchpad:"",execLight:false,cursorIdx:null,
   computedLegs:[],
-  origin:"",dest:"",fltNo:"",coRoute:"",runway:"",
+  origin:"",dest:"",fltNo:"",coRoute:"",runway:"",refAirport:"",
   rteUplinkPending:false, // true after REQUEST, before LOAD
   model:"787-9",engRating:"GEnx-1B74/75",navData:"BE10407001",
   navActive:"MAR15APR11/26",opProgram:"PS40735540-123",dragFF:"+0.0/+0.0",
@@ -17886,7 +17937,7 @@ function CDURow({n, tl="",tr="",dl="",dr="",dc="",tlc=C.white,trc=C.white,dlc=C.
       )
       /* FCOM 11.42.2: dashed ROUTE DISCONTINUITY line below data */
       , discLine && React.createElement('div', { style: {textAlign:"center",padding:"2px 15px",whiteSpace:"nowrap"},}
-        , React.createElement('span', { style: {color:C.white,fontSize:"11px",fontFamily:M,fontWeight:"bold",letterSpacing:"1px"},}, "------  ROUTE  DISCONTINUITY  ------")
+        , React.createElement('span', { style: {color:C.white,fontSize:"17px",fontFamily:M,fontWeight:"bold",letterSpacing:"1px"},}, "------  ROUTE  DISCONTINUITY  ------")
       )
     )
   );
@@ -17915,9 +17966,9 @@ function cduPageData(fms) {
       {dl:"<APPROACH",dr:"MAINT>",dlc:C.cyan,drc:C.cyan},
     ]},
     POS_INIT: {title:"POS INIT",titleSub:"1/4", rows:[
-      {tl:"REF AIRPORT",tr:"LAST POS",dl:fms.origin||"----",
-       dr:fms.origin==="RJFF"?"N33°35.2 E130°27.1":"N37°33.8 E126°47.9",
-       dlc:C.cyan,drc:C.green},
+      {tl:"REF AIRPORT",tr:"LAST POS",dl:fms.refAirport||"----",
+       dr:(fms.refAirport||fms.origin)==="RJFF"?"N33°35.2 E130°27.1":"N37°33.8 E126°47.9",
+       dlc:fms.refAirport?C.green:C.cyan,drc:C.green},
       {tl:"GATE",dl:""},
       {tl:"UTC",tr:"GPS POS",dl:new Date().toISOString().substr(11,5)+"Z",
        dr:fms.origin==="RJFF"?"N33°35.2 E130°27.1":"N37°33.8 E126°47.9",
@@ -17945,10 +17996,10 @@ function cduPageData(fms) {
       for(let i=0; i<5; i++) {
         const leg = legsSlice[i];
         if(leg&&leg._disc) rows.push({tl:i===0?"VIA":"",tr:i===0?"TO":"",
-          dl:"□□□□□",dlc:C.white,tlc:C.dim,trc:C.dim,discLine:true});
+          dl:"□□□□□",dr:"-----",dlc:C.white,drc:C.white,tlc:C.dim,trc:C.dim,discLine:true});
         else if(leg) rows.push({tl:i===0?"VIA":"",tr:i===0?"TO":"",
-          dl:leg.via||"DIRECT",dr:leg.to||"",
-          dlc:leg._star||leg._app||leg._appTrans||leg._sid?C.cyan:C.green,drc:leg._star||leg._app||leg._appTrans||leg._sid?C.cyan:C.green,
+          dl:leg.via||"DIRECT",dr:leg.to||(leg.via?"-----":""),
+          dlc:leg._star||leg._app||leg._appTrans||leg._sid||leg._missed?C.cyan:C.green,drc:leg._star||leg._app||leg._appTrans||leg._sid||leg._missed?C.cyan:leg.to?C.green:C.white,
           tlc:C.dim,trc:C.dim});
         else rows.push({tl:i===0&&!legsSlice.length?"VIA":"",tr:i===0&&!legsSlice.length?"TO":"",
           dl:"-----",dr:"▯▯▯▯▯",dlc:C.cyan,drc:C.cyan,tlc:C.dim,trc:C.dim});
@@ -18374,6 +18425,17 @@ function cduPageData(fms) {
         // FCOM 11.42.2: Discontinuity display — THEN + □□□□□ row, then dashed line
         if(leg.isDisc){
           rows.push({tl:"THEN",dl:"□□□□□",dlc:C.white,tlc:C.white,discLine:true});
+          return;
+        }
+        // FCOM 11.42.14: Holding pattern display
+        if(leg.isHold){
+          const holdInfo=`HOLD AT ${leg.holdCrs||""} ${leg.holdTurn||""}`;
+          rows.push({
+            tl:holdInfo,
+            dl:leg.wpt,dr:leg.spdAlt||"",
+            dlc:C.white,drc:C.magenta,
+            tlc:C.white
+          });
           return;
         }
         // Waypoint name: active=magenta with parens, inserted=shaded white
@@ -18853,10 +18915,10 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
   const handleLSK = useCallback((side,num) => {
     setFms(prev => {
       const s={...prev},sp=s.scratchpad,p=s.page;
-      const go=pg=>{s.page=pg;};const set=f=>{if(sp){s[f]=sp;s.scratchpad="";}else if(s[f]&&s[f]!=="---"){s.scratchpad=String(s[f]);}};
+      const go=pg=>{s.page=pg;};const set=f=>{if(sp==="DELETE"){s[f]="";s.scratchpad="";}else if(sp){s[f]=sp;s.scratchpad="";}else if(s[f]&&s[f]!=="---"){s.scratchpad=String(s[f]);}};
       if(p==="INIT_REF"){if(side==="L"){const t=["","IDENT","POS_INIT","PERF_INIT","THRUST_LIM","TOREF1","APPROACH_REF"];if(t[num])go(t[num]);}if(side==="R"&&num===1)go("NAV_DATA");if(side==="R"&&num===2)go("ALTN");if(side==="R"&&num===3)go("OFFSET");if(side==="R"&&num===6)go("INIT_REF");}
       else if(p==="IDENT"){if(side==="L"&&num===6)go("INIT_REF");if(side==="R"&&num===6)go("POS_INIT");}
-      else if(p==="POS_INIT"){if(side==="L"&&num===1)set("origin");if(side==="L"&&num===6)go("INIT_REF");if(side==="R"&&num===6)go("RTE_1");}
+      else if(p==="POS_INIT"){if(side==="L"&&num===1)set("refAirport");if(side==="L"&&num===6)go("INIT_REF");if(side==="R"&&num===6)go("RTE_1");}
       else if(p==="RTE_1"){
         if(side==="L"&&num===1)set("origin");
         if(side==="R"&&num===1)set("dest");
@@ -18891,9 +18953,15 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
         if(side==="R"&&num===6)go("PERF_INIT");
         if(side==="L"&&num===6){
           if(s.execLight){
-            // ERASE pending DEP/ARR modifications
-            s.depSid="";s.depRwy="";s.depTrans="";s.depSidAct=false;
-            s.arrStar="";s.arrApp="";s.arrTrans="";s.arrStarAct=false;s.arrAppAct=false;
+            // ERASE — restore to last EXEC snapshot
+            if(s._snapshot){
+              s.depSid=s._snapshot.depSid||"";s.depRwy=s._snapshot.depRwy||"";s.depTrans=s._snapshot.depTrans||"";
+              s.arrStar=s._snapshot.arrStar||"";s.arrApp=s._snapshot.arrApp||"";s.arrTrans=s._snapshot.arrTrans||"";
+              s.routeLegs=JSON.parse(JSON.stringify(s._snapshot.routeLegs||[]));
+            } else {
+              s.depSid="";s.depRwy="";s.depTrans="";s.depSidAct=false;
+              s.arrStar="";s.arrApp="";s.arrTrans="";s.arrStarAct=false;s.arrAppAct=false;
+            }
             s.execLight=false;
             updateRouteLegs(s);s.computedLegs=buildLegs(s);
           } else go("INIT_REF");
@@ -18901,8 +18969,18 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
       }
       else if(p==="RTE_1_2"){
         const startIdx=(s.rtePage-2)*5;
+        // DELETE on L1-L5 or R1-R5: remove the routeLeg at that position
+        if((side==="L"||side==="R")&&num>=1&&num<=5&&sp==="DELETE"){
+          const idx=startIdx+(num-1);
+          if(idx<s.routeLegs.length&&!s.routeLegs[idx]._star&&!s.routeLegs[idx]._app&&!s.routeLegs[idx]._missed){
+            s.routeLegs.splice(idx,1);
+            s.routeLegs=s.routeLegs.filter(function(l){return l.via||l.to||l._star||l._app||l._disc||l._appTrans||l._sid||l._missed;});
+            s.scratchpad="";s.execLight=true;
+            updateRouteLegs(s);s.computedLegs=buildLegs(s);
+          }
+        }
         // L1-L5: Enter VIA (airway). FCOM 11.40.23: auto-find TO exit point
-        if(side==="L"&&num>=1&&num<=5&&sp){
+        if(side==="L"&&num>=1&&num<=5&&sp&&sp!=="DELETE"){
           const idx=startIdx+(num-1);
           while(s.routeLegs.length<=idx)s.routeLegs.push({via:"",to:""});
           const awy=sp.toUpperCase();
@@ -18926,22 +19004,61 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
             }
           }
           s.scratchpad="";s.execLight=true;
+          updateRouteLegs(s);s.computedLegs=buildLegs(s);
         }
         // R1-R5: Enter TO (waypoint). FCOM 11.40.24: VIA defaults to DIRECT
-        if(side==="R"&&num>=1&&num<=5&&sp){
+        if(side==="R"&&num>=1&&num<=5&&sp&&sp!=="DELETE"){
           const idx=startIdx+(num-1);
           while(s.routeLegs.length<=idx)s.routeLegs.push({via:"",to:""});
-          if(!s.routeLegs[idx].via)s.routeLegs[idx].via="DIRECT";
-          s.routeLegs[idx]={...s.routeLegs[idx],to:sp.toUpperCase()};
-          s.scratchpad="";s.execLight=true;
+          const inputTo=sp.toUpperCase();
+
+          // Case A: Entering TO on a DISC row → resolve discontinuity
+          if(s.routeLegs[idx]&&s.routeLegs[idx]._disc){
+            // Remove DISC + the manual leg after it, replace with single DIRECT/inputTo (keep _manual)
+            if(idx+1<s.routeLegs.length&&s.routeLegs[idx+1]._manual){
+              s.routeLegs.splice(idx,2,{via:"DIRECT",to:inputTo,_manual:true});
+            } else {
+              s.routeLegs[idx]={via:"DIRECT",to:inputTo,_manual:true};
+            }
+            s.scratchpad="";s.execLight=true;
+            updateRouteLegs(s);s.computedLegs=buildLegs(s);
+          }
+          // Case B: New entry — check if DISC needed
+          else {
+            let lastFilledIdx=-1;
+            for(let k=idx-1;k>=0;k--){if(s.routeLegs[k]&&(s.routeLegs[k].to||s.routeLegs[k]._disc)){lastFilledIdx=k;break;}}
+            const prevLeg=lastFilledIdx>=0?s.routeLegs[lastFilledIdx]:null;
+            if(prevLeg && prevLeg.to && prevLeg.to!==inputTo && !prevLeg._disc){
+              const removeFrom=lastFilledIdx+1;
+              const removeCount=idx-removeFrom+1;
+              if(removeCount>0)s.routeLegs.splice(removeFrom,removeCount);
+              s.routeLegs.splice(removeFrom,0,
+                {via:"DISCONTINUITY",to:"",_disc:true,_manual:true},
+                {via:"DIRECT",to:inputTo,_manual:true}
+              );
+            } else {
+              if(!s.routeLegs[idx].via)s.routeLegs[idx].via="DIRECT";
+              s.routeLegs[idx]={...s.routeLegs[idx],to:inputTo};
+            }
+            s.scratchpad="";s.execLight=true;
+            updateRouteLegs(s);s.computedLegs=buildLegs(s);
+          }
         }
         if(side==="R"&&num===6)go("PERF_INIT");
         if(side==="L"&&num===6){
-          if(s.execLight&&(s.depSid||s.depRwy||s.arrStar||s.arrApp)){
-            // ERASE pending DEP/ARR modifications
-            if(!s.depSidAct){s.depSid="";s.depRwy="";s.depTrans="";}
-            if(!s.arrStarAct){s.arrStar="";}
-            if(!s.arrAppAct){s.arrApp="";s.arrTrans="";}
+          if(s.execLight){
+            // ERASE — restore to last EXEC snapshot
+            if(s._snapshot){
+              s.depSid=s._snapshot.depSid||"";s.depRwy=s._snapshot.depRwy||"";s.depTrans=s._snapshot.depTrans||"";
+              s.arrStar=s._snapshot.arrStar||"";s.arrApp=s._snapshot.arrApp||"";s.arrTrans=s._snapshot.arrTrans||"";
+              s.routeLegs=JSON.parse(JSON.stringify(s._snapshot.routeLegs||[]));
+            } else {
+              // No snapshot (never EXEC'd) — clear everything
+              s.routeLegs=s.routeLegs.filter(l=>!l._manual);
+              if(!s.depSidAct){s.depSid="";s.depRwy="";s.depTrans="";}
+              if(!s.arrStarAct){s.arrStar="";}
+              if(!s.arrAppAct){s.arrApp="";s.arrTrans="";}
+            }
             s.execLight=false;
             updateRouteLegs(s);s.computedLegs=buildLegs(s);
           } else if(s.routeLegs.length){
@@ -18958,10 +19075,11 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
         }
       }
       else if(p==="PERF_INIT"){
-        if(side==="L"&&num===3&&sp){s.zfw=sp;s.scratchpad="";s.grWt=(parseFloat(sp)+parseFloat(s.fuel||0)).toFixed(1);}
-        if(side==="L"&&num===4&&sp){s.reserves=sp;s.scratchpad="";}
-        if(side==="R"&&num===1&&sp){s.crzAlt=sp;s.scratchpad="";}
-        if(side==="R"&&num===2&&sp){s.costIndex=sp;s.scratchpad="";}
+        // Auto-advance cursor: ZFW(L3) → RESERVE(L4) → CRZ ALT(R1) → COST INDEX(R2) → THRUST LIM(R6)
+        if(side==="L"&&num===3&&sp){s.zfw=sp;s.scratchpad="";s.grWt=(parseFloat(sp)+parseFloat(s.fuel||0)).toFixed(1);s.helpMsg="RESERVES";s._perfNext={side:"L",num:4};}
+        if(side==="L"&&num===4&&sp){s.reserves=sp;s.scratchpad="";s.helpMsg="CRZ ALT";s._perfNext={side:"R",num:1};}
+        if(side==="R"&&num===1&&sp){s.crzAlt=sp;s.scratchpad="";s.helpMsg="COST INDEX";s._perfNext={side:"R",num:2};}
+        if(side==="R"&&num===2&&sp){s.costIndex=sp;s.scratchpad="";s.helpMsg="";s._perfNext={side:"R",num:6};}
         if(side==="R"&&num===3&&sp){s.minFuelTemp=sp;s.scratchpad="";}
         if(side==="R"&&num===4&&sp){s.crzCg=sp;s.scratchpad="";}
         if(side==="R"&&num===5&&sp){s.stepSize=sp;s.scratchpad="";}
@@ -19067,16 +19185,70 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
         const legs=s.computedLegs||[];
         if(!legs.length){if(side==="R"&&num===6)go("RTE_DATA");return s;}
         const pgIdx=(s.legsPage-1)*5;
-        // FCOM 11.42.1: Add waypoint from scratchpad → creates discontinuity
+        // FCOM 11.42.1: Modify / Add waypoint from scratchpad
         if(side==="L"&&num>=1&&num<=5&&sp&&sp!=="DELETE"){
           const idx=pgIdx+(num-1);
+          const inputWpt=sp.toUpperCase();
+
+          // Case A: idx is within legs
           if(idx<legs.length){
-            // Insert waypoint before legs[idx], create discontinuity after
-            const newLeg={wpt:sp.toUpperCase(),crs:"---°",dist:"---",spdAlt:"",pred:"",via:"DIRECT",inserted:true};
-            const disc={wpt:"□□□□□",crs:"",dist:"",spdAlt:"",pred:"",isDisc:true};
-            legs.splice(idx,0,newLeg,disc);
-            s.scratchpad="";s.execLight=true;
-            s.helpMsg="";
+            // Check if there's any disc anywhere in legs
+            let hasDisc=false;
+            for(let k=0;k<legs.length;k++){if(legs[k].isDisc){hasDisc=true;break;}}
+            // Check if inputWpt exists somewhere else in legs (for merge)
+            let inputExists=-1;
+            for(let k=0;k<legs.length;k++){if(k!==idx&&legs[k].wpt===inputWpt&&!legs[k].isDisc){inputExists=k;break;}}
+
+            if(hasDisc && legs[idx].isDisc){
+              // Entering wpt on a DISC row → resolve disc only, keep the wpt after it
+              s.routeLegs=s.routeLegs.filter(l=>!(l._manual&&l._disc));
+              updateRouteLegs(s);
+              s.computedLegs=buildLegs(s);
+              s.scratchpad="";s.execLight=true;s.helpMsg="";
+            } else if(hasDisc && inputExists>=0){
+              // MERGE: inputWpt exists elsewhere in legs and there's a disc
+              const enrouteLegs=s.routeLegs.filter(l=>!l._star&&!l._app&&!l._disc&&!l._appTrans&&!l._sid&&!l._missed&&!l._manual);
+              if(enrouteLegs.length){
+                enrouteLegs[enrouteLegs.length-1].to=inputWpt;
+              }
+              s.routeLegs=s.routeLegs.filter(l=>!l._disc&&!l._manual);
+              updateRouteLegs(s);
+              s.computedLegs=buildLegs(s);
+              s.scratchpad="";s.execLight=true;s.helpMsg="";
+            } else {
+              // No disc or no matching wpt — normal insert: create new waypoint + discontinuity
+              const newLeg={wpt:inputWpt,crs:"---°",dist:"---",spdAlt:"",pred:"",via:"DIRECT",inserted:true};
+              const disc={wpt:"□□□□□",crs:"",dist:"",spdAlt:"",pred:"",isDisc:true};
+              legs.splice(idx,0,newLeg,disc);
+              s.scratchpad="";s.execLight=true;s.helpMsg="";
+            }
+          }
+          // Case B: idx is beyond legs (empty row after last waypoint)
+          else if(idx>=legs.length){
+            const lastLeg=legs.length>0?legs[legs.length-1]:null;
+            if(lastLeg && !lastLeg.isDisc && lastLeg.wpt!==inputWpt){
+              // Different from last wpt → add manual DISC + DIRECT/wpt to routeLegs
+              // Remove any existing manual DISC first
+              s.routeLegs=s.routeLegs.filter(l=>!l._manual);
+              s.routeLegs.push({via:"DISCONTINUITY",to:"",_disc:true,_manual:true});
+              s.routeLegs.push({via:"DIRECT",to:inputWpt,_manual:true});
+              updateRouteLegs(s);
+              s.computedLegs=buildLegs(s);
+              // Navigate to page showing DISC
+              s.legsPage=Math.ceil(s.computedLegs.length/5);
+              s.scratchpad="";s.execLight=true;s.helpMsg="";
+            } else if(lastLeg && lastLeg.isDisc){
+              // Last is disc → resolve: replace with new wpt
+              legs.splice(legs.length-1,1,{wpt:inputWpt,crs:"---°",dist:"---",spdAlt:"",pred:"",via:"DIRECT",inserted:true});
+              // Update routeLegs: remove manual DISC, keep DIRECT/wpt
+              s.routeLegs=s.routeLegs.filter(l=>!(l._manual&&l._disc));
+              updateRouteLegs(s);
+              s.computedLegs=buildLegs(s);
+              s.scratchpad="";s.execLight=true;s.helpMsg="";
+            } else {
+              legs.push({wpt:inputWpt,crs:"---°",dist:"---",spdAlt:"",pred:"",via:"DIRECT",inserted:true});
+              s.scratchpad="";s.execLight=true;s.helpMsg="";
+            }
           }
         }
         // FCOM 11.42.3: DELETE waypoint → creates discontinuity
@@ -19088,21 +19260,29 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
             s.scratchpad="";s.execLight=true;
           }
         }
-        // FCOM 11.42.6: Remove discontinuity — enter next waypoint into □□□□□
-        if(side==="L"&&num>=1&&num<=5){
+        // FCOM 11.42.6: Remove discontinuity — click disc row or enter scratchpad wpt into □□□□□
+        if(side==="L"&&num>=1&&num<=5&&!sp){
           const idx=pgIdx+(num-1);
           if(idx<legs.length&&legs[idx].isDisc){
-            // Just remove the discontinuity line (connect segments)
-            legs.splice(idx,1);
+            s.routeLegs=s.routeLegs.filter(l=>!l._disc);
+            updateRouteLegs(s);
+            s.computedLegs=buildLegs(s);
             s.execLight=true;
           }
         }
         if(side==="L"&&num===6){
-          if(s.execLight&&(s.depSid||s.depRwy||s.arrStar||s.arrApp)){
-            // ERASE pending DEP/ARR modifications
-            if(!s.depSidAct){s.depSid="";s.depRwy="";s.depTrans="";}
-            if(!s.arrStarAct){s.arrStar="";}
-            if(!s.arrAppAct){s.arrApp="";s.arrTrans="";}
+          if(s.execLight){
+            // ERASE — restore to last EXEC snapshot
+            if(s._snapshot){
+              s.depSid=s._snapshot.depSid||"";s.depRwy=s._snapshot.depRwy||"";s.depTrans=s._snapshot.depTrans||"";
+              s.arrStar=s._snapshot.arrStar||"";s.arrApp=s._snapshot.arrApp||"";s.arrTrans=s._snapshot.arrTrans||"";
+              s.routeLegs=JSON.parse(JSON.stringify(s._snapshot.routeLegs||[]));
+            } else {
+              s.routeLegs=s.routeLegs.filter(l=>!l._manual);
+              if(!s.depSidAct){s.depSid="";s.depRwy="";s.depTrans="";}
+              if(!s.arrStarAct){s.arrStar="";}
+              if(!s.arrAppAct){s.arrApp="";s.arrTrans="";}
+            }
             s.execLight=false;
             updateRouteLegs(s);s.computedLegs=buildLegs(s);
           }
@@ -19511,6 +19691,12 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
           }
         }catch(e){}
       }
+      // PERF INIT auto-advance cursor
+      if(s._perfNext){
+        var pn=s._perfNext;
+        s.cursorIdx=(pn.num-1)*2+(pn.side==="R"?1:0);
+        delete s._perfNext;
+      }
       return s;
     });
   },[setFms]);
@@ -19520,20 +19706,21 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
   const handleFunc = useCallback(cmd => {
     setMfdMode("CDU");
     const map={"INIT REF":"INIT_REF","RTE":"RTE_1","DEP ARR":"DEP_ARR","ALTN":"ALTN","VNAV":"CLB","FIX":"FIX","LEGS":"LEGS","HOLD":"HOLD","FMC COMM":"FMC_COMM","PROG":"PROGRESS","NAV RAD":"NAV_RADIO","OFST":"OFFSET","RTA":"RTA"};
-    if(map[cmd])setFms(p=>{var dest=map[cmd];if(cmd==="INIT REF"){var _pfc=!!(p.origin&&p.dest&&p.routeLegs&&p.routeLegs.length&&p.flaps&&p.v1&&p.v1!=="---"&&p.vr&&p.vr!=="---"&&p.v2&&p.v2!=="---"&&p.cg&&p.trim&&p.grWt&&p.fuel&&p.zfw&&p.crzAlt);if(_pfc)dest="APPROACH_REF";else if(p.phase==="ACTIVE")dest="PERF_INIT";}if(cmd==="VNAV"&&p.chkl&&p.chkl.clIdx>=5)dest="CRZ";var n={...p,page:dest,
-      rtePage:cmd==="RTE"?1:p.rtePage,
+    if(map[cmd])setFms(p=>{var dest=map[cmd];if(cmd==="INIT REF"){var _pfc=!!(p.origin&&p.dest&&p.routeLegs&&p.routeLegs.length&&p.flaps&&p.v1&&p.v1!=="---"&&p.vr&&p.vr!=="---"&&p.v2&&p.v2!=="---"&&p.cg&&p.trim&&p.grWt&&p.fuel&&p.zfw&&p.crzAlt);if(_pfc)dest="APPROACH_REF";else if(p.phase==="ACTIVE")dest="PERF_INIT";}if(cmd==="VNAV"&&p.chkl&&p.chkl.clIdx>=5)dest="CRZ";var _rteStartPage=1;if(cmd==="RTE"){var _pfc2=!!(p.origin&&p.dest&&p.routeLegs&&p.routeLegs.length&&p.flaps&&p.v1&&p.v1!=="---"&&p.vr&&p.vr!=="---"&&p.v2&&p.v2!=="---"&&p.cg&&p.trim&&p.grWt&&p.fuel&&p.zfw&&p.crzAlt);if(_pfc2){dest="RTE_1_2";_rteStartPage=2;}}var n={...p,page:dest,
+      rtePage:cmd==="RTE"?_rteStartPage:p.rtePage,
       legsPage:cmd==="LEGS"?1:p.legsPage,
       progPage:cmd==="PROG"?1:p.progPage,
       helpMsg:""};if(dest!=="PROGRESS")n.progDestWpt="";return n;});
   },[setFms,setMfdMode]);
 
-  const handleExec = useCallback(()=>setFms(p=>{if(!p.execLight)return p;var n={...p,execLight:false,phase:p.origin&&p.dest?"ACTIVE":p.phase};if(p.depSid)n.depSidAct=true;if(p.arrStar)n.arrStarAct=true;if(p.arrApp)n.arrAppAct=true;return n;}),[setFms]);
+  const handleExec = useCallback(()=>setFms(p=>{if(!p.execLight)return p;var n={...p,execLight:false,phase:p.origin&&p.dest?"ACTIVE":p.phase};if(p.depSid)n.depSidAct=true;if(p.arrStar)n.arrStarAct=true;if(p.arrApp)n.arrAppAct=true;n.computedLegs=buildLegs(n);n._snapshot={depSid:n.depSid,depRwy:n.depRwy,depTrans:n.depTrans,arrStar:n.arrStar,arrApp:n.arrApp,arrTrans:n.arrTrans,routeLegs:JSON.parse(JSON.stringify(n.routeLegs))};return n;}),[setFms]);
 
   const handlePrev = ()=>setFms(p=>{
     if(p.page==="TOREF2")return{...p,page:"TOREF1"};
+    if(p.page==="RTE_1"){const mx=Math.max(2,Math.ceil(p.routeLegs.length/5)+1);return{...p,page:"RTE_1_2",rtePage:mx};}
     if(p.page==="RTE_1_2"&&p.rtePage<=2)return{...p,page:"RTE_1",rtePage:1};
     if(p.page==="RTE_1_2"&&p.rtePage>2)return{...p,rtePage:p.rtePage-1};
-    if(p.page==="LEGS"&&p.legsPage>1)return{...p,legsPage:p.legsPage-1};
+    if(p.page==="LEGS"){var cl=p.computedLegs||[];var mx=Math.max(1,Math.ceil((cl.length||(p.routeLegs.length+2))/5));if(p.legsPage>1)return{...p,legsPage:p.legsPage-1};return{...p,legsPage:mx};}
     if(p.page==="RTE_DATA"&&p.legsPage>1)return{...p,legsPage:p.legsPage-1};
     if(p.page==="PROGRESS"&&p.progPage>1)return{...p,progPage:p.progPage-1};
     if(p.page==="FIX"&&(p.fixPage||0)>0)return{...p,fixPage:(p.fixPage||0)-1};
@@ -19548,7 +19735,7 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
     if(p.page==="TOREF1")return{...p,page:"TOREF2"};
     if(p.page==="RTE_1")return{...p,page:"RTE_1_2",rtePage:2};
     if(p.page==="RTE_1_2"){const mx=Math.ceil(p.routeLegs.length/5)+1;if(p.rtePage<mx)return{...p,rtePage:p.rtePage+1};}
-    if(p.page==="LEGS"){var cl=p.computedLegs||[];var mx=Math.max(1,Math.ceil((cl.length||(p.routeLegs.length+2))/5));if(p.legsPage<mx)return{...p,legsPage:p.legsPage+1};}
+    if(p.page==="LEGS"){var cl=p.computedLegs||[];var mx=Math.max(1,Math.ceil((cl.length||(p.routeLegs.length+2))/5));if(p.legsPage<mx)return{...p,legsPage:p.legsPage+1};return{...p,legsPage:1};}
     if(p.page==="RTE_DATA"){var cl2=p.computedLegs||[];var rl=cl2.filter(function(l){return !l.isRwy;});var mx2=Math.max(1,Math.ceil(rl.length/5));if(p.legsPage<mx2)return{...p,legsPage:p.legsPage+1};}
     if(p.page==="PROGRESS"&&p.progPage<4)return{...p,progPage:p.progPage+1};
     if(p.page==="FIX"&&(p.fixPage||0)<3)return{...p,fixPage:(p.fixPage||0)+1};
@@ -19595,7 +19782,7 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
       /* Page title + page number */
       , React.createElement('div', { style: {display:"flex",padding:"2px 15px 0",alignItems:"baseline"},}
         , React.createElement('div', { style: {flex:1},})
-        , React.createElement('span', { style: {color:C.white,fontSize:"16px",fontWeight:"bold",fontFamily:M,letterSpacing:"1px"},}, pd.title)
+        , React.createElement('span', { style: {color:C.white,fontSize:"18px",fontWeight:"bold",fontFamily:M,letterSpacing:"1px"},}, pd.title)
         , React.createElement('div', { style: {flex:1,textAlign:"right"},}, pd.titleSub&&!pd.subtitle&&React.createElement('span', { style: {color:C.white,fontSize:"12px",fontFamily:M},}, pd.titleSub))
       )
       /* Centered subtitle below title (e.g. "RTE 1 (ACT)" on DEP/ARR) */
@@ -19692,9 +19879,10 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
 function MFKKeypad({fms,setFms,mfdMode,setMfdMode}) {
   const handlePrev=()=>setFms(p=>{
     if(p.page==="TOREF2")return{...p,page:"TOREF1"};
+    if(p.page==="RTE_1"){const mx=Math.max(2,Math.ceil(p.routeLegs.length/5)+1);return{...p,page:"RTE_1_2",rtePage:mx};}
     if(p.page==="RTE_1_2"&&p.rtePage<=2)return{...p,page:"RTE_1",rtePage:1};
     if(p.page==="RTE_1_2"&&p.rtePage>2)return{...p,rtePage:p.rtePage-1};
-    if(p.page==="LEGS"&&p.legsPage>1)return{...p,legsPage:p.legsPage-1};
+    if(p.page==="LEGS"){var cl=p.computedLegs||[];var mx=Math.max(1,Math.ceil((cl.length||(p.routeLegs.length+2))/5));if(p.legsPage>1)return{...p,legsPage:p.legsPage-1};return{...p,legsPage:mx};}
     if(p.page==="RTE_DATA"&&p.legsPage>1)return{...p,legsPage:p.legsPage-1};
     if(p.page==="PROGRESS"&&p.progPage>1)return{...p,progPage:p.progPage-1};
     if(p.page==="FIX"&&(p.fixPage||0)>0)return{...p,fixPage:(p.fixPage||0)-1};
@@ -19709,7 +19897,7 @@ function MFKKeypad({fms,setFms,mfdMode,setMfdMode}) {
     if(p.page==="TOREF1")return{...p,page:"TOREF2"};
     if(p.page==="RTE_1")return{...p,page:"RTE_1_2",rtePage:2};
     if(p.page==="RTE_1_2"){const mx=Math.ceil(p.routeLegs.length/5)+1;if(p.rtePage<mx)return{...p,rtePage:p.rtePage+1};}
-    if(p.page==="LEGS"){var cl=p.computedLegs||[];var mx=Math.max(1,Math.ceil((cl.length||(p.routeLegs.length+2))/5));if(p.legsPage<mx)return{...p,legsPage:p.legsPage+1};}
+    if(p.page==="LEGS"){var cl=p.computedLegs||[];var mx=Math.max(1,Math.ceil((cl.length||(p.routeLegs.length+2))/5));if(p.legsPage<mx)return{...p,legsPage:p.legsPage+1};return{...p,legsPage:1};}
     if(p.page==="RTE_DATA"){var cl2=p.computedLegs||[];var rl=cl2.filter(function(l){return !l.isRwy;});var mx2=Math.max(1,Math.ceil(rl.length/5));if(p.legsPage<mx2)return{...p,legsPage:p.legsPage+1};}
     if(p.page==="PROGRESS"&&p.progPage<4)return{...p,progPage:p.progPage+1};
     if(p.page==="FIX"&&(p.fixPage||0)<3)return{...p,fixPage:(p.fixPage||0)+1};
@@ -19734,7 +19922,21 @@ function MFKKeypad({fms,setFms,mfdMode,setMfdMode}) {
     // Default: CDU scratchpad
     if(k==="CLR")s.scratchpad=s.scratchpad.slice(0,-1);else if(k==="DEL")s.scratchpad="DELETE";else if(k==="SP")s.scratchpad+=" ";else if(k==="+/-")s.scratchpad+=s.scratchpad.endsWith("-")?"+":"-";else if(k==="PREV\nPAGE"||k==="NEXT\nPAGE")return s;else if(k.length===1&&s.scratchpad.length<24)s.scratchpad+=k;return s;});};
   const NumBtn=({l})=>(React.createElement('button', { onClick: ()=>hk(l), style: {width:"42px",height:"42px",borderRadius:"50%",background:"radial-gradient(circle at 40% 35%,#555 0%,#2a2a2a 70%,#1a1a1a 100%)",color:C.white,border:"2px solid #444",fontSize:"14px",fontWeight:"bold",cursor:"pointer",fontFamily:M,boxShadow:"0 2px 4px rgba(0,0,0,0.6),inset 0 1px 1px rgba(255,255,255,0.15)"},}, l));
-  const ABtn=({l,hi=false})=>(React.createElement('button', { onClick: ()=>hk(l), style: {width:"42px",height:"40px",borderRadius:"3px",background:hi?"#3a3a3a":"linear-gradient(180deg,#3a3a3a 0%,#2a2a2a 100%)",color:C.white,border:hi?"2px solid #88cccc":"1px solid #555",fontSize:"14px",fontWeight:"bold",cursor:"pointer",fontFamily:M,boxShadow:"0 1px 3px rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,255,255,0.1)"},}, l));
+  var _clrTimer=null;
+  const ABtn=({l,hi=false})=>{
+    if(l==="CLR"){
+      return React.createElement('button', {
+        onClick: ()=>hk(l),
+        onMouseDown: ()=>{_clrTimer=setTimeout(()=>{setFms(p=>({...p,scratchpad:""}));_clrTimer=null;},2000);},
+        onMouseUp: ()=>{if(_clrTimer){clearTimeout(_clrTimer);_clrTimer=null;}},
+        onMouseLeave: ()=>{if(_clrTimer){clearTimeout(_clrTimer);_clrTimer=null;}},
+        onTouchStart: ()=>{_clrTimer=setTimeout(()=>{setFms(p=>({...p,scratchpad:""}));_clrTimer=null;},2000);},
+        onTouchEnd: ()=>{if(_clrTimer){clearTimeout(_clrTimer);_clrTimer=null;}},
+        style: {width:"42px",height:"40px",borderRadius:"3px",background:hi?"#3a3a3a":"linear-gradient(180deg,#3a3a3a 0%,#2a2a2a 100%)",color:C.white,border:hi?"2px solid #88cccc":"1px solid #555",fontSize:"14px",fontWeight:"bold",cursor:"pointer",fontFamily:M,boxShadow:"0 1px 3px rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,255,255,0.1)"},
+      }, l);
+    }
+    return React.createElement('button', { onClick: ()=>hk(l), style: {width:"42px",height:"40px",borderRadius:"3px",background:hi?"#3a3a3a":"linear-gradient(180deg,#3a3a3a 0%,#2a2a2a 100%)",color:C.white,border:hi?"2px solid #88cccc":"1px solid #555",fontSize:"14px",fontWeight:"bold",cursor:"pointer",fontFamily:M,boxShadow:"0 1px 3px rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,255,255,0.1)"},}, l);
+  };
   const MBtn=({l,a})=>(React.createElement('button', { onClick: ()=>{if(l==="CHKL"){setFms(function(p){return Object.assign({},p,{cursorIdx:null,prevMfdMode:mfdMode,prevPage:p.page});});setMfdMode(l);}else{setMfdMode(l);if(l==="COMM")setFms(function(p){return Object.assign({},p,{cursorIdx:null});});}}, style: {width:"55px",height:"28px",borderRadius:"3px",position:"relative",background:a?"#2a2a2a":"#3a3a3a",color:C.white,border:a?"2px solid #fff":"1px solid #555",fontSize:"11px",fontWeight:"bold",cursor:"pointer",fontFamily:M,boxShadow:a?"0 0 4px rgba(255,255,255,0.3)":"0 1px 3px rgba(0,0,0,0.4)"},}
     , l));
   // Move DOM cursor to LSK position AND set cursorIdx
@@ -19901,7 +20103,7 @@ function MFKKeypad({fms,setFms,mfdMode,setMfdMode}) {
       , React.createElement('div', { style: {display:"flex",gap:"6px",justifyContent:"center"},}
         , React.createElement('button', { onClick: handlePrev, style: {width:"56px",height:"34px",borderRadius:"3px",background:"linear-gradient(180deg,#3a3a3a 0%,#2a2a2a 100%)",color:C.white,border:"1px solid #555",fontSize:"11px",fontWeight:"bold",cursor:"pointer",fontFamily:M,boxShadow:"0 1px 3px rgba(0,0,0,0.5)",lineHeight:1.1,whiteSpace:"pre-line",textAlign:"center"},}, "PREV\nPAGE")
         , React.createElement('button', { onClick: handleNext, style: {width:"56px",height:"34px",borderRadius:"3px",background:"linear-gradient(180deg,#3a3a3a 0%,#2a2a2a 100%)",color:C.white,border:"1px solid #555",fontSize:"11px",fontWeight:"bold",cursor:"pointer",fontFamily:M,boxShadow:"0 1px 3px rgba(0,0,0,0.5)",lineHeight:1.1,whiteSpace:"pre-line",textAlign:"center"},}, "NEXT\nPAGE")
-        , React.createElement('button', { onClick: ()=>setFms(p=>{if(!p.execLight)return p;var n={...p,execLight:false,phase:p.origin&&p.dest?"ACTIVE":p.phase};if(p.depSid)n.depSidAct=true;if(p.arrStar)n.arrStarAct=true;if(p.arrApp)n.arrAppAct=true;return n;}), style: {width:"66px",height:"34px",borderRadius:"3px",background:fms.execLight?"#003300":"linear-gradient(180deg,#3a3a3a 0%,#2a2a2a 100%)",color:fms.execLight?C.execGr:C.white,border:`2px solid ${fms.execLight?C.execGr:"#555"}`,fontSize:"13px",fontWeight:"bold",cursor:"pointer",fontFamily:M,boxShadow:fms.execLight?`0 0 8px rgba(0,187,0,0.5)`:"0 1px 3px rgba(0,0,0,0.5)"},}, "EXEC")
+        , React.createElement('button', { onClick: ()=>setFms(p=>{if(!p.execLight)return p;var n={...p,execLight:false,phase:p.origin&&p.dest?"ACTIVE":p.phase};if(p.depSid)n.depSidAct=true;if(p.arrStar)n.arrStarAct=true;if(p.arrApp)n.arrAppAct=true;n.computedLegs=buildLegs(n);n._snapshot={depSid:n.depSid,depRwy:n.depRwy,depTrans:n.depTrans,arrStar:n.arrStar,arrApp:n.arrApp,arrTrans:n.arrTrans,routeLegs:JSON.parse(JSON.stringify(n.routeLegs))};return n;}), style: {width:"66px",height:"34px",borderRadius:"3px",background:fms.execLight?"#003300":"linear-gradient(180deg,#3a3a3a 0%,#2a2a2a 100%)",color:fms.execLight?C.execGr:C.white,border:`2px solid ${fms.execLight?C.execGr:"#555"}`,fontSize:"13px",fontWeight:"bold",cursor:"pointer",fontFamily:M,boxShadow:fms.execLight?`0 0 8px rgba(0,187,0,0.5)`:"0 1px 3px rgba(0,0,0,0.5)"},}, "EXEC")
       )
       /* ═══ FCOM 10.10.53 #4/#5: Cursor Control + #3: Touch Pad ═══ */
       , React.createElement('div', { style: {display:"flex",flexDirection:"column",alignItems:"center",marginTop:2,gap:6},}
@@ -22007,21 +22209,22 @@ function B787Cockpit(){
         React.createElement('div', {style:{color:"#00cccc",fontSize:33,fontWeight:"bold",letterSpacing:4,marginBottom:4}}, "B787 DREAMLINER"),
         React.createElement('div', {style:{color:"#aaa",fontSize:14,letterSpacing:2}}, "COCKPIT PROCEDURE SIMULATOR"),
         React.createElement('div', {style:{color:"#777",fontSize:14,marginTop:4}}, "FOR TRAINING PURPOSE ONLY"),
-        React.createElement('div', {style:{color:"#00bb00",fontSize:11,marginTop:12,letterSpacing:1}}, "v2.8.33 \u00a0|\u00a0 by SHLee7872603")
+        React.createElement('div', {style:{color:"#00bb00",fontSize:11,marginTop:12,letterSpacing:1}}, "v2.8.34 \u00a0|\u00a0 by SHLee7872603")
       ),
       React.createElement('div', {style:{borderTop:"1px solid #333",borderBottom:"1px solid #333",padding:"14px 0",marginBottom:16}},
         React.createElement(ChkRow, {checked:ckIPad,onToggle:function(){setCkIPad(function(p){return!p;});}},
-          React.createElement('div', {style:{color:"#00cccc",fontSize:17,fontWeight:"bold",marginBottom:8,letterSpacing:1}}, "PATCH NOTES v2.8.33"),
+          React.createElement('div', {style:{color:"#00cccc",fontSize:17,fontWeight:"bold",marginBottom:8,letterSpacing:1}}, "PATCH NOTES v2.8.34"),
           React.createElement('div', {style:{color:"#aaa",fontSize:14,fontWeight:"bold",lineHeight:1.8}},
-            React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginBottom:2}}, "v2.8.33"),
+            React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginBottom:2}}, "v2.8.34"),
+            React.createElement('div', null, "\u2022 RTE/LEGS DISC \uc0dd\uc131\u00b7\ud574\uc18c\u00b7ERASE \ub85c\uc9c1 \uad6c\ud604"),
+            React.createElement('div', null, "\u2022 Missed Approach APP\ubcc4 \ubd84\ub9ac (RNP16L/ILS16L)"),
+            React.createElement('div', null, "\u2022 ILS16L NAV DATA \ucc28\ud2b8 \uae30\ubc18 \uc218\uc815"),
+            React.createElement('div', null, "\u2022 EXEC \uc2a4\ub0c5\uc0f7/ERASE \ubcf5\uc6d0 \u00b7 CLR \ub871\ud504\ub808\uc2a4"),
+            React.createElement('div', null, "\u2022 PERF INIT \ucee4\uc11c \uc790\ub3d9\uc774\ub3d9 \u00b7 POS INIT \ubd84\ub9ac"),
+            React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginTop:8,marginBottom:2}}, "v2.8.33"),
             React.createElement('div', null, "\u2022 EFB bezel FCOM 10.70.2 \uae30\ubc18 \uc804\uba74 \uc7ac\uad6c\uc131"),
             React.createElement('div', null, "\u2022 MAIN MENU \ubc30\uc5f4 FCOM 10.70.4 \uae30\ubc18 \uc218\uc815"),
             React.createElement('div', null, "\u2022 Soft key / LSK \uc815\ub82c \uac1c\uc120"),
-            React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginTop:8,marginBottom:2}}, "v2.8.30"),
-            React.createElement('div', null, "\u2022 EFB IDENT \ud398\uc774\uc9c0 \uc2e4\uc81c EFB \uae30\ubc18 \uc7ac\uad6c\uc131"),
-            React.createElement('div', null, "\u2022 CDU \ud14d\uc2a4\ud2b8 \uc601\uc5ed \ud130\uce58/\ud074\ub9ad\uc73c\ub85c LSK \uc120\ud0dd"),
-            React.createElement('div', null, "\u2022 Scratchpad \ube48 \uc0c1\ud0dc \ud544\ub4dc \uc120\ud0dd \uc2dc \uac12 \ubcf5\uc0ac"),
-            React.createElement('div', null, "\u2022 After Takeoff \ud6c4 VNAV \u2192 CRZ"),
 
           )
         )
@@ -22093,7 +22296,7 @@ function B787Cockpit(){
         , React.createElement('button', { onClick: ()=>setSplash(true), style: {padding:"5px 10px",background:"#0a0a1a",color:"#aaccff",border:"1px solid #446",borderRadius:3,fontSize:10,fontWeight:"bold",cursor:"pointer",fontFamily:M},}, "INFO")
       , React.createElement('div', { style: {width:1,height:18,background:"#333"},})
       , ["CDU","EFB","FWD"].map(v=>(
-        React.createElement('button', { key: v, onClick: ()=>switchView(v), style: {padding:"5px 14px",background:activeView===v?"#0a2a0a":"#111",color:activeView===v?C.green:C.dim,border:`1px solid ${activeView===v?C.green:"#333"}`,borderRadius:3,fontSize:11,fontWeight:"bold",cursor:"pointer",fontFamily:M},}, v==="FWD"?"FWD PANEL":v)
+        React.createElement('button', { key: v, onClick: ()=>switchView(v), style: {padding:"5px 14px",background:activeView===v?"#0a2a0a":"#111",color:activeView===v?C.green:"#aaa",border:`1px solid ${activeView===v?C.green:"#444"}`,borderRadius:3,fontSize:11,fontWeight:"bold",cursor:"pointer",fontFamily:M},}, v==="FWD"?"FWD PANEL":v)
       ))
       , React.createElement('button', { onClick: function(){
         var rteLegs=[{via:"OSPO2C",to:"OSPOT"},{via:"Y782",to:"TGU"},{via:"Y781",to:"BESNA"},{via:"Y209",to:"IKE"}];
