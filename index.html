@@ -9,7 +9,7 @@
 <meta name="theme-color" content="#050505">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>B787 CDU Practice v2.8.36a</title>
+<title>B787 CDU Practice v2.8.36b</title>
 <style>*{margin:0;padding:0;box-sizing:border-box;-webkit-user-select:none;user-select:none}body{background:#050505;overflow-x:hidden}</style>
 </head>
 <body>
@@ -17996,8 +17996,8 @@ function cduPageData(fms) {
       const rows = [];
       for(let i=0; i<5; i++) {
         const leg = legsSlice[i];
-        if(leg&&leg._disc) rows.push({tl:i===0?"VIA":"",tr:i===0?"TO":"",
-          dl:"□□□□□",dr:"-----",dlc:C.white,drc:C.white,tlc:C.dim,trc:C.dim,discLine:true});
+        if(leg&&leg._disc) rows.push({tl:i===0?"VIA   ROUTE DISCONTINUITY":"------  ROUTE  DISCONTINUITY  ------",tr:i===0?"TO":"",
+          dl:"□□□□□",dr:"-----",dlc:C.white,drc:C.white,tlc:C.white,trc:C.dim});
         else if(leg) rows.push({tl:i===0?"VIA":"",tr:i===0?"TO":"",
           dl:leg.via||"DIRECT",dr:leg.to||(leg.via?"-----":""),
           dlc:leg._star||leg._app||leg._appTrans||leg._sid||leg._missed?C.cyan:C.green,drc:leg._star||leg._app||leg._appTrans||leg._sid||leg._missed?C.cyan:leg.to?C.green:C.white,
@@ -18423,9 +18423,9 @@ function cduPageData(fms) {
       slice.forEach((leg,i)=>{
         const isFirst=startIdx+i===0;
         const isActive=startIdx+i===0 && fms.phase==="ACTIVE" && !fms.execLight;
-        // FCOM 11.42.2: Discontinuity display — THEN + □□□□□ row, then dashed line
+        // FCOM 11.42.2: Discontinuity — ROUTE DISCONTINUITY in title, □□□□□ in data
         if(leg.isDisc){
-          rows.push({tl:"THEN",dl:"□□□□□",dlc:C.white,tlc:C.white,discLine:true});
+          rows.push({tl:"------  ROUTE  DISCONTINUITY  ------",dl:"□□□□□",dlc:C.white,tlc:C.white});
           return;
         }
         // FCOM 11.42.14: Holding pattern display
@@ -19058,22 +19058,29 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
             s.scratchpad="";s.execLight=true;
             updateRouteLegs(s);s.computedLegs=buildLegs(s);
           }
-          // Case B: New entry — check if DISC needed
+          // Case B: New entry
           else {
-            let lastFilledIdx=-1;
-            for(let k=idx-1;k>=0;k--){if(s.routeLegs[k]&&(s.routeLegs[k].to||s.routeLegs[k]._disc)){lastFilledIdx=k;break;}}
-            const prevLeg=lastFilledIdx>=0?s.routeLegs[lastFilledIdx]:null;
-            if(prevLeg && prevLeg.to && prevLeg.to!==inputTo && !prevLeg._disc){
-              const removeFrom=lastFilledIdx+1;
-              const removeCount=idx-removeFrom+1;
-              if(removeCount>0)s.routeLegs.splice(removeFrom,removeCount);
-              s.routeLegs.splice(removeFrom,0,
-                {via:"DISCONTINUITY",to:"",_disc:true,_manual:true},
-                {via:"DIRECT",to:inputTo,_manual:true}
-              );
-            } else {
-              if(!s.routeLegs[idx].via)s.routeLegs[idx].via="DIRECT";
+            // If VIA is already set on this row (user entered airway first), just set TO
+            if(s.routeLegs[idx]&&s.routeLegs[idx].via&&s.routeLegs[idx].via!=="DIRECT"&&s.routeLegs[idx].via!==""){
               s.routeLegs[idx]={...s.routeLegs[idx],to:inputTo};
+            }
+            // Otherwise check if DISC needed
+            else {
+              let lastFilledIdx=-1;
+              for(let k=idx-1;k>=0;k--){if(s.routeLegs[k]&&(s.routeLegs[k].to||s.routeLegs[k]._disc)){lastFilledIdx=k;break;}}
+              const prevLeg=lastFilledIdx>=0?s.routeLegs[lastFilledIdx]:null;
+              if(prevLeg && prevLeg.to && prevLeg.to!==inputTo && !prevLeg._disc){
+                const removeFrom=lastFilledIdx+1;
+                const removeCount=idx-removeFrom+1;
+                if(removeCount>0)s.routeLegs.splice(removeFrom,removeCount);
+                s.routeLegs.splice(removeFrom,0,
+                  {via:"DISCONTINUITY",to:"",_disc:true,_manual:true},
+                  {via:"DIRECT",to:inputTo,_manual:true}
+                );
+              } else {
+                if(!s.routeLegs[idx].via)s.routeLegs[idx].via="DIRECT";
+                s.routeLegs[idx]={...s.routeLegs[idx],to:inputTo};
+              }
             }
             s.scratchpad="";s.execLight=true;
             updateRouteLegs(s);s.computedLegs=buildLegs(s);
@@ -19124,11 +19131,11 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
       else if(p==="THRUST_LIM"){if(side==="L"&&num===2)s.thrustMode="TO";if(side==="L"&&num===3)s.thrustMode="TO 1";if(side==="L"&&num===4)s.thrustMode="TO 2";if(side==="L"&&num===1)set("selOat");if(side==="L"&&num===6)go("INIT_REF");if(side==="R"&&num===6)go("TOREF1");}
       else if(p==="APPROACH_REF"){
         if(side==="L"&&num===1&&sp){s.grWt=sp;s.scratchpad="";}
-        if(side==="R"&&num===1){s.appFlapSpd="20";var _gw2=parseFloat(s.grWt||0);if(_gw2>100){s.vref=String(Math.round(115+_gw2*0.065)+6);s.landFlaps="20";}s.scratchpad="";s._skipCopy=true;}
-        if(side==="R"&&num===2){s.appFlapSpd="25";var _gw3=parseFloat(s.grWt||0);if(_gw3>100){s.vref=String(Math.round(115+_gw3*0.065)+3);s.landFlaps="25";}s.scratchpad="";s._skipCopy=true;}
+        if(side==="R"&&num===1){var _gw2=parseFloat(s.grWt||0);if(_gw2>100){s.scratchpad="20/"+String(Math.round(115+_gw2*0.065)+6);}}
+        if(side==="R"&&num===2){var _gw3=parseFloat(s.grWt||0);if(_gw3>100){s.scratchpad="25/"+String(Math.round(115+_gw3*0.065)+3);}}
         if(side==="L"&&num===3)s.appLandRef=s.appLandRef==="QFE"?"QNH":"QFE";
-        if(side==="R"&&num===3){s.appFlapSpd="30";var _gw4=parseFloat(s.grWt||0);if(_gw4>100){s.vref=String(Math.round(115+_gw4*0.065));s.landFlaps="30";}s.scratchpad="";s._skipCopy=true;}
-        if(side==="R"&&num===4&&sp){s.appFlapSpd=sp.split("/")[0];s.scratchpad="";}
+        if(side==="R"&&num===3){var _gw4=parseFloat(s.grWt||0);if(_gw4>100){s.scratchpad="30/"+String(Math.round(115+_gw4*0.065));}}
+        if(side==="R"&&num===4&&sp){var _parts=sp.split("/");s.appFlapSpd=_parts[0];s.landFlaps=_parts[0];if(_parts[1])s.vref=_parts[1];s.scratchpad="";}
         if(side==="L"&&num===5)s.appGsOn=!s.appGsOn;
         if(side==="R"&&num===5&&sp){s.appWindCorr=sp;s.scratchpad="";}
         if(side==="L"&&num===6)go("INIT_REF");
@@ -22395,20 +22402,20 @@ function B787Cockpit(){
         React.createElement('div', {style:{color:"#00cccc",fontSize:33,fontWeight:"bold",letterSpacing:4,marginBottom:4}}, "B787 DREAMLINER"),
         React.createElement('div', {style:{color:"#aaa",fontSize:14,letterSpacing:2}}, "COCKPIT PROCEDURE SIMULATOR"),
         React.createElement('div', {style:{color:"#777",fontSize:14,marginTop:4}}, "FOR TRAINING PURPOSE ONLY"),
-        React.createElement('div', {style:{color:"#00bb00",fontSize:11,marginTop:12,letterSpacing:1}}, "v2.8.36a \u00a0|\u00a0 by SHLee7872603")
+        React.createElement('div', {style:{color:"#00bb00",fontSize:11,marginTop:12,letterSpacing:1}}, "v2.8.36b \u00a0|\u00a0 by SHLee7872603")
       ),
       React.createElement('div', {style:{borderTop:"1px solid #333",borderBottom:"1px solid #333",padding:"14px 0",marginBottom:16}},
         React.createElement(ChkRow, {checked:ckIPad,onToggle:function(){setCkIPad(function(p){return!p;});}},
-          React.createElement('div', {style:{color:"#00cccc",fontSize:17,fontWeight:"bold",marginBottom:8,letterSpacing:1}}, "PATCH NOTES v2.8.36a"),
+          React.createElement('div', {style:{color:"#00cccc",fontSize:17,fontWeight:"bold",marginBottom:8,letterSpacing:1}}, "PATCH NOTES v2.8.36b"),
           React.createElement('div', {style:{color:"#aaa",fontSize:14,fontWeight:"bold",lineHeight:1.8}},
-            React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginBottom:2}}, "v2.8.36a"),
-            React.createElement('div', null, "\u2022 CDU Row 48px\uace0\uc815 (Title 20px + Data 28px), Row\uac04 8px"),
-            React.createElement('div', null, "\u2022 \uae00\uc790\ud3ed scaleX(0.726), letterSpacing +1px"),
-            React.createElement('div', null, "\u2022 \uba54\ub274\ubc84\ud2bc 8\uac1c \ubc30\uce58, MFK \ud328\ub110 +20px, \ud2b8\ub799\ud328\ub4dc +20px"),
-            React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginTop:8,marginBottom:2}}, "v2.8.36"),
-            React.createElement('div', null, "\u2022 AUX Display \ub9ac\ub514\uc790\uc778 (FCOM 10.10.63)"),
-            React.createElement('div', null, "\u2022 DCL\u2192AUX \uc5f0\ub3d9 \u00b7 CANC \ud074\ub9ac\uc5b4"),
+            React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginBottom:2}}, "v2.8.36b"),
+            React.createElement('div', null, "\u2022 APPROACH REF R1-R3 \u2192 \uc2a4\ud06c\ub798\uce58\ud328\ub4dc \ubcf5\uc0ac \u2192 R4 \uc785\ub825 \ubc29\uc2dd\uc73c\ub85c \ubcc0\uacbd"),
+            React.createElement('div', null, "\u2022 RTE VIA/TO \uc218\ub3d9\uc785\ub825 \uc2dc VIA \uc124\uc815\ub41c \ud589\uc5d0 DISC \ubc29\uc9c0"),
+            React.createElement('div', null, "\u2022 ROUTE DISCONTINUITY Title \ud589\uc73c\ub85c \ud1b5\ud569"),
+            React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginTop:8,marginBottom:2}}, "v2.8.36a"),
+            React.createElement('div', null, "\u2022 CDU \ud654\uba74 \ub808\uc774\uc544\uc6c3 \uc804\uba74 \uc870\uc815 (Row 48px, scaleX 0.726)"),
             React.createElement('div', null, "\u2022 LEGS modify FCOM 11.42.1-7 \uc804\uba74 \uc7ac\uad6c\ud604"),
+            React.createElement('div', null, "\u2022 AUX Display \ub9ac\ub514\uc790\uc778 \u00b7 DCL\u2192AUX \uc5f0\ub3d9"),
 
           )
         )
