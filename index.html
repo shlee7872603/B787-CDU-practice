@@ -9,7 +9,7 @@
 <meta name="theme-color" content="#050505">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>B787 CDU Practice v2.8.34</title>
+<title>B787 CDU Practice v2.8.35</title>
 <style>*{margin:0;padding:0;box-sizing:border-box;-webkit-user-select:none;user-select:none}body{background:#050505;overflow-x:hidden}</style>
 </head>
 <body>
@@ -17857,6 +17857,7 @@ const initFMS = () => ({
   // OFFSET state (FCOM 11.42.19)
   offsetDist:"",offsetStart:"",offsetEnd:"",offsetSlopStart:"",offsetSlopEnd:"",
   pendingUplink:null, // FCOM 11.40.44: pending TAKEOFF REF UPLINK data
+  auxMsg:"", auxBlink:false, // AUX Display message & tab blink
   // Speed mode
   spdMode:"ECON SPD",
   // CLB page state (FCOM 11.41.3)
@@ -18421,7 +18422,7 @@ function cduPageData(fms) {
       const rows=[];
       slice.forEach((leg,i)=>{
         const isFirst=startIdx+i===0;
-        const isActive=startIdx+i===0 && fms.phase==="ACTIVE";
+        const isActive=startIdx+i===0 && fms.phase==="ACTIVE" && !fms.execLight;
         // FCOM 11.42.2: Discontinuity display — THEN + □□□□□ row, then dashed line
         if(leg.isDisc){
           rows.push({tl:"THEN",dl:"□□□□□",dlc:C.white,tlc:C.white,discLine:true});
@@ -18625,36 +18626,70 @@ function cduPageData(fms) {
       const fi=fms.fixPage||0;
       const fd=fms.fixData[fi]||{fix:"",brg:["","",""],dis:["","",""],abeam:"",pred:""};
       const hasFix=!!fd.fix;
-      const db=FLIGHT_DB[(fms.fltNo||"").toUpperCase()];
       const legs=(fms.computedLegs||[]);
       const now=new Date();const baseMin=now.getUTCHours()*60+now.getUTCMinutes();
       const fmtETA=(m)=>{const t=(baseMin+m)%1440;return String(Math.floor(t/60)).padStart(2,"0")+String(t%60).padStart(2,"0")+"Z";};
-      // FCOM 11.42.40 #2: For each BRG/DIS entry, compute intersection ETA/DTG/ALT
-      const brgDisRow=(i)=>{
+      // 4-column equal-width flex helper (FCOM 11.42.40: BRG/DIS | ETA | DTG | ALT)
+      const Col4=({a,b,c,d,ac,bc,cc,dc:dc2})=>React.createElement('div',{style:{display:"flex",flex:1,width:"100%"}},
+        React.createElement('span',{style:{flex:1,color:ac||C.white}},a||""),
+        React.createElement('span',{style:{flex:1,textAlign:"center",color:bc||C.white}},b||""),
+        React.createElement('span',{style:{flex:1,textAlign:"center",color:cc||C.white}},c||""),
+        React.createElement('span',{style:{flex:1,textAlign:"right",color:dc2||C.white}},d||""));
+      // FCOM 11.42.40 #2: BRG/DIS row with ETA, DTG, ALT (4-col equal layout)
+      const brgDisRow=(i,showTitle)=>{
         const b=fd.brg[i],d=fd.dis[i];
-        if(!b&&!d)return{dl:"---/----",dr:"",dlc:C.cyan,drc:C.white};
-        const brgDis=`${b||"---"}/${d||"----"}`;
-        // Simulated intersection with route
-        const etaMin=12+i*8;const dtg=40+i*25;const alt=legs.length?(parseInt(((legs[Math.min(i+3,legs.length-1)]||{}).pred||"").replace(/[^0-9]/g,""))||12000):"---";
-        return{dl:brgDis,dr:`${fmtETA(etaMin)}    ${dtg}    ${alt}`,dlc:C.green,drc:C.white};
+        const hasEntry=!!(b||d);
+        const brgDis=hasEntry?`${b||"---"}/${d||"----"}`:"---/----";
+        const titleEl=showTitle?React.createElement(Col4,{a:"BRG/DIS",b:"ETA",c:"DTG",d:"ALT"}):"";
+        if(!hasEntry)return{
+          tl:titleEl,tlc:C.dim,
+          dl:React.createElement(Col4,{a:brgDis,ac:C.cyan})};
+        // Simulated intersection with active route
+        const etaMin=12+i*8;const dtg=40+i*25;
+        const alt=legs.length?(parseInt(((legs[Math.min(i+3,legs.length-1)]||{}).pred||"").replace(/[^0-9]/g,""))||12000):"---";
+        return{
+          tl:titleEl,tlc:C.dim,
+          dl:React.createElement(Col4,{a:brgDis,b:fmtETA(etaMin),c:String(dtg),d:String(alt),ac:C.green,bc:C.white,cc:C.white,dc:C.white})};
       };
       // FCOM 11.42.40 #7: BRG/DIS FR — bearing and distance from airplane to fix
       const brgDisFr=hasFix?"---/---":"";
+      // FCOM 11.42.41 #4: ABEAM row
+      const abeamData=fd.abeam||"";
+      const abeamRow=(()=>{
+        if(!hasFix)return{};
+        if(abeamData){
+          // ABEAM computed: show BRG/DIS + ETA/DTG/ALT in 4-col
+          const etaMin=28;const dtg=18;const alt=legs.length?(parseInt(((legs[Math.min(4,legs.length-1)]||{}).pred||"").replace(/[^0-9]/g,""))||15500):"---";
+          return{tl:React.createElement(Col4,{a:"ABEAM"}),tlc:C.dim,
+            dl:React.createElement(Col4,{a:abeamData,b:fmtETA(etaMin),c:String(dtg),d:String(alt),ac:C.green,bc:C.white,cc:C.white,dc:C.white})};
+        }
+        return{dl:"<ABEAM",dlc:C.cyan};
+      })();
       // FCOM 11.42.41 #8: PRED ETA-ALT
       const predVal=fd.pred||"";
-      const predDisplay=predVal?`${predVal.includes("Z")?predVal:""}    ${predVal.includes("Z")?"":"112NM    "+fmtETA(45)}`:"-----";
+      const predDisplay=(()=>{
+        if(!predVal)return"";
+        if(predVal.toUpperCase().includes("Z")){
+          return `112NM    ${predVal.toUpperCase()}`;
+        }
+        return `112NM    ${predVal.toUpperCase()}`;
+      })();
       return {title:"FIX INFO",titleSub:`${fi+1}/4`,rows:[
+        // FCOM Row 1: FIX name (L1) | BRG/DIS FR (R1)
         {tl:"FIX",tr:hasFix?"BRG/DIS FR":"",
          dl:hasFix?fd.fix:"▯▯▯▯▯",dr:brgDisFr,
          dlc:hasFix?C.green:C.cyan,drc:C.white,tlc:C.dim,trc:C.dim},
-        {tl:hasFix?"BRG/DIS    ETA    DTG":"",tr:hasFix?"ALT":"",
-         ...brgDisRow(0),tlc:C.dim,trc:C.dim},
-        hasFix?{...brgDisRow(1)}:{},
-        hasFix?{dl:fd.brg[2]||fd.dis[2]?`${fd.brg[2]||"---"}/${fd.dis[2]||"----"}`:"---/----",dlc:C.cyan}:{},
-        {dl:hasFix?"<ABEAM":"",dr:fd.abeam||"",
-         dlc:C.cyan,drc:C.green},
-        {tl:hasFix?"PRED":"",tr:hasFix?"ETA-ALT":"",
-         dl:hasFix?"<ERASE FIX":"",dr:hasFix?predDisplay:"",
+        // FCOM Row 2: BRG/DIS[0] with title row (4-col: BRG/DIS | ETA | DTG | ALT)
+        hasFix?brgDisRow(0,true):{},
+        // FCOM Row 3: BRG/DIS[1] (no title)
+        hasFix?brgDisRow(1,false):{},
+        // FCOM Row 4: BRG/DIS[2] (no title)
+        hasFix?brgDisRow(2,false):{},
+        // FCOM Row 5: ABEAM
+        abeamRow,
+        // FCOM Row 6: <ERASE FIX (L6) | PRED ETA-ALT (R6)
+        {tl:"",tr:hasFix?"PRED           ETA-ALT":"",
+         dl:hasFix?"<ERASE FIX":"",dr:hasFix?(predDisplay||"-----"):"",
          dlc:C.cyan,drc:C.cyan,tlc:C.dim,trc:C.dim},
       ],sep:5};
     })(),
@@ -18963,7 +18998,7 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
               s.arrStar="";s.arrApp="";s.arrTrans="";s.arrStarAct=false;s.arrAppAct=false;
             }
             s.execLight=false;
-            updateRouteLegs(s);s.computedLegs=buildLegs(s);
+            if(s._snapshot&&s._snapshot.computedLegs){s.computedLegs=JSON.parse(JSON.stringify(s._snapshot.computedLegs));}else{updateRouteLegs(s);s.computedLegs=buildLegs(s);}
           } else go("INIT_REF");
         }
       }
@@ -19060,7 +19095,7 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
               if(!s.arrAppAct){s.arrApp="";s.arrTrans="";}
             }
             s.execLight=false;
-            updateRouteLegs(s);s.computedLegs=buildLegs(s);
+            if(s._snapshot&&s._snapshot.computedLegs){s.computedLegs=JSON.parse(JSON.stringify(s._snapshot.computedLegs));}else{updateRouteLegs(s);s.computedLegs=buildLegs(s);}
           } else if(s.routeLegs.length){
             // <ERASE — erase visible route legs on this page
             const si=(s.rtePage-2)*5;
@@ -19185,91 +19220,97 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
         const legs=s.computedLegs||[];
         if(!legs.length){if(side==="R"&&num===6)go("RTE_DATA");return s;}
         const pgIdx=(s.legsPage-1)*5;
-        // FCOM 11.42.1: Modify / Add waypoint from scratchpad
+        const idx=pgIdx+(num-1);
+
+        // ═══ FCOM 11.42.5-6: R1-R5 — Copy waypoint name to scratchpad ═══
+        if(side==="R"&&num>=1&&num<=5){
+          if(idx<legs.length&&!legs[idx].isDisc&&legs[idx].wpt){
+            s.scratchpad=legs[idx].wpt;
+          }
+        }
+
+        // ═══ FCOM 11.42.2-7: L1-L5 with scratchpad waypoint (not DELETE) ═══
         if(side==="L"&&num>=1&&num<=5&&sp&&sp!=="DELETE"){
-          const idx=pgIdx+(num-1);
           const inputWpt=sp.toUpperCase();
 
-          // Case A: idx is within legs
           if(idx<legs.length){
-            // Check if there's any disc anywhere in legs
-            let hasDisc=false;
-            for(let k=0;k<legs.length;k++){if(legs[k].isDisc){hasDisc=true;break;}}
-            // Check if inputWpt exists somewhere else in legs (for merge)
-            let inputExists=-1;
-            for(let k=0;k<legs.length;k++){if(k!==idx&&legs[k].wpt===inputWpt&&!legs[k].isDisc){inputExists=k;break;}}
-
-            if(hasDisc && legs[idx].isDisc){
-              // Entering wpt on a DISC row → resolve disc only, keep the wpt after it
-              s.routeLegs=s.routeLegs.filter(l=>!(l._manual&&l._disc));
-              updateRouteLegs(s);
-              s.computedLegs=buildLegs(s);
-              s.scratchpad="";s.execLight=true;s.helpMsg="";
-            } else if(hasDisc && inputExists>=0){
-              // MERGE: inputWpt exists elsewhere in legs and there's a disc
-              const enrouteLegs=s.routeLegs.filter(l=>!l._star&&!l._app&&!l._disc&&!l._appTrans&&!l._sid&&!l._missed&&!l._manual);
-              if(enrouteLegs.length){
-                enrouteLegs[enrouteLegs.length-1].to=inputWpt;
+            // --- Target is a DISC row (□□□□□) → Remove Discontinuity (FCOM 11.42.7) ---
+            if(legs[idx].isDisc){
+              // Check if inputWpt exists later in legs (after DISC)
+              let existsAfter=-1;
+              for(let k=idx+1;k<legs.length;k++){
+                if(!legs[k].isDisc&&legs[k].wpt===inputWpt){existsAfter=k;break;}
               }
-              s.routeLegs=s.routeLegs.filter(l=>!l._disc&&!l._manual);
-              updateRouteLegs(s);
-              s.computedLegs=buildLegs(s);
-              s.scratchpad="";s.execLight=true;s.helpMsg="";
-            } else {
-              // No disc or no matching wpt — normal insert: create new waypoint + discontinuity
-              const newLeg={wpt:inputWpt,crs:"---°",dist:"---",spdAlt:"",pred:"",via:"DIRECT",inserted:true};
-              const disc={wpt:"□□□□□",crs:"",dist:"",spdAlt:"",pred:"",isDisc:true};
-              legs.splice(idx,0,newLeg,disc);
-              s.scratchpad="";s.execLight=true;s.helpMsg="";
+              if(existsAfter>=0){
+                // Wpt exists after DISC → remove DISC + all legs between DISC and that wpt
+                // This connects the route: before-DISC → inputWpt (no discontinuity)
+                legs.splice(idx,existsAfter-idx);
+                s.scratchpad="";s.execLight=true;s.helpMsg="";
+              } else {
+                // Wpt does NOT exist in route → insert wpt at DISC position, move DISC one down
+                const newLeg={wpt:inputWpt,crs:"---°",dist:"---",spdAlt:"",pred:"",via:"DIRECT",inserted:true};
+                legs.splice(idx,0,newLeg);
+                // DISC stays at idx+1 (moved down by one)
+                s.scratchpad="";s.execLight=true;s.helpMsg="";
+              }
+            }
+            // --- Target is a normal waypoint ---
+            else {
+              // Check if inputWpt already exists elsewhere in legs (Change Sequence — FCOM 11.42.5-6)
+              let inputExistsAt=-1;
+              for(let k=0;k<legs.length;k++){
+                if(k!==idx&&!legs[k].isDisc&&!legs[k].isRwy&&legs[k].wpt===inputWpt){inputExistsAt=k;break;}
+              }
+
+              if(inputExistsAt>=0){
+                // ── Change Waypoint Sequence (FCOM 11.42.5-6) ──
+                // Remove all waypoints from target position up to (but not including) inputWpt's position
+                // Then inputWpt moves up to target position — NO DISCONTINUITY
+                if(inputExistsAt>idx){
+                  // inputWpt is AFTER target → remove from idx to inputExistsAt (exclusive)
+                  // This removes the target and all waypoints between target and inputWpt
+                  legs.splice(idx,inputExistsAt-idx);
+                } else {
+                  // inputWpt is BEFORE target → remove target, inputWpt stays
+                  legs.splice(idx,1);
+                }
+                s.scratchpad="";s.execLight=true;s.helpMsg="";
+              } else {
+                // ── Add Waypoint (FCOM 11.42.2) ──
+                // Insert new waypoint at idx, followed by ROUTE DISCONTINUITY
+                // The entered wpt is connected to the wpt ABOVE via DIRECT
+                const newLeg={wpt:inputWpt,crs:"---°",dist:"---",spdAlt:"",pred:"",via:"DIRECT",inserted:true};
+                const disc={wpt:"□□□□□",crs:"",dist:"",spdAlt:"",pred:"",isDisc:true};
+                legs.splice(idx,0,newLeg,disc);
+                s.scratchpad="";s.execLight=true;s.helpMsg="";
+              }
             }
           }
-          // Case B: idx is beyond legs (empty row after last waypoint)
+          // Beyond last leg — append
           else if(idx>=legs.length){
-            const lastLeg=legs.length>0?legs[legs.length-1]:null;
-            if(lastLeg && !lastLeg.isDisc && lastLeg.wpt!==inputWpt){
-              // Different from last wpt → add manual DISC + DIRECT/wpt to routeLegs
-              // Remove any existing manual DISC first
-              s.routeLegs=s.routeLegs.filter(l=>!l._manual);
-              s.routeLegs.push({via:"DISCONTINUITY",to:"",_disc:true,_manual:true});
-              s.routeLegs.push({via:"DIRECT",to:inputWpt,_manual:true});
-              updateRouteLegs(s);
-              s.computedLegs=buildLegs(s);
-              // Navigate to page showing DISC
-              s.legsPage=Math.ceil(s.computedLegs.length/5);
-              s.scratchpad="";s.execLight=true;s.helpMsg="";
-            } else if(lastLeg && lastLeg.isDisc){
-              // Last is disc → resolve: replace with new wpt
-              legs.splice(legs.length-1,1,{wpt:inputWpt,crs:"---°",dist:"---",spdAlt:"",pred:"",via:"DIRECT",inserted:true});
-              // Update routeLegs: remove manual DISC, keep DIRECT/wpt
-              s.routeLegs=s.routeLegs.filter(l=>!(l._manual&&l._disc));
-              updateRouteLegs(s);
-              s.computedLegs=buildLegs(s);
-              s.scratchpad="";s.execLight=true;s.helpMsg="";
-            } else {
-              legs.push({wpt:inputWpt,crs:"---°",dist:"---",spdAlt:"",pred:"",via:"DIRECT",inserted:true});
-              s.scratchpad="";s.execLight=true;s.helpMsg="";
+            const newLeg={wpt:inputWpt,crs:"---°",dist:"---",spdAlt:"",pred:"",via:"DIRECT",inserted:true};
+            const disc={wpt:"□□□□□",crs:"",dist:"",spdAlt:"",pred:"",isDisc:true};
+            legs.splice(legs.length,0,newLeg,disc);
+            s.legsPage=Math.ceil(legs.length/5);
+            s.scratchpad="";s.execLight=true;s.helpMsg="";
+          }
+        }
+
+        // ═══ FCOM 11.42.4: DELETE waypoint → replace with □□□□□ + ROUTE DISCONTINUITY ═══
+        if(side==="L"&&num>=1&&num<=5&&sp==="DELETE"){
+          if(idx>0&&idx<legs.length&&!legs[idx].isRwy&&!legs[idx].isDest&&!legs[idx].isDisc){
+            // Cannot delete the active waypoint (idx===0 in active phase)
+            const isActive=idx===0&&s.phase==="ACTIVE";
+            if(!isActive){
+              // Replace waypoint with DISC (boxes) — data before/after does not change
+              const disc={wpt:"□□□□□",crs:"",dist:"",spdAlt:"",pred:"",isDisc:true};
+              legs.splice(idx,1,disc);
+              s.scratchpad="";s.execLight=true;
             }
           }
         }
-        // FCOM 11.42.3: DELETE waypoint → creates discontinuity
-        if(side==="L"&&num>=1&&num<=5&&sp==="DELETE"){
-          const idx=pgIdx+(num-1);
-          if(idx>0&&idx<legs.length&&!legs[idx].isRwy&&!legs[idx].isDest){
-            const disc={wpt:"□□□□□",crs:"",dist:"",spdAlt:"",pred:"",isDisc:true};
-            legs.splice(idx,1,disc);
-            s.scratchpad="";s.execLight=true;
-          }
-        }
-        // FCOM 11.42.6: Remove discontinuity — click disc row or enter scratchpad wpt into □□□□□
-        if(side==="L"&&num>=1&&num<=5&&!sp){
-          const idx=pgIdx+(num-1);
-          if(idx<legs.length&&legs[idx].isDisc){
-            s.routeLegs=s.routeLegs.filter(l=>!l._disc);
-            updateRouteLegs(s);
-            s.computedLegs=buildLegs(s);
-            s.execLight=true;
-          }
-        }
+
+        // ═══ L6: ERASE or <RTE 2 LEGS ═══
         if(side==="L"&&num===6){
           if(s.execLight){
             // ERASE — restore to last EXEC snapshot
@@ -19284,7 +19325,7 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
               if(!s.arrAppAct){s.arrApp="";s.arrTrans="";}
             }
             s.execLight=false;
-            updateRouteLegs(s);s.computedLegs=buildLegs(s);
+            if(s._snapshot&&s._snapshot.computedLegs){s.computedLegs=JSON.parse(JSON.stringify(s._snapshot.computedLegs));}else{updateRouteLegs(s);s.computedLegs=buildLegs(s);}
           }
         }
         if(side==="R"&&num===6)go("RTE_DATA");
@@ -19561,40 +19602,55 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
         const fi=s.fixPage||0;
         const fd={...s.fixData[fi]};
         // FCOM 11.42.39 #1: L1 enter fix name from scratchpad
-        if(side==="L"&&num===1&&sp){
+        if(side==="L"&&num===1&&sp&&sp!=="DELETE"){
           fd.fix=sp.toUpperCase();fd.brg=["","",""];fd.dis=["","",""];fd.abeam="";fd.pred="";
           s.scratchpad="";s.fixData=[...s.fixData];s.fixData[fi]=fd;
         }
+        // L1 DELETE: clear fix name (same as ERASE FIX)
+        if(side==="L"&&num===1&&sp==="DELETE"&&fd.fix){
+          s.fixData=[...s.fixData];
+          s.fixData[fi]={fix:"",brg:["","",""],dis:["","",""],abeam:"",pred:""};
+          s.scratchpad="";
+        }
         // FCOM 11.42.40 #2: L2-L4 enter BRG/DIS (XXX/YYY or /YYY for dist only)
-        if(side==="L"&&num>=2&&num<=4&&sp&&fd.fix){
+        if(side==="L"&&num>=2&&num<=4&&sp&&sp!=="DELETE"&&fd.fix){
           const parts=sp.split("/");
           if(parts.length===2){fd.brg[num-2]=parts[0];fd.dis[num-2]=parts[1];}
           else if(sp.startsWith("/")){fd.dis[num-2]=sp.slice(1);}
           else{fd.brg[num-2]=sp;}
           s.scratchpad="";s.fixData=[...s.fixData];s.fixData[fi]=fd;
         }
+        // L2-L4 DELETE: clear individual BRG/DIS entry
+        if(side==="L"&&num>=2&&num<=4&&sp==="DELETE"&&fd.fix){
+          fd.brg[num-2]="";fd.dis[num-2]="";
+          s.scratchpad="";s.fixData=[...s.fixData];s.fixData[fi]=fd;
+        }
         // FCOM 11.42.40 #6: R2-R4 copies fix place/bearing/distance to scratchpad
         if(side==="R"&&num>=2&&num<=4&&fd.fix){
           const b=fd.brg[num-2],d=fd.dis[num-2];
-          if(b||d){s.scratchpad=`${fd.fix}${b||""}${b?".0":""}/${d?d:""}`;}
+          if(b||d){s.scratchpad=`${fd.fix}${b||""}${b?".0":""}/${d?d+".0":""}`;}
         }
         // FCOM 11.42.41 #4: L5 ABEAM — compute perpendicular bearing/distance
         if(side==="L"&&num===5&&fd.fix){
           if(fd.abeam){
-            // Second click: copy to scratchpad
-            s.scratchpad=`${fd.fix}${fd.abeam}`;
+            // Second click: copy fix place/bearing/distance to scratchpad
+            s.scratchpad=`${fd.fix}${fd.abeam.replace("/",".0/")}`;
           } else {
-            // First click: compute abeam point (simulated)
+            // First click: compute abeam point (simulated perpendicular to nearest route segment)
             fd.abeam="090/15";
             s.fixData=[...s.fixData];s.fixData[fi]=fd;
           }
         }
-        // FCOM 11.42.41 #8: R6 PRED ETA-ALT entry (altitude or time+Z)
-        if(side==="R"&&num===6&&sp&&fd.fix){
-          fd.pred=sp;
+        // FCOM 11.42.41 #8: R6 PRED ETA-ALT entry (altitude, FL, or time+Z)
+        if(side==="R"&&num===6&&sp&&sp!=="DELETE"&&fd.fix){
+          fd.pred=sp.toUpperCase();
           s.scratchpad="";s.fixData=[...s.fixData];s.fixData[fi]=fd;
         }
-        // FCOM 11.42.40 #5: L6 ERASE FIX — remove all fix data
+        // R6 DELETE: clear PRED entry
+        if(side==="R"&&num===6&&sp==="DELETE"&&fd.fix){
+          fd.pred="";s.scratchpad="";s.fixData=[...s.fixData];s.fixData[fi]=fd;
+        }
+        // FCOM 11.42.41 #5: L6 ERASE FIX — remove all fix data from page and ND
         if(side==="L"&&num===6){
           s.fixData=[...s.fixData];
           s.fixData[fi]={fix:"",brg:["","",""],dis:["","",""],abeam:"",pred:""};
@@ -19713,7 +19769,7 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
       helpMsg:""};if(dest!=="PROGRESS")n.progDestWpt="";return n;});
   },[setFms,setMfdMode]);
 
-  const handleExec = useCallback(()=>setFms(p=>{if(!p.execLight)return p;var n={...p,execLight:false,phase:p.origin&&p.dest?"ACTIVE":p.phase};if(p.depSid)n.depSidAct=true;if(p.arrStar)n.arrStarAct=true;if(p.arrApp)n.arrAppAct=true;n.computedLegs=buildLegs(n);n._snapshot={depSid:n.depSid,depRwy:n.depRwy,depTrans:n.depTrans,arrStar:n.arrStar,arrApp:n.arrApp,arrTrans:n.arrTrans,routeLegs:JSON.parse(JSON.stringify(n.routeLegs))};return n;}),[setFms]);
+  const handleExec = useCallback(()=>setFms(p=>{if(!p.execLight)return p;var n={...p,execLight:false,phase:p.origin&&p.dest?"ACTIVE":p.phase};if(p.depSid)n.depSidAct=true;if(p.arrStar)n.arrStarAct=true;if(p.arrApp)n.arrAppAct=true;if(n.computedLegs)n.computedLegs.forEach(function(l){delete l.inserted;});n._snapshot={depSid:n.depSid,depRwy:n.depRwy,depTrans:n.depTrans,arrStar:n.arrStar,arrApp:n.arrApp,arrTrans:n.arrTrans,routeLegs:JSON.parse(JSON.stringify(n.routeLegs)),computedLegs:JSON.parse(JSON.stringify(n.computedLegs||[]))};return n;}),[setFms]);
 
   const handlePrev = ()=>setFms(p=>{
     if(p.page==="TOREF2")return{...p,page:"TOREF1"};
@@ -19722,7 +19778,7 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
     if(p.page==="RTE_1_2"&&p.rtePage>2)return{...p,rtePage:p.rtePage-1};
     if(p.page==="LEGS"){var cl=p.computedLegs||[];var mx=Math.max(1,Math.ceil((cl.length||(p.routeLegs.length+2))/5));if(p.legsPage>1)return{...p,legsPage:p.legsPage-1};return{...p,legsPage:mx};}
     if(p.page==="RTE_DATA"&&p.legsPage>1)return{...p,legsPage:p.legsPage-1};
-    if(p.page==="PROGRESS"&&p.progPage>1)return{...p,progPage:p.progPage-1};
+    if(p.page==="PROGRESS")return{...p,progPage:p.progPage>1?p.progPage-1:4};
     if(p.page==="FIX"&&(p.fixPage||0)>0)return{...p,fixPage:(p.fixPage||0)-1};
     if(p.page==="ALTN"&&p.altnDetailIdx<0&&(p.altnPage||1)>1)return{...p,altnPage:1};
     if(p.page==="RKSI_ARR"&&!p.arrStar&&!p.arrApp&&(p.arrPage||1)>1)return{...p,arrPage:(p.arrPage||1)-1};
@@ -19737,7 +19793,7 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
     if(p.page==="RTE_1_2"){const mx=Math.ceil(p.routeLegs.length/5)+1;if(p.rtePage<mx)return{...p,rtePage:p.rtePage+1};}
     if(p.page==="LEGS"){var cl=p.computedLegs||[];var mx=Math.max(1,Math.ceil((cl.length||(p.routeLegs.length+2))/5));if(p.legsPage<mx)return{...p,legsPage:p.legsPage+1};return{...p,legsPage:1};}
     if(p.page==="RTE_DATA"){var cl2=p.computedLegs||[];var rl=cl2.filter(function(l){return !l.isRwy;});var mx2=Math.max(1,Math.ceil(rl.length/5));if(p.legsPage<mx2)return{...p,legsPage:p.legsPage+1};}
-    if(p.page==="PROGRESS"&&p.progPage<4)return{...p,progPage:p.progPage+1};
+    if(p.page==="PROGRESS")return{...p,progPage:p.progPage<4?p.progPage+1:1};
     if(p.page==="FIX"&&(p.fixPage||0)<3)return{...p,fixPage:(p.fixPage||0)+1};
     if(p.page==="ALTN"&&p.altnDetailIdx<0&&(p.altnPage||1)<2)return{...p,altnPage:2};
     if(p.page==="RKSI_ARR"&&!p.arrStar&&!p.arrApp){var _db=AIRPORT_DB[(p.dest||"").toUpperCase()];var _mx=Math.max(1,Math.ceil(Math.max(((_db||{}).arrStars||[]).length,((_db||{}).arrApps||[]).length)/5));if((p.arrPage||1)<_mx)return{...p,arrPage:(p.arrPage||1)+1};}
@@ -19884,7 +19940,7 @@ function MFKKeypad({fms,setFms,mfdMode,setMfdMode}) {
     if(p.page==="RTE_1_2"&&p.rtePage>2)return{...p,rtePage:p.rtePage-1};
     if(p.page==="LEGS"){var cl=p.computedLegs||[];var mx=Math.max(1,Math.ceil((cl.length||(p.routeLegs.length+2))/5));if(p.legsPage>1)return{...p,legsPage:p.legsPage-1};return{...p,legsPage:mx};}
     if(p.page==="RTE_DATA"&&p.legsPage>1)return{...p,legsPage:p.legsPage-1};
-    if(p.page==="PROGRESS"&&p.progPage>1)return{...p,progPage:p.progPage-1};
+    if(p.page==="PROGRESS")return{...p,progPage:p.progPage>1?p.progPage-1:4};
     if(p.page==="FIX"&&(p.fixPage||0)>0)return{...p,fixPage:(p.fixPage||0)-1};
     if(p.page==="ALTN"&&p.altnDetailIdx<0&&(p.altnPage||1)>1)return{...p,altnPage:1};
     if(p.page==="RKSI_ARR"&&!p.arrStar&&!p.arrApp&&(p.arrPage||1)>1)return{...p,arrPage:(p.arrPage||1)-1};
@@ -19899,7 +19955,7 @@ function MFKKeypad({fms,setFms,mfdMode,setMfdMode}) {
     if(p.page==="RTE_1_2"){const mx=Math.ceil(p.routeLegs.length/5)+1;if(p.rtePage<mx)return{...p,rtePage:p.rtePage+1};}
     if(p.page==="LEGS"){var cl=p.computedLegs||[];var mx=Math.max(1,Math.ceil((cl.length||(p.routeLegs.length+2))/5));if(p.legsPage<mx)return{...p,legsPage:p.legsPage+1};return{...p,legsPage:1};}
     if(p.page==="RTE_DATA"){var cl2=p.computedLegs||[];var rl=cl2.filter(function(l){return !l.isRwy;});var mx2=Math.max(1,Math.ceil(rl.length/5));if(p.legsPage<mx2)return{...p,legsPage:p.legsPage+1};}
-    if(p.page==="PROGRESS"&&p.progPage<4)return{...p,progPage:p.progPage+1};
+    if(p.page==="PROGRESS")return{...p,progPage:p.progPage<4?p.progPage+1:1};
     if(p.page==="FIX"&&(p.fixPage||0)<3)return{...p,fixPage:(p.fixPage||0)+1};
     if(p.page==="ALTN"&&p.altnDetailIdx<0&&(p.altnPage||1)<2)return{...p,altnPage:2};
     if(p.page==="RKSI_ARR"&&!p.arrStar&&!p.arrApp){var _db=AIRPORT_DB[(p.dest||"").toUpperCase()];var _mx=Math.max(1,Math.ceil(Math.max(((_db||{}).arrStars||[]).length,((_db||{}).arrApps||[]).length)/5));if((p.arrPage||1)<_mx)return{...p,arrPage:(p.arrPage||1)+1};}
@@ -20103,7 +20159,7 @@ function MFKKeypad({fms,setFms,mfdMode,setMfdMode}) {
       , React.createElement('div', { style: {display:"flex",gap:"6px",justifyContent:"center"},}
         , React.createElement('button', { onClick: handlePrev, style: {width:"56px",height:"34px",borderRadius:"3px",background:"linear-gradient(180deg,#3a3a3a 0%,#2a2a2a 100%)",color:C.white,border:"1px solid #555",fontSize:"11px",fontWeight:"bold",cursor:"pointer",fontFamily:M,boxShadow:"0 1px 3px rgba(0,0,0,0.5)",lineHeight:1.1,whiteSpace:"pre-line",textAlign:"center"},}, "PREV\nPAGE")
         , React.createElement('button', { onClick: handleNext, style: {width:"56px",height:"34px",borderRadius:"3px",background:"linear-gradient(180deg,#3a3a3a 0%,#2a2a2a 100%)",color:C.white,border:"1px solid #555",fontSize:"11px",fontWeight:"bold",cursor:"pointer",fontFamily:M,boxShadow:"0 1px 3px rgba(0,0,0,0.5)",lineHeight:1.1,whiteSpace:"pre-line",textAlign:"center"},}, "NEXT\nPAGE")
-        , React.createElement('button', { onClick: ()=>setFms(p=>{if(!p.execLight)return p;var n={...p,execLight:false,phase:p.origin&&p.dest?"ACTIVE":p.phase};if(p.depSid)n.depSidAct=true;if(p.arrStar)n.arrStarAct=true;if(p.arrApp)n.arrAppAct=true;n.computedLegs=buildLegs(n);n._snapshot={depSid:n.depSid,depRwy:n.depRwy,depTrans:n.depTrans,arrStar:n.arrStar,arrApp:n.arrApp,arrTrans:n.arrTrans,routeLegs:JSON.parse(JSON.stringify(n.routeLegs))};return n;}), style: {width:"66px",height:"34px",borderRadius:"3px",background:fms.execLight?"#003300":"linear-gradient(180deg,#3a3a3a 0%,#2a2a2a 100%)",color:fms.execLight?C.execGr:C.white,border:`2px solid ${fms.execLight?C.execGr:"#555"}`,fontSize:"13px",fontWeight:"bold",cursor:"pointer",fontFamily:M,boxShadow:fms.execLight?`0 0 8px rgba(0,187,0,0.5)`:"0 1px 3px rgba(0,0,0,0.5)"},}, "EXEC")
+        , React.createElement('button', { onClick: ()=>setFms(p=>{if(!p.execLight)return p;var n={...p,execLight:false,phase:p.origin&&p.dest?"ACTIVE":p.phase};if(p.depSid)n.depSidAct=true;if(p.arrStar)n.arrStarAct=true;if(p.arrApp)n.arrAppAct=true;if(n.computedLegs)n.computedLegs.forEach(function(l){delete l.inserted;});n._snapshot={depSid:n.depSid,depRwy:n.depRwy,depTrans:n.depTrans,arrStar:n.arrStar,arrApp:n.arrApp,arrTrans:n.arrTrans,routeLegs:JSON.parse(JSON.stringify(n.routeLegs)),computedLegs:JSON.parse(JSON.stringify(n.computedLegs||[]))};return n;}), style: {width:"66px",height:"34px",borderRadius:"3px",background:fms.execLight?"#003300":"linear-gradient(180deg,#3a3a3a 0%,#2a2a2a 100%)",color:fms.execLight?C.execGr:C.white,border:`2px solid ${fms.execLight?C.execGr:"#555"}`,fontSize:"13px",fontWeight:"bold",cursor:"pointer",fontFamily:M,boxShadow:fms.execLight?`0 0 8px rgba(0,187,0,0.5)`:"0 1px 3px rgba(0,0,0,0.5)"},}, "EXEC")
       )
       /* ═══ FCOM 10.10.53 #4/#5: Cursor Control + #3: Touch Pad ═══ */
       , React.createElement('div', { style: {display:"flex",flexDirection:"column",alignItems:"center",marginTop:2,gap:6},}
@@ -20377,6 +20433,25 @@ function EFBPanel({fms,setFms,onClose}) {
         , React.createElement('div', { style: {padding:8},}, ["FCOM Vol 1","FCOM Vol 2","QRH","MEL","CDL","AOM"].map(d=>React.createElement('div', { key: d, style: {padding:"6px 8px",borderBottom:"1px solid #222",color:C.white,fontSize:13,fontFamily:M},}, "📄 " , d)))
       ));
 
+    // Field helpers for EFB PERF pages (TAKEOFF + LANDING)
+    const F=({l,v,s,vc=C.green,ar})=>(React.createElement('div', { style: {marginBottom:4},}
+        , React.createElement('div', { style: {display:"flex",alignItems:"center",gap:5},}
+          , React.createElement('span', { style: {color:"#888",fontSize:18,fontFamily:M,width:52,flexShrink:0},}, l)
+          , React.createElement('div', { style: {flex:1,background:"#1a1a1a",border:"1px solid #444",padding:"8px 8px",display:"flex",justifyContent:"space-between",alignItems:"center",minHeight:38},}
+            , React.createElement('span', { style: {color:vc,fontSize:20,fontFamily:M,fontWeight:"bold"},}, v||"")
+            , ar&&React.createElement('span', { style: {color:"#666",fontSize:16},}, "▶")
+          )
+        )
+        , s&&React.createElement('div', { style: {paddingLeft:57,color:"#666",fontSize:14,fontFamily:M},}, s)
+      ));
+    const R=({v,l,vc=C.green,ar=true})=>(React.createElement('div', { style: {display:"flex",alignItems:"center",gap:5,marginBottom:4},}
+        , React.createElement('div', { style: {flex:1,background:"#333",border:"1px solid #555",padding:"8px 8px",display:"flex",justifyContent:"space-between",alignItems:"center",minHeight:38},}
+          , React.createElement('span', { style: {color:vc,fontSize:20,fontFamily:M,fontWeight:"bold"},}, v||"----")
+          , ar&&React.createElement('span', { style: {color:"#666",fontSize:16},}, "▶")
+        )
+        , React.createElement('span', { style: {color:"#888",fontSize:16,fontFamily:M,width:44},}, l)
+      ));
+
     if(page==="PERF_INPUT"||page==="PERF_RESULT") {
       const oatF = ep.oat ? Math.round(parseFloat(ep.oat)*9/5+32) : "";
       const qnhInHg = ep.qnh ? (parseFloat(ep.qnh)*0.02953).toFixed(2) : "";
@@ -20391,24 +20466,6 @@ function EFBPanel({fms,setFms,onClose}) {
         const xw = Math.abs(Math.round(windSpd * Math.sin(angle)));
         return `(${hw>=0?hw:Math.abs(hw)} ${hw>=0?"HW":"TW"}/${xw} XW)`;
       })() : "";
-      // Field helpers — tall fields matching uploaded image
-      const F=({l,v,s,vc=C.green,ar})=>(React.createElement('div', { style: {marginBottom:4},}
-        , React.createElement('div', { style: {display:"flex",alignItems:"center",gap:5},}
-          , React.createElement('span', { style: {color:"#888",fontSize:18,fontFamily:M,width:52,flexShrink:0},}, l)
-          , React.createElement('div', { style: {flex:1,background:"#1a1a1a",border:"1px solid #444",padding:"8px 8px",display:"flex",justifyContent:"space-between",alignItems:"center",minHeight:38},}
-            , React.createElement('span', { style: {color:vc,fontSize:20,fontFamily:M,fontWeight:"bold"},}, v||"")
-            , ar&&React.createElement('span', { style: {color:"#666",fontSize:16},}, "▶")
-          )
-        )
-        , s&&React.createElement('div', { style: {paddingLeft:57,color:"#666",fontSize:14,fontFamily:M},}, s)
-      ));
-      const R=({v,l,vc=C.green,ar=true})=>(React.createElement('div', { style: {display:"flex",alignItems:"center",gap:5,marginBottom:4},}
-        , React.createElement('div', { style: {flex:1,background:"#333",border:"1px solid #555",padding:"8px 8px",display:"flex",justifyContent:"space-between",alignItems:"center",minHeight:38},}
-          , React.createElement('span', { style: {color:vc,fontSize:20,fontFamily:M,fontWeight:"bold"},}, v||"----")
-          , ar&&React.createElement('span', { style: {color:"#666",fontSize:16},}, "▶")
-        )
-        , React.createElement('span', { style: {color:"#888",fontSize:16,fontFamily:M,width:44},}, l)
-      ));
 
       return (
         React.createElement(EfbScreen, { title: "PERFORMANCE - TAKEOFF"  , narrow: true,
@@ -20418,14 +20475,14 @@ function EFBPanel({fms,setFms,onClose}) {
             {label:"NOTAMS"},
             {label:"SHOW\nKYBD"},
             null,
-            {label:"SHOW\nLANDING",color:C.green,bg:"#2a3a2a"},
+            {label:"SHOW\nLANDING",color:C.green,bg:"#2a3a2a",onClick:()=>setPage("PERF_LDG_DISP")},
             {label:"COPY\nFMC DATA",color:C.green,bg:"#2a3a2a",onClick:handleCopyFmcData},
             {label:"SEND\nOUTPUT",color:"#ff4444",bg:"#3a1a1a",onClick:handleSendToFmc},
           ],
           rsk: [
-            null,
             {label:"CALC",color:C.cyan,bg:"#1a2a3a",onClick:handleCalc},
             {label:ep.calcDone?"SHOW\nFULL":"SHOW\nATM",color:C.cyan,bg:"#1a2a3a"},
+            null,
             null,
             {label:"MEL"},
             {label:"CDL"},
@@ -20506,6 +20563,88 @@ function EFBPanel({fms,setFms,onClose}) {
            )) : (React.createElement('div', { style: {flex:1,borderTop:"1px solid #555",marginTop:4,padding:"6px 0"},}
             , React.createElement('div', { style: {color:"#666",fontSize:14,fontFamily:M},}, "Engine Failure Procedure: *** NO EMERGENCY TURN ***"       )
            ))
+          )
+        )
+      );
+    }
+
+    /* ═══ PERFORMANCE - LANDING - DISPATCH / ENROUTE ═══ */
+    if(page==="PERF_LDG_DISP"||page==="PERF_LDG_ENR") {
+      const isEnr = page==="PERF_LDG_ENR";
+      const ldgTitle = isEnr ? "PERFORMANCE - LANDING - ENROUTE" : "PERFORMANCE - LANDING - DISPATCH";
+      return (
+        React.createElement(EfbScreen, { title: ldgTitle, narrow: true,
+          lsk: [
+            {label:"ARPT\nINFO"},
+            {label:"ADD\nARPT"},
+            {label:"NOTAMS"},
+            {label:"SHOW\nKYBD"},
+            null,
+            {label:"SHOW\nTAKEOFF",color:C.green,bg:"#2a3a2a",onClick:()=>setPage("PERF_INPUT")},
+            {label:"COPY\nFMC DATA",color:C.green,bg:"#2a3a2a",onClick:handleCopyFmcData},
+            {label:"SEND\nOUTPUT",color:"#ff4444",bg:"#3a1a1a"},
+          ],
+          rsk: [
+            {label:"CALC",color:C.cyan,bg:"#1a2a3a"},
+            isEnr
+              ?{label:"SHOW\nDISPATCH",color:C.cyan,bg:"#1a2a3a",onClick:()=>setPage("PERF_LDG_DISP")}
+              :{label:"SHOW\nENROUTE",color:C.cyan,bg:"#1a2a3a",onClick:()=>setPage("PERF_LDG_ENR")},
+            null,
+            null,
+            {label:"MEL"},
+            {label:"CDL"},
+            null,
+            null,
+          ],}
+
+          /* Blue-bordered rectangle */
+          , React.createElement('div', { style: {border:"2px solid #4488ff",margin:"0 4px",padding:6,background:"#0a0a0a",flex:1,display:"flex",flexDirection:"column"},}
+           /* 789_GROUND label */
+           , React.createElement('div', { style: {color:"#888",fontSize:14,fontFamily:M,marginBottom:2},}, "789_GROUND")
+           , React.createElement('div', { style: {display:"flex",gap:6},}
+            /* Left column: ARPT, RWY, COND, WIND, OAT, QNH */
+            , React.createElement('div', { style: {flex:1},}
+              , React.createElement(F, { l: "ARPT", v: "ARPT SEARCH",vc:"#888",})
+              , React.createElement(F, { l: "RWY", v: ep.rwy||"RUNWAYS", vc:ep.rwy?C.green:"#33bbff", ar: true,})
+              , React.createElement(F, { l: "COND", v: ep.cond||"CONDITION", vc: ep.cond?C.green:"#888", ar: true,})
+              , React.createElement(F, { l: "WIND", v: ep.wind?ep.wind+" KT":"",})
+              , React.createElement(F, { l: "OAT", v: ep.oat?ep.oat+" C":"",})
+              , React.createElement(F, { l: "QNH", v: ep.qnh?ep.qnh+" HPa":"",})
+            )
+            /* Right column: FLAP, A/I, REV, M/A + (ENROUTE only: BRAKES, NON-NORM) */
+            , React.createElement('div', { style: {flex:1},}
+              , React.createElement(R, { v: "FLAP CONFIG", l: "FLAP", vc:"#888",})
+              , React.createElement(R, { v: "A/I CONFIG", l: "A/I", vc:"#888",})
+              , React.createElement(R, { v: "REV CONFIG", l: "REV", vc:"#888",})
+              , React.createElement(R, { v: "M/A CONFIG", l: "M/A", vc:"#888",})
+              , isEnr&&React.createElement(R, { v: "BRAKES", l: "BRKS", vc:"#888",})
+              , isEnr&&React.createElement(R, { v: "NON-NORM", l: "NNC", vc:"#888", ar:false,})
+            )
+           )
+           /* EOCLB + DECISION HT row */
+           , React.createElement('div', { style: {display:"flex",alignItems:"center",gap:5,marginTop:2},}
+             , React.createElement('span', { style: {color:"#888",fontSize:16,fontFamily:M,width:56,flexShrink:0},}, "EOCLB")
+             , React.createElement('div', { style: {background:"#1a1a1a",border:"2px solid #4488ff",padding:"8px 8px",display:"flex",justifyContent:"space-between",alignItems:"center",minHeight:38},}
+               , React.createElement('span', { style: {color:"#33bbff",fontSize:20,fontFamily:M,fontWeight:"bold"},}, "DECISION HT")
+               , React.createElement('span', { style: {color:"#666",fontSize:16},}, "▶")
+             )
+           )
+           /* Bottom data area */
+           , isEnr ? (
+             /* ENROUTE: LANDING WT + VREF ADD row */
+             React.createElement('div', { style: {display:"flex",gap:8,padding:"6px 0",alignItems:"center",borderTop:"1px solid #333",marginTop:3},}
+               , React.createElement('span', { style: {color:"#888",fontSize:16,fontFamily:M},}, "LANDING WT:")
+               , React.createElement('div', { style: {flex:1,background:"#1a1a1a",border:"1px solid #555",padding:"6px 8px",minHeight:34},}
+                 , React.createElement('span', { style: {color:C.white,fontSize:18,fontFamily:M,fontWeight:"bold"},}, "LB")
+               )
+               , React.createElement('span', { style: {color:"#888",fontSize:16,fontFamily:M},}, "VREF ADD:")
+               , React.createElement('div', { style: {background:"#1a1a1a",border:"1px solid #555",padding:"6px 8px",minWidth:50,minHeight:34},}
+                 , React.createElement('span', { style: {color:C.white,fontSize:18,fontFamily:M,fontWeight:"bold"},}, "5")
+               )
+             )
+           ) : null
+           /* Empty result area fills remaining space */
+           , React.createElement('div', { style: {flex:1,borderTop:"1px solid #555",marginTop:4,padding:"6px 0"},})
           )
         )
       );
@@ -21512,6 +21651,10 @@ function CommView({fms,setFms}){
           if(mainTab==="FLT_INFO"&&sub==="DEP CLR"){
             setInfoMsg("SENDING");
             setTimeout(function(){setInfoMsg("SENT");
+              /* 2초 후: AUX DSP 탭 깜빡임 + AUX 메시지 표시 */
+              setTimeout(function(){
+                setFms(function(prev){return{...prev,auxMsg:"REQUEST BEING PROCESSED\nSTANDBY",auxBlink:true};});
+              },2000);
               setTimeout(function(){
                 setInfoMsg("");
                 var flt=getF("depFltNo",fms.fltNo||"KAL781");
@@ -22182,6 +22325,7 @@ function B787Cockpit(){
   const [mfdMode,setMfdMode]=useState("CDU");
   const [showEfb,setShowEfb]=useState(false);
   const [showFwd,setShowFwd]=useState(false);
+  const [showAux,setShowAux]=useState(false);
   const [splash,setSplash]=useState(true);
   const [ckIPad,setCkIPad]=useState(false);
   const [ckScope,setCkScope]=useState(false);
@@ -22190,8 +22334,8 @@ function B787Cockpit(){
   const [role,setRole]=useState(null);
   const [fwdState,setFwdState]=useState({dspSide:"L",mfdL:"ND",mfdR:"ND",engOn:false,eicasSide:"L"});
 
-  const activeView = showFwd ? "FWD" : showEfb ? "EFB" : "CDU";
-  const switchView = (v) => { setShowFwd(v==="FWD"); setShowEfb(v==="EFB"); };
+  const activeView = showAux ? "AUX" : showFwd ? "FWD" : showEfb ? "EFB" : "CDU";
+  const switchView = (v) => { setShowFwd(v==="FWD"); setShowEfb(v==="EFB"); setShowAux(v==="AUX"); };
 
   // ═══ Splash Screen ═══
   var allChecked=ckIPad&&ckScope&&ckTrackpad&&ckPreset&&role!==null;
@@ -22209,22 +22353,20 @@ function B787Cockpit(){
         React.createElement('div', {style:{color:"#00cccc",fontSize:33,fontWeight:"bold",letterSpacing:4,marginBottom:4}}, "B787 DREAMLINER"),
         React.createElement('div', {style:{color:"#aaa",fontSize:14,letterSpacing:2}}, "COCKPIT PROCEDURE SIMULATOR"),
         React.createElement('div', {style:{color:"#777",fontSize:14,marginTop:4}}, "FOR TRAINING PURPOSE ONLY"),
-        React.createElement('div', {style:{color:"#00bb00",fontSize:11,marginTop:12,letterSpacing:1}}, "v2.8.34 \u00a0|\u00a0 by SHLee7872603")
+        React.createElement('div', {style:{color:"#00bb00",fontSize:11,marginTop:12,letterSpacing:1}}, "v2.8.35 \u00a0|\u00a0 by SHLee7872603")
       ),
       React.createElement('div', {style:{borderTop:"1px solid #333",borderBottom:"1px solid #333",padding:"14px 0",marginBottom:16}},
         React.createElement(ChkRow, {checked:ckIPad,onToggle:function(){setCkIPad(function(p){return!p;});}},
-          React.createElement('div', {style:{color:"#00cccc",fontSize:17,fontWeight:"bold",marginBottom:8,letterSpacing:1}}, "PATCH NOTES v2.8.34"),
+          React.createElement('div', {style:{color:"#00cccc",fontSize:17,fontWeight:"bold",marginBottom:8,letterSpacing:1}}, "PATCH NOTES v2.8.35"),
           React.createElement('div', {style:{color:"#aaa",fontSize:14,fontWeight:"bold",lineHeight:1.8}},
-            React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginBottom:2}}, "v2.8.34"),
+            React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginBottom:2}}, "v2.8.35"),
+            React.createElement('div', null, "\u2022 FIX INFO \ud398\uc774\uc9c0 FCOM 11.42.40-41 \uae30\ubc18 \uc7ac\uad6c\uc131"),
+            React.createElement('div', null, "\u2022 BRG/DIS 3\uc5f4 \ub808\uc774\uc544\uc6c3 (ETA/DTG/ALT)"),
+            React.createElement('div', null, "\u2022 ABEAM \ud45c\uc2dc/\ubcf5\uc0ac \u00b7 PRED ETA-ALT \u00b7 DEL \uc9c0\uc6d0"),
+            React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginTop:8,marginBottom:2}}, "v2.8.34"),
             React.createElement('div', null, "\u2022 RTE/LEGS DISC \uc0dd\uc131\u00b7\ud574\uc18c\u00b7ERASE \ub85c\uc9c1 \uad6c\ud604"),
             React.createElement('div', null, "\u2022 Missed Approach APP\ubcc4 \ubd84\ub9ac (RNP16L/ILS16L)"),
-            React.createElement('div', null, "\u2022 ILS16L NAV DATA \ucc28\ud2b8 \uae30\ubc18 \uc218\uc815"),
             React.createElement('div', null, "\u2022 EXEC \uc2a4\ub0c5\uc0f7/ERASE \ubcf5\uc6d0 \u00b7 CLR \ub871\ud504\ub808\uc2a4"),
-            React.createElement('div', null, "\u2022 PERF INIT \ucee4\uc11c \uc790\ub3d9\uc774\ub3d9 \u00b7 POS INIT \ubd84\ub9ac"),
-            React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginTop:8,marginBottom:2}}, "v2.8.33"),
-            React.createElement('div', null, "\u2022 EFB bezel FCOM 10.70.2 \uae30\ubc18 \uc804\uba74 \uc7ac\uad6c\uc131"),
-            React.createElement('div', null, "\u2022 MAIN MENU \ubc30\uc5f4 FCOM 10.70.4 \uae30\ubc18 \uc218\uc815"),
-            React.createElement('div', null, "\u2022 Soft key / LSK \uc815\ub82c \uac1c\uc120"),
 
           )
         )
@@ -22295,8 +22437,8 @@ function B787Cockpit(){
       , React.createElement('button', { onClick: ()=>{setFms(initFMS());switchView("CDU");}, style: {padding:"5px 10px",background:"#1a0a0a",color:C.red,border:"1px solid #600",borderRadius:3,fontSize:10,fontWeight:"bold",cursor:"pointer",fontFamily:M},}, "초기화")
         , React.createElement('button', { onClick: ()=>setSplash(true), style: {padding:"5px 10px",background:"#0a0a1a",color:"#aaccff",border:"1px solid #446",borderRadius:3,fontSize:10,fontWeight:"bold",cursor:"pointer",fontFamily:M},}, "INFO")
       , React.createElement('div', { style: {width:1,height:18,background:"#333"},})
-      , ["CDU","EFB","FWD"].map(v=>(
-        React.createElement('button', { key: v, onClick: ()=>switchView(v), style: {padding:"5px 14px",background:activeView===v?"#0a2a0a":"#111",color:activeView===v?C.green:"#aaa",border:`1px solid ${activeView===v?C.green:"#444"}`,borderRadius:3,fontSize:11,fontWeight:"bold",cursor:"pointer",fontFamily:M},}, v==="FWD"?"FWD PANEL":v)
+      , ["CDU","EFB","FWD","AUX"].map(v=>(
+        React.createElement('button', { key: v, onClick: ()=>{switchView(v);if(v==="AUX"){setFms(function(p){return{...p,auxBlink:false};});}}, style: {padding:"5px 14px",background:activeView===v?"#0a2a0a":v==="AUX"&&fms.auxBlink?"transparent":"#111",color:activeView===v?C.green:v==="AUX"&&fms.auxBlink?C.cyan:"#aaa",border:`1px solid ${activeView===v?C.green:v==="AUX"&&fms.auxBlink?C.cyan:"#444"}`,borderRadius:3,fontSize:11,fontWeight:"bold",cursor:"pointer",fontFamily:M,animation:v==="AUX"&&fms.auxBlink?"blink 1s infinite":"none"},}, v==="CDU"?"LOWER MFD":v==="FWD"?"FWD PANEL":v==="AUX"?"AUX DSP":v)
       ))
       , React.createElement('button', { onClick: function(){
         var rteLegs=[{via:"OSPO2C",to:"OSPOT"},{via:"Y782",to:"TGU"},{via:"Y781",to:"BESNA"},{via:"Y209",to:"IKE"}];
@@ -22331,6 +22473,135 @@ function B787Cockpit(){
       )
       , activeView==="FWD" && (
         React.createElement(ForwardPanelView, { fms: fms, setFms: setFms, fwdState: fwdState, setFwdState: setFwdState,})
+      )
+      , activeView==="AUX" && (
+        /* FCOM 10.10.63: Auxiliary (AUX) Display — Outboard Display Units */
+        React.createElement('div', { style: {display:"flex",justifyContent:"center",alignItems:"center",flex:1},}
+          , React.createElement('div', { style: {display:"flex",flexDirection:"column",alignItems:"center",gap:0},}
+            /* FCOM 5.10.25: Datalink Accept/Cancel/Reject Switches — Glareshield Panel (SVG) */
+            , React.createElement('div', { style: {width:420,display:"flex",justifyContent:"center",padding:0},}
+              , React.createElement('svg', { viewBox: "0 0 420 140", width: 420, height: 140, xmlns: "http://www.w3.org/2000/svg",}
+                , React.createElement('defs', null
+                  /* Panel gradient — mid gray */
+                  , React.createElement('linearGradient', { id: "glareG", x1: "0", y1: "0", x2: "0", y2: "1",}
+                    , React.createElement('stop', { offset: "0%", stopColor: "#5a5a5a",})
+                    , React.createElement('stop', { offset: "60%", stopColor: "#4a4a4a",})
+                    , React.createElement('stop', { offset: "100%", stopColor: "#333",})
+                  )
+                  /* Button gradient — very dark */
+                  , React.createElement('linearGradient', { id: "btnG", x1: "0", y1: "0", x2: "0", y2: "1",}
+                    , React.createElement('stop', { offset: "0%", stopColor: "#3a3a3a",})
+                    , React.createElement('stop', { offset: "15%", stopColor: "#252525",})
+                    , React.createElement('stop', { offset: "85%", stopColor: "#1a1a1a",})
+                    , React.createElement('stop', { offset: "100%", stopColor: "#111",})
+                  )
+                  , React.createElement('filter', { id: "btnShadow",}
+                    , React.createElement('feDropShadow', { dx: "0", dy: "2", stdDeviation: "2", floodColor: "#000", floodOpacity: "0.7",})
+                  )
+                )
+                /* Panel body */
+                , React.createElement('rect', { x: 0, y: 0, width: 420, height: 140, fill: "url(#glareG)",})
+                /* Top edge highlight */
+                , React.createElement('line', { x1: 0, y1: 0.5, x2: 420, y2: 0.5, stroke: "#777", strokeWidth: 1,})
+
+                /* === 3 large square buttons — tightly packed === */
+                /* ACPT button (with annunciator ring inside) */
+                , React.createElement('rect', { x: 100, y: 14, width: 74, height: 74, rx: 5, fill: "url(#btnG)", stroke: "#555", strokeWidth: 1.5, filter: "url(#btnShadow)",})
+                /* top edge highlight on button */
+                , React.createElement('line', { x1: 103, y1: 16, x2: 171, y2: 16, stroke: "rgba(255,255,255,0.1)", strokeWidth: 1,})
+                /* Annunciator ring inside ACPT — large white circle outline */
+                , React.createElement('circle', { cx: 137, cy: 51, r: 26, fill: "none", stroke: "#ccc", strokeWidth: 2.5,})
+                /* ACPT text inside the ring */
+                , React.createElement('text', { x: 137, y: 57, textAnchor: "middle", fill: "#ddd", fontSize: 17, fontWeight: "bold", fontFamily: M,}, "ACPT")
+
+                /* CANC button */
+                , React.createElement('rect', { x: 178, y: 14, width: 74, height: 74, rx: 5, fill: "url(#btnG)", stroke: "#555", strokeWidth: 1.5, filter: "url(#btnShadow)",})
+                , React.createElement('line', { x1: 181, y1: 16, x2: 249, y2: 16, stroke: "rgba(255,255,255,0.1)", strokeWidth: 1,})
+                , React.createElement('text', { x: 215, y: 57, textAnchor: "middle", fill: "#ddd", fontSize: 17, fontWeight: "bold", fontFamily: M, pointerEvents: "none",}, "CANC")
+                /* Clickable overlay for CANC — clears AUX message */
+                , React.createElement('rect', { x: 178, y: 14, width: 74, height: 74, rx: 5, fill: "transparent", style: {cursor:"pointer"}, onClick: ()=>{setFms(function(p){return{...p,auxMsg:"",auxBlink:false};});},})
+
+                /* RJCT button */
+                , React.createElement('rect', { x: 256, y: 14, width: 74, height: 74, rx: 5, fill: "url(#btnG)", stroke: "#555", strokeWidth: 1.5, filter: "url(#btnShadow)",})
+                , React.createElement('line', { x1: 259, y1: 16, x2: 327, y2: 16, stroke: "rgba(255,255,255,0.1)", strokeWidth: 1,})
+                , React.createElement('text', { x: 293, y: 57, textAnchor: "middle", fill: "#ddd", fontSize: 17, fontWeight: "bold", fontFamily: M,}, "RJCT")
+
+                /* Small indicator light below buttons (visible in photo) */
+                , React.createElement('circle', { cx: 215, cy: 100, r: 5, fill: "#111", stroke: "#555", strokeWidth: 1,})
+                , React.createElement('circle', { cx: 215, cy: 100, r: 2, fill: "#1a1a1a",})
+
+                /* GLARESHIELD PANEL label */
+                , React.createElement('text', { x: 210, y: 128, textAnchor: "middle", fill: "#999", fontSize: 13, fontWeight: "bold", letterSpacing: 3, fontFamily: M,}, "GLARESHIELD PANEL")
+              )
+            )
+            /* AUX Display unit below */
+          , React.createElement('div', { style: {width:420,background:"#3a3a3a",border:"3px solid #555",borderRadius:"0 0 8px 8px",overflow:"hidden",boxShadow:"0 4px 24px rgba(0,0,0,0.9)",fontFamily:M},}
+            /* Flight Data Block (#1) + Clock — upper section */
+            , React.createElement('div', { style: {display:"flex",padding:"12px 14px 0",gap:10},}
+              /* Left: flight info fields (5 rows) */
+              , React.createElement('div', { style: {flex:1},}
+                , [
+                  {label:"FLT #",value:fms.fltNo||"BOE001"},
+                  {label:"MIC",value:"132.95 VHF L"},
+                  {label:"XPDR",value:fms.xpdr||"4717"},
+                  {label:"SELCAL",value:fms.selcal||"GR-AB"},
+                  {label:"TAIL #",value:"N787BA"},
+                ].map((f,i)=>React.createElement('div', { key: i, style: {display:"flex",alignItems:"baseline",marginBottom:4},}
+                  , React.createElement('span', { style: {color:C.cyan,fontSize:12,width:52,flexShrink:0,fontWeight:"bold"},}, f.label)
+                  , React.createElement('span', { style: {color:"#fff",fontSize:20,fontWeight:"bold",letterSpacing:1},}, f.value)
+                ))
+              )
+              /* Right: analog clock + digital time */
+              , React.createElement('div', { style: {width:100,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"flex-end",paddingBottom:9},}
+                , React.createElement('svg', { viewBox: "0 0 100 100", width: 85, height: 85,}
+                  , React.createElement('circle', { cx: 50, cy: 50, r: 48, fill: "#111", stroke: "#666", strokeWidth: 2,})
+                  , [0,1,2,3,4,5,6,7,8,9,10,11].map(h=>{
+                    const a=(h*30-90)*Math.PI/180;
+                    return React.createElement('line', { key: h, x1: 50+40*Math.cos(a), y1: 50+40*Math.sin(a), x2: 50+46*Math.cos(a), y2: 50+46*Math.sin(a), stroke: "#ccc", strokeWidth: h%3===0?2.5:1,});
+                  })
+                  , (()=>{
+                    const now=new Date();
+                    const h=now.getUTCHours()%12,m=now.getUTCMinutes(),s=now.getUTCSeconds();
+                    const ha=(h*30+m*0.5-90)*Math.PI/180;
+                    const ma=(m*6-90)*Math.PI/180;
+                    const sa=(s*6-90)*Math.PI/180;
+                    return React.createElement(React.Fragment, null
+                      , React.createElement('line', { x1: 50, y1: 50, x2: 50+24*Math.cos(ha), y2: 50+24*Math.sin(ha), stroke: "#fff", strokeWidth: 3, strokeLinecap: "round",})
+                      , React.createElement('line', { x1: 50, y1: 50, x2: 50+34*Math.cos(ma), y2: 50+34*Math.sin(ma), stroke: "#fff", strokeWidth: 2, strokeLinecap: "round",})
+                      , React.createElement('line', { x1: 50, y1: 50, x2: 50+36*Math.cos(sa), y2: 50+36*Math.sin(sa), stroke: "#ff4444", strokeWidth: 1,})
+                      , React.createElement('circle', { cx: 50, cy: 50, r: 3, fill: "#fff",})
+                    );
+                  })()
+                )
+                , React.createElement('span', { style: {color:"#fff",fontSize:18,fontWeight:"bold",marginTop:4},}, (()=>{const d=new Date();return String(d.getUTCHours()).padStart(2,"0")+":"+String(d.getUTCMinutes()).padStart(2,"0");})())
+              )
+            )
+            /* UTC TIME / DATE / ELAPSED TIME — full width row below clock */
+            , React.createElement('div', { style: {display:"flex",padding:"6px 14px 10px"},}
+              , React.createElement('div', { style: {flex:1,textAlign:"center"},}
+                , React.createElement('span', { style: {color:C.cyan,fontSize:10,display:"block",fontWeight:"bold",letterSpacing:1},}, "UTC TIME")
+                , React.createElement('span', { style: {color:"#fff",fontSize:17,fontWeight:"bold"},}, new Date().toISOString().substr(11,8)+"z")
+              )
+              , React.createElement('div', { style: {flex:1,textAlign:"center"},}
+                , React.createElement('span', { style: {color:C.cyan,fontSize:10,display:"block",fontWeight:"bold",letterSpacing:1},}, "DATE")
+                , React.createElement('span', { style: {color:"#fff",fontSize:17,fontWeight:"bold"},}, (()=>{const d=new Date();const m=["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"][d.getUTCMonth()];return String(d.getUTCDate()).padStart(2,"0")+" "+m+" "+String(d.getUTCFullYear()).slice(-2);})())
+              )
+              , React.createElement('div', { style: {flex:1,textAlign:"center"},}
+                , React.createElement('span', { style: {color:C.cyan,fontSize:10,display:"block",fontWeight:"bold",letterSpacing:1},}, "ELAPSED TIME")
+                , React.createElement('span', { style: {color:"#fff",fontSize:17,fontWeight:"bold"},}, "00:01")
+              )
+            )
+            /* ATC Data Block (#2) — black area, shows AUX messages */
+            , React.createElement('div', { style: {background:"#000",margin:"0 14px",minHeight:280,border:"1px solid #222",padding:12,display:"flex",flexDirection:"column"},}
+              , fms.auxMsg
+                ? React.createElement('div', { style: {color:"#fff",fontSize:18,fontWeight:"bold",fontFamily:M,letterSpacing:1,lineHeight:1.6,whiteSpace:"pre-line"},}, fms.auxMsg)
+                : React.createElement('span', { style: {color:"#333",fontSize:12},}, "ATC DATA BLOCK")
+            )
+            /* OUTBOARD DISPLAY UNITS label */
+            , React.createElement('div', { style: {textAlign:"center",padding:"10px 0",color:"#aaa",fontSize:15,fontWeight:"bold",letterSpacing:2,background:"#1a1a1a",borderTop:"1px solid #333"},}, "OUTBOARD DISPLAY UNITS")
+          )
+          ) /* close column wrapper */
+        )
       )
     )
     , React.createElement('style', null, `@keyframes blink{0%,50%{opacity:1}51%,100%{opacity:0}}`)
