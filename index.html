@@ -9,7 +9,7 @@
 <meta name="theme-color" content="#050505">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>B787 CDU Practice v2.8.35</title>
+<title>B787 CDU Practice v2.8.36</title>
 <style>*{margin:0;padding:0;box-sizing:border-box;-webkit-user-select:none;user-select:none}body{background:#050505;overflow-x:hidden}</style>
 </head>
 <body>
@@ -17897,48 +17897,48 @@ function CDURow({n, tl="",tr="",dl="",dr="",dc="",tlc=C.white,trc=C.white,dlc=C.
   var hlL = cursorSide==="L";
   var hlR = cursorSide==="R";
   return (
-    React.createElement('div', { style: {minHeight:"52px",display:"flex",flexDirection:"column",justifyContent:"center"},}
+    React.createElement('div', { style: {height:"48px",display:"flex",flexDirection:"column",justifyContent:"center"},}
       /* Full-width banner (FMC PREFLIGHT COMPLETE) */
       , tlFull && (
-        React.createElement('div', { style: {background:tlFullBg||"#005500",textAlign:"center",padding:"4px 0",margin:"2px 15px"},}
-          , React.createElement('span', { style: {color:tlFullColor||"#fff",fontSize:"14px",fontFamily:M,fontWeight:"bold",letterSpacing:"1px"},}, tlFull)
+        React.createElement('div', { style: {background:tlFullBg||"#005500",textAlign:"center",padding:"2px 0",margin:"0 15px"},}
+          , React.createElement('span', { style: {color:tlFullColor||"#fff",fontSize:"18px",fontFamily:M,fontWeight:"bold",letterSpacing:"2px"},}, tlFull)
         )
       )
-      /* Title line with optional background */
-      , (tl||tr)&&!tlFull && (
-        React.createElement('div', { style: {display:"flex",minHeight:"15px",alignItems:"flex-end",background:tlBg||"transparent",margin:tlBg?"0 15px":0,padding:tlBg?"2px 0":0},}
+      /* Title line with optional background — always render for consistent height */
+      , !tlFull && (
+        React.createElement('div', { style: {display:"flex",height:"20px",alignItems:"flex-end",background:tlBg||"transparent",margin:tlBg?"0 15px":0,padding:tlBg?"2px 0":0},}
           , React.createElement(DashSpacer, null)
-          , React.createElement('div', { style: {color:tlBg?"#fff":tlc,fontSize:tlBg?"14px":"12px",fontFamily:M,flex:1,fontWeight:"bold",whiteSpace:"pre",padding:"0 4px",display:"flex",alignItems:"flex-end"},}, tl)
-          , React.createElement('div', { style: {color:trc,fontSize:"12px",fontFamily:M,textAlign:"right",fontWeight:"bold",whiteSpace:"pre",padding:"0 4px"},}, tr)
+          , React.createElement('div', { style: {color:tlBg?"#fff":tlc,fontSize:tlBg?"20px":"20px",fontFamily:M,flex:1,fontWeight:"bold",whiteSpace:"pre",padding:"0 4px",display:"flex",alignItems:"flex-end"},}, tl)
+          , React.createElement('div', { style: {color:trc,fontSize:"20px",fontFamily:M,textAlign:"right",fontWeight:"bold",whiteSpace:"pre",padding:"0 4px"},}, tr)
           , React.createElement(DashSpacer, null)
         )
       )
       /* Data line with LSK dashes — highlight text only */
       , dc ? (
         /* 3-column layout when dc (center data) is present */
-        React.createElement('div', { style: {display:"flex",alignItems:"center",minHeight:"28px"},}
+        React.createElement('div', { style: {display:"flex",alignItems:"center",height:"28px"},}
           , React.createElement(Dash, { lsk: "L"+n, onClick: onL,})
-          , React.createElement('div', { 'data-lsk-area': "L"+n, onClick: onL, style: {color:dlc,fontSize:"17px",fontFamily:M,padding:"0 4px",letterSpacing:"0.5px",fontWeight:"bold",whiteSpace:"pre",flex:1,outline:hlL&&dl?"2px solid #ff00ff":"none",cursor:"pointer"},}, dl)
-          , React.createElement('div', { style: {color:dcc,fontSize:"17px",fontFamily:M,padding:"0 4px",letterSpacing:"0.5px",fontWeight:"bold",whiteSpace:"pre",flex:1,textAlign:"center"},}, dc)
-          , React.createElement('div', { 'data-lsk-area': "R"+n, onClick: onR, style: {color:drc,fontSize:"17px",fontFamily:M,padding:"0 4px",letterSpacing:"0.5px",fontWeight:"bold",whiteSpace:"pre",flex:1,textAlign:"right",outline:hlR&&dr?"2px solid #ff00ff":"none",cursor:"pointer"},}, dr)
+          , React.createElement('div', { 'data-lsk-area': "L"+n, onClick: onL, style: {color:dlc,fontSize:"28px",fontFamily:M,padding:"0 4px",letterSpacing:"1.5px",fontWeight:"bold",whiteSpace:"pre",flex:1,outline:hlL&&dl?"2px solid #ff00ff":"none",cursor:"pointer"},}, dl)
+          , React.createElement('div', { style: {color:dcc,fontSize:"28px",fontFamily:M,padding:"0 4px",letterSpacing:"1.5px",fontWeight:"bold",whiteSpace:"pre",flex:1,textAlign:"center"},}, dc)
+          , React.createElement('div', { 'data-lsk-area': "R"+n, onClick: onR, style: {color:drc,fontSize:"28px",fontFamily:M,padding:"0 4px",letterSpacing:"1.5px",fontWeight:"bold",whiteSpace:"pre",flex:1,textAlign:"right",outline:hlR&&dr?"2px solid #ff00ff":"none",cursor:"pointer"},}, dr)
           , React.createElement(Dash, { lsk: "R"+n, onClick: onR,})
         )
       ) : (
-        React.createElement('div', { style: {display:"flex",alignItems:"center",minHeight:"28px"},}
+        React.createElement('div', { style: {display:"flex",alignItems:"center",height:"28px"},}
           , React.createElement('div', { style: {display:"flex",alignItems:"center",flex:1},}
             , React.createElement(Dash, { lsk: "L"+n, onClick: onL,})
-            , React.createElement('div', { 'data-lsk-area': "L"+n, onClick: onL, style: {color:dlc,fontSize:"17px",fontFamily:M,padding:"0 4px",letterSpacing:"0.5px",fontWeight:"bold",whiteSpace:"pre",display:typeof dl==="object"?"flex":"inline-flex",flex:typeof dl==="object"?1:undefined,alignItems:"center",outline:hlL&&dl?"2px solid #ff00ff":"none",cursor:"pointer"},}, dl)
+            , React.createElement('div', { 'data-lsk-area': "L"+n, onClick: onL, style: {color:dlc,fontSize:"28px",fontFamily:M,padding:"0 4px",letterSpacing:"1.5px",fontWeight:"bold",whiteSpace:"pre",display:typeof dl==="object"?"flex":"inline-flex",flex:typeof dl==="object"?1:undefined,alignItems:"center",outline:hlL&&dl?"2px solid #ff00ff":"none",cursor:"pointer"},}, dl)
             , typeof dl!=="object"&&React.createElement('div', { style: {flex:1},})
           )
           , React.createElement('div', { style: {display:"flex",alignItems:"center"},}
-            , React.createElement('div', { 'data-lsk-area': "R"+n, onClick: onR, style: {color:drc,fontSize:"17px",fontFamily:M,textAlign:"right",padding:"0 4px",letterSpacing:"0.5px",fontWeight:"bold",whiteSpace:"pre",display:"inline-flex",alignItems:"center",outline:hlR&&dr?"2px solid #ff00ff":"none",cursor:"pointer"},}, dr)
+            , React.createElement('div', { 'data-lsk-area': "R"+n, onClick: onR, style: {color:drc,fontSize:"28px",fontFamily:M,textAlign:"right",padding:"0 4px",letterSpacing:"1.5px",fontWeight:"bold",whiteSpace:"pre",display:"inline-flex",alignItems:"center",outline:hlR&&dr?"2px solid #ff00ff":"none",cursor:"pointer"},}, dr)
             , React.createElement(Dash, { lsk: "R"+n, onClick: onR,})
           )
         )
       )
       /* FCOM 11.42.2: dashed ROUTE DISCONTINUITY line below data */
       , discLine && React.createElement('div', { style: {textAlign:"center",padding:"2px 15px",whiteSpace:"nowrap"},}
-        , React.createElement('span', { style: {color:C.white,fontSize:"17px",fontFamily:M,fontWeight:"bold",letterSpacing:"1px"},}, "------  ROUTE  DISCONTINUITY  ------")
+        , React.createElement('span', { style: {color:C.white,fontSize:"28px",fontFamily:M,fontWeight:"bold",letterSpacing:"2px"},}, "------  ROUTE  DISCONTINUITY  ------")
       )
     )
   );
@@ -18445,8 +18445,8 @@ function cduPageData(fms) {
         const spdAltDisplay=leg.spdAlt||leg.pred||"";
         const spdAltColor=leg.spdAlt?C.magenta:C.white;
         const crsDistTitle=(leg.crs||leg.dist)?React.createElement('div',{style:{display:"flex",alignItems:"flex-end",padding:"0",width:"100%"}},
-          React.createElement('span',{style:{flex:1,color:wptColor,fontSize:"18px",fontFamily:M,fontWeight:"bold",textAlign:"left"}},leg.crs||""),
-          React.createElement('span',{style:{flex:1,color:wptColor,fontSize:"18px",fontFamily:M,fontWeight:"bold",textAlign:"center"}},leg.dist||""),
+          React.createElement('span',{style:{flex:1,color:wptColor,fontSize:"16px",fontFamily:M,fontWeight:"bold",textAlign:"left"}},leg.crs||""),
+          React.createElement('span',{style:{flex:1,color:wptColor,fontSize:"16px",fontFamily:M,fontWeight:"bold",textAlign:"center"}},leg.dist||""),
           React.createElement('span',{style:{flex:1}})
         ):"";
         rows.push({
@@ -19221,6 +19221,9 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
         if(!legs.length){if(side==="R"&&num===6)go("RTE_DATA");return s;}
         const pgIdx=(s.legsPage-1)*5;
         const idx=pgIdx+(num-1);
+        // Track original first waypoint for routeLegs sync
+        let origFirstWpt=null;
+        for(let i=0;i<legs.length;i++){if(!legs[i].isRwy&&!legs[i].isDisc&&legs[i].wpt){origFirstWpt=legs[i].wpt;break;}}
 
         // ═══ FCOM 11.42.5-6: R1-R5 — Copy waypoint name to scratchpad ═══
         if(side==="R"&&num>=1&&num<=5){
@@ -19263,16 +19266,28 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
               }
 
               if(inputExistsAt>=0){
-                // ── Change Waypoint Sequence (FCOM 11.42.5-6) ──
-                // Remove all waypoints from target position up to (but not including) inputWpt's position
-                // Then inputWpt moves up to target position — NO DISCONTINUITY
+                // ── Change Waypoint Sequence / DIRECT TO (FCOM 11.42.5-6, 11.42.8) ──
+                // Remove waypoints from target to inputWpt — NO DISCONTINUITY
+                // At L1 (idx=0): this is DIRECT TO — bypass runway and intermediate waypoints
                 if(inputExistsAt>idx){
-                  // inputWpt is AFTER target → remove from idx to inputExistsAt (exclusive)
-                  // This removes the target and all waypoints between target and inputWpt
                   legs.splice(idx,inputExistsAt-idx);
                 } else {
-                  // inputWpt is BEFORE target → remove target, inputWpt stays
                   legs.splice(idx,1);
+                }
+                // ── Sync routeLegs → RTE page (FCOM 11.42.5-6) ──
+                var remainingWpts=[];
+                for(var rw=0;rw<legs.length;rw++){if(!legs[rw].isRwy&&!legs[rw].isDest&&!legs[rw].isDisc)remainingWpts.push(legs[rw].wpt);}
+                // Remove routeLegs whose endpoint was removed from LEGS
+                s.routeLegs=s.routeLegs.filter(function(rl){return remainingWpts.indexOf(rl.to)>=0;});
+                // Ensure first routeLeg is DIRECT to inputWpt
+                if(s.routeLegs.length>0&&s.routeLegs[0].to===inputWpt){
+                  s.routeLegs[0]={via:"DIRECT",to:s.routeLegs[0].to};
+                } else {
+                  var alreadyEndpoint=false;
+                  for(var ri=0;ri<s.routeLegs.length;ri++){if(s.routeLegs[ri].to===inputWpt){alreadyEndpoint=true;break;}}
+                  if(!alreadyEndpoint){
+                    s.routeLegs.unshift({via:"DIRECT",to:inputWpt});
+                  }
                 }
                 s.scratchpad="";s.execLight=true;s.helpMsg="";
               } else {
@@ -19308,6 +19323,27 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
               s.scratchpad="";s.execLight=true;
             }
           }
+        }
+
+        // ═══ Sync routeLegs from modified computedLegs (LEGS → RTE page) ═══
+        if(s.execLight){
+          // Collect remaining waypoint names
+          const remainingWpts=new Set();
+          legs.forEach(function(l){if(l.wpt&&!l.isDisc&&!l.isRwy)remainingWpts.add(l.wpt);});
+          // Remove routeLegs whose endpoint is no longer in computedLegs
+          let newRL=s.routeLegs.filter(function(l){return remainingWpts.has(l.to);});
+          // Check if first waypoint changed (Direct To)
+          let newFirstWpt=null;
+          for(let i=0;i<legs.length;i++){if(!legs[i].isRwy&&!legs[i].isDisc&&legs[i].wpt){newFirstWpt=legs[i].wpt;break;}}
+          if(newFirstWpt&&newFirstWpt!==origFirstWpt){
+            // First waypoint changed — need DIRECT/newFirstWpt
+            if(newRL.length>0&&newRL[0].to===newFirstWpt){
+              newRL[0]={via:"DIRECT",to:newFirstWpt};
+            } else {
+              newRL.unshift({via:"DIRECT",to:newFirstWpt});
+            }
+          }
+          s.routeLegs=newRL;
         }
 
         // ═══ L6: ERASE or <RTE 2 LEGS ═══
@@ -19804,16 +19840,21 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
   });
 
   // On-screen touch button (rendered ON the display)
-  const ScrBtn = ({label,onClick,w="68px",h="36px",lit=false,fk}) => (
-    React.createElement('button', { 'data-fk': fk, onClick: onClick, style: {
+  const ScrBtn = ({label,onClick,w="86px",h="44px",lit=false,fk}) => {
+    const lines=label.split("\n");
+    const content=lines.length>1
+      ? React.createElement('div',{style:{display:"flex",flexDirection:"column",alignItems:"center",gap:"0px"}},
+          lines.map((ln,i)=>React.createElement('span',{key:i,style:{lineHeight:0.8}},ln)))
+      : label;
+    return React.createElement('button', { 'data-fk': fk, onClick: onClick, style: {
       width:w,height:h,background:lit?"#003300":"#1a1a1a",color:lit?C.execGr:C.white,
-      border:`1px solid ${lit?C.execGr:"#444"}`,borderRadius:"2px",fontSize:"13px",fontWeight:"bold",
+      border:`1px solid ${lit?C.execGr:"#444"}`,borderRadius:"2px",fontSize:"24px",fontWeight:"bold",
       cursor:"pointer",fontFamily:M,display:"flex",alignItems:"center",justifyContent:"center",
-      lineHeight:1.1,textAlign:"center",whiteSpace:"pre-line",
+      textAlign:"center",
       boxShadow:lit?"0 0 6px rgba(0,187,0,0.3)":"none",
       outline:fk&&fms.cursorIdx===parseInt(fk)?"2px solid #ff00ff":"none"
-    },}, label)
-  );
+    },}, content);
+  };
 
   // CDU display: page + scratchpad + function keys all on one screen
   // Register cursor on shared object
@@ -19838,15 +19879,15 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
       /* Page title + page number */
       , React.createElement('div', { style: {display:"flex",padding:"2px 15px 0",alignItems:"baseline"},}
         , React.createElement('div', { style: {flex:1},})
-        , React.createElement('span', { style: {color:C.white,fontSize:"18px",fontWeight:"bold",fontFamily:M,letterSpacing:"1px"},}, pd.title)
-        , React.createElement('div', { style: {flex:1,textAlign:"right"},}, pd.titleSub&&!pd.subtitle&&React.createElement('span', { style: {color:C.white,fontSize:"12px",fontFamily:M},}, pd.titleSub))
+        , React.createElement('span', { style: {color:C.white,fontSize:"20px",fontWeight:"bold",fontFamily:M,letterSpacing:"2px"},}, pd.title)
+        , React.createElement('div', { style: {flex:1,textAlign:"right"},}, pd.titleSub&&!pd.subtitle&&React.createElement('span', { style: {color:C.white,fontSize:"16px",fontFamily:M},}, pd.titleSub))
       )
       /* Centered subtitle below title (e.g. "RTE 1 (ACT)" on DEP/ARR) */
       , pd.subtitle&&React.createElement('div', { style: {textAlign:"center",padding:"0 0 2px"},}
-        , React.createElement('span', { style: {color:C.white,fontSize:"12px",fontFamily:M},}, pd.subtitle)
+        , React.createElement('span', { style: {color:C.white,fontSize:"16px",fontFamily:M},}, pd.subtitle)
       )
       /* 6 LSK rows — FCOM 11.10.1: display area ~50% of CDU */
-      , React.createElement('div', { style: {flex:"5 1 0",display:"flex",flexDirection:"column",justifyContent:"space-between",minHeight:0},}
+      , React.createElement('div', { style: {flex:"0 0 auto",display:"flex",flexDirection:"column",gap:"8px",minHeight:0},}
         , rows.map((r,i) => {
           const n=i+1;
           if(pd.preflight&&n===5) return (
@@ -19857,9 +19898,9 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
           );
           const hasSep = pd.sep===n;
           const hasMidSep = pd.midSep && pd.midSep.after===i;
-          return React.createElement('div', { key: i,}
-            , hasSep&&React.createElement('div', { style: {borderTop:"1px dashed #333",margin:"0 15px"},})
+          return React.createElement('div', { key: i, style: hasSep?{position:"relative"}:undefined,}
             , React.createElement(CDURow, { n: n, ...r, onL: ()=>handleLSK("L",n), onR: ()=>handleLSK("R",n), cursorSide: fms.cursorIdx!==null&&Math.floor(fms.cursorIdx/2)+1===n?(fms.cursorIdx%2===0?"L":"R"):null,})
+            , hasSep&&React.createElement('div', { style: {borderTop:"2px dashed #555",margin:"0 15px",position:"absolute",bottom:"-5px",left:0,right:0,zIndex:1},})
             , hasMidSep&&React.createElement('div', { style: {borderTop:"1px dashed #555",margin:"2px 15px",position:"relative"},}
               , React.createElement('span', { style: {position:"absolute",top:"-8px",left:"50%",transform:"translateX(-50%)",background:C.screen,padding:"0 8px",color:C.white,fontSize:"11px",fontFamily:M},}, pd.midSep.label)
             )
@@ -19868,8 +19909,8 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
       )
       /* Scratchpad + Help */
       , React.createElement('div', { style: {padding:"2px 24px",minHeight:"32px",borderTop:"1px solid #222",flexShrink:0},}
-        , fms.helpMsg && React.createElement('div', { style: {color:C.amber,fontSize:"12px",fontFamily:M},}, fms.helpMsg)
-        , React.createElement('span', { style: {color:C.white,fontSize:"20px",fontWeight:"bold",fontFamily:M},}, fms.scratchpad, React.createElement('span', { style: {animation:"blink 1s infinite"},}, "_"))
+        , fms.helpMsg && React.createElement('div', { style: {color:C.amber,fontSize:"16px",fontFamily:M},}, fms.helpMsg)
+        , React.createElement('span', { style: {color:C.white,fontSize:"28px",fontWeight:"bold",fontFamily:M},}, fms.scratchpad, React.createElement('span', { style: {animation:"blink 1s infinite"},}, "_"))
       )
       /* Function keys — FCOM 11.10.1: bigger buttons, ~25% of CDU */
       , React.createElement('div', { style: {padding:"6px 8px",borderTop:"1px solid #222",flexShrink:0},}
@@ -19880,7 +19921,7 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
           , React.createElement(ScrBtn, { fk: "15", label: "ALTN", onClick: ()=>handleFunc("ALTN"),})
           , React.createElement(ScrBtn, { fk: "16", label: "VNAV", onClick: ()=>handleFunc("VNAV"),})
           , React.createElement('div', { style: {flex:1},})
-          , React.createElement(ScrBtn, { fk: "17", label: "EXEC", onClick: handleExec, w: "72px", h: "40px", lit: fms.execLight,})
+          , React.createElement(ScrBtn, { fk: "17", label: "EXEC", onClick: handleExec, w: "86px", h: "44px", lit: fms.execLight,})
         )
         , React.createElement('div', { style: {display:"flex",gap:"3px",marginBottom:"4px"},}
           , React.createElement(ScrBtn, { fk: "18", label: "FIX", onClick: ()=>handleFunc("FIX"),})
@@ -19921,7 +19962,7 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
         background:C.screen,border:"3px solid #222",borderRadius:"3px",
         flex:1,display:"flex",flexDirection:"column",overflow:"hidden",minHeight:0,position:"relative",userSelect:"none"
       },}
-        , mfdMode==="CDU" ? renderCDU() : (
+        , mfdMode==="CDU" ? React.createElement('div',{style:{transform:"scaleX(0.726)",transformOrigin:"left",width:"137.74%",flex:1,display:"flex",flexDirection:"column",minHeight:0}},renderCDU()) : (
           React.createElement('div', { style: {flex:1,overflow:"auto"},}, renderFullScreen())
         )
         , React.createElement('div', { id: "cduCursor", style: {position:"absolute",pointerEvents:"none",zIndex:999,color:"#ff00ff",fontSize:"20px",fontWeight:"bold",lineHeight:1,transform:"translate(-50%,-50%)",display:typeof CUR.cx==="number"?"block":"none",left:CUR.cx||0,top:CUR.cy||0},}, "+")
@@ -19993,7 +20034,7 @@ function MFKKeypad({fms,setFms,mfdMode,setMfdMode}) {
     }
     return React.createElement('button', { onClick: ()=>hk(l), style: {width:"42px",height:"40px",borderRadius:"3px",background:hi?"#3a3a3a":"linear-gradient(180deg,#3a3a3a 0%,#2a2a2a 100%)",color:C.white,border:hi?"2px solid #88cccc":"1px solid #555",fontSize:"14px",fontWeight:"bold",cursor:"pointer",fontFamily:M,boxShadow:"0 1px 3px rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,255,255,0.1)"},}, l);
   };
-  const MBtn=({l,a})=>(React.createElement('button', { onClick: ()=>{if(l==="CHKL"){setFms(function(p){return Object.assign({},p,{cursorIdx:null,prevMfdMode:mfdMode,prevPage:p.page});});setMfdMode(l);}else{setMfdMode(l);if(l==="COMM")setFms(function(p){return Object.assign({},p,{cursorIdx:null});});}}, style: {width:"55px",height:"28px",borderRadius:"3px",position:"relative",background:a?"#2a2a2a":"#3a3a3a",color:C.white,border:a?"2px solid #fff":"1px solid #555",fontSize:"11px",fontWeight:"bold",cursor:"pointer",fontFamily:M,boxShadow:a?"0 0 4px rgba(255,255,255,0.3)":"0 1px 3px rgba(0,0,0,0.4)"},}
+  const MBtn=({l,a})=>(React.createElement('button', { onClick: ()=>{if(l==="CHKL"){setFms(function(p){return Object.assign({},p,{cursorIdx:null,prevMfdMode:mfdMode,prevPage:p.page});});setMfdMode(l);}else{setMfdMode(l);if(l==="COMM")setFms(function(p){return Object.assign({},p,{cursorIdx:null});});}}, style: {width:"55px",height:"28px",borderRadius:"3px",position:"relative",background:a?"#2a2a2a":"#3a3a3a",color:C.white,border:a?"2px solid #fff":"1px solid #555",fontSize:"16px",fontWeight:"bold",cursor:"pointer",fontFamily:M,boxShadow:a?"0 0 4px rgba(255,255,255,0.3)":"0 1px 3px rgba(0,0,0,0.4)"},}
     , l));
   // Move DOM cursor to LSK position AND set cursorIdx
   function jumpCursor(idx){if(CUR.hoverEl)CUR.hoverEl.style.outline="none";CUR.hoverKey=null;CUR.hoverEl=null;CUR.set(function(p){var n=Object.assign({},p,{cursorIdx:idx});if(idx>=100&&idx<200)n.chkl=Object.assign({},p.chkl,{cur:idx-100});return n;});setTimeout(function(){positionCursorAt(idx);},120);}
@@ -20144,7 +20185,7 @@ function MFKKeypad({fms,setFms,mfdMode,setMfdMode}) {
   const hi=["E","N","S","W"];
   return (
     React.createElement('div', { style: {width:"245px",flexShrink:0,alignSelf:"stretch",background:`linear-gradient(180deg,${C.mfkPanel} 0%,#4a5248 50%,#3e4540 100%)`,padding:"10px 14px",borderRadius:"4px",display:"flex",flexDirection:"column",gap:"4px",border:"2px solid #555",boxShadow:"inset 0 1px 0 rgba(255,255,255,0.1),0 2px 8px rgba(0,0,0,0.6)",justifyContent:"space-between"},}
-      , React.createElement('div', { style: {textAlign:"center",color:C.white,fontSize:"11px",fontWeight:"bold",letterSpacing:"2px",fontFamily:M},}, "LOWER MFD" )
+      , React.createElement('div', { style: {textAlign:"center",color:C.white,fontSize:"16px",fontWeight:"bold",letterSpacing:"2px",fontFamily:M},}, "LOWER MFD" )
       , [["SYS","CDU","INFO"],["CHKL","COMM","ND"]].map((r,i)=>(React.createElement('div', { key: i, style: {display:"flex",gap:"5px",justifyContent:"center"},}, r.map(m=>React.createElement(MBtn, { key: m, l: m, a: mfdMode===m,})))))
       , React.createElement('div', { style: {height:2},})
       , React.createElement('div', { style: {display:"flex",gap:"8px"},}
@@ -22353,20 +22394,21 @@ function B787Cockpit(){
         React.createElement('div', {style:{color:"#00cccc",fontSize:33,fontWeight:"bold",letterSpacing:4,marginBottom:4}}, "B787 DREAMLINER"),
         React.createElement('div', {style:{color:"#aaa",fontSize:14,letterSpacing:2}}, "COCKPIT PROCEDURE SIMULATOR"),
         React.createElement('div', {style:{color:"#777",fontSize:14,marginTop:4}}, "FOR TRAINING PURPOSE ONLY"),
-        React.createElement('div', {style:{color:"#00bb00",fontSize:11,marginTop:12,letterSpacing:1}}, "v2.8.35 \u00a0|\u00a0 by SHLee7872603")
+        React.createElement('div', {style:{color:"#00bb00",fontSize:11,marginTop:12,letterSpacing:1}}, "v2.8.36 \u00a0|\u00a0 by SHLee7872603")
       ),
       React.createElement('div', {style:{borderTop:"1px solid #333",borderBottom:"1px solid #333",padding:"14px 0",marginBottom:16}},
         React.createElement(ChkRow, {checked:ckIPad,onToggle:function(){setCkIPad(function(p){return!p;});}},
-          React.createElement('div', {style:{color:"#00cccc",fontSize:17,fontWeight:"bold",marginBottom:8,letterSpacing:1}}, "PATCH NOTES v2.8.35"),
+          React.createElement('div', {style:{color:"#00cccc",fontSize:17,fontWeight:"bold",marginBottom:8,letterSpacing:1}}, "PATCH NOTES v2.8.36"),
           React.createElement('div', {style:{color:"#aaa",fontSize:14,fontWeight:"bold",lineHeight:1.8}},
-            React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginBottom:2}}, "v2.8.35"),
-            React.createElement('div', null, "\u2022 FIX INFO \ud398\uc774\uc9c0 FCOM 11.42.40-41 \uae30\ubc18 \uc7ac\uad6c\uc131"),
-            React.createElement('div', null, "\u2022 BRG/DIS 3\uc5f4 \ub808\uc774\uc544\uc6c3 (ETA/DTG/ALT)"),
-            React.createElement('div', null, "\u2022 ABEAM \ud45c\uc2dc/\ubcf5\uc0ac \u00b7 PRED ETA-ALT \u00b7 DEL \uc9c0\uc6d0"),
-            React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginTop:8,marginBottom:2}}, "v2.8.34"),
-            React.createElement('div', null, "\u2022 RTE/LEGS DISC \uc0dd\uc131\u00b7\ud574\uc18c\u00b7ERASE \ub85c\uc9c1 \uad6c\ud604"),
-            React.createElement('div', null, "\u2022 Missed Approach APP\ubcc4 \ubd84\ub9ac (RNP16L/ILS16L)"),
-            React.createElement('div', null, "\u2022 EXEC \uc2a4\ub0c5\uc0f7/ERASE \ubcf5\uc6d0 \u00b7 CLR \ub871\ud504\ub808\uc2a4"),
+            React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginBottom:2}}, "v2.8.36"),
+            React.createElement('div', null, "\u2022 AUX Display \ub9ac\ub514\uc790\uc778 (FCOM 10.10.63, \ud68c\uc0c9\ubc30\uacbd/cyan\ub77c\ubca8)"),
+            React.createElement('div', null, "\u2022 DCL\u2192AUX \uc5f0\ub3d9 (SENDING/SENT\u2192AUX \uae5c\ube61\uc784+\uba54\uc2dc\uc9c0, CANC \ud074\ub9ac\uc5b4)"),
+            React.createElement('div', null, "\u2022 LEGS modify FCOM 11.42.1-7 \uc804\uba74 \uc7ac\uad6c\ud604"),
+            React.createElement('div', null, "\u2022 CDU \ud654\uba74 \ub808\uc774\uc544\uc6c3 \uc804\uba74 \uc870\uc815 (Row/\uae00\uc790/\uac04\uaca9)"),
+            React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginTop:8,marginBottom:2}}, "v2.8.35"),
+            React.createElement('div', null, "\u2022 FIX INFO \ud398\uc774\uc9c0 FCOM 11.42.40-41 \uad6c\ud604"),
+            React.createElement('div', null, "\u2022 EFB LANDING \ud398\uc774\uc9c0 \ucd94\uac00"),
+            React.createElement('div', null, "\u2022 AUX Display \ucd94\uac00 \u00b7 Datalink ACPT/CANC/RJCT"),
 
           )
         )
@@ -22432,13 +22474,13 @@ function B787Cockpit(){
   return(React.createElement('div', { style: {width:"100%",minHeight:"100vh",background:"#050505",display:"flex",flexDirection:"column",alignItems:"center",fontFamily:M},}
     /* Top bar */
     , React.createElement('div', { style: {width:"100%",display:"flex",alignItems:"center",padding:"6px 12px",background:"#0a0a0a",borderBottom:"1px solid #222",gap:10,flexShrink:0},}
-      , React.createElement('span', { style: {color:C.white,fontSize:"13px",fontWeight:"bold",letterSpacing:"2px"},}, "B787")
+      , React.createElement('span', { style: {color:C.white,fontSize:"16px",fontWeight:"bold",letterSpacing:"2px"},}, "B787")
       , React.createElement('div', { style: {width:1,height:18,background:"#333"},})
-      , React.createElement('button', { onClick: ()=>{setFms(initFMS());switchView("CDU");}, style: {padding:"5px 10px",background:"#1a0a0a",color:C.red,border:"1px solid #600",borderRadius:3,fontSize:10,fontWeight:"bold",cursor:"pointer",fontFamily:M},}, "초기화")
+      , React.createElement('button', { onClick: ()=>{setFms(initFMS());switchView("CDU");}, style: {padding:"5px 10px",background:"#1a0a0a",color:C.red,border:"1px solid #600",borderRadius:3,fontSize:16,fontWeight:"bold",cursor:"pointer",fontFamily:M},}, "초기화")
         , React.createElement('button', { onClick: ()=>setSplash(true), style: {padding:"5px 10px",background:"#0a0a1a",color:"#aaccff",border:"1px solid #446",borderRadius:3,fontSize:10,fontWeight:"bold",cursor:"pointer",fontFamily:M},}, "INFO")
       , React.createElement('div', { style: {width:1,height:18,background:"#333"},})
       , ["CDU","EFB","FWD","AUX"].map(v=>(
-        React.createElement('button', { key: v, onClick: ()=>{switchView(v);if(v==="AUX"){setFms(function(p){return{...p,auxBlink:false};});}}, style: {padding:"5px 14px",background:activeView===v?"#0a2a0a":v==="AUX"&&fms.auxBlink?"transparent":"#111",color:activeView===v?C.green:v==="AUX"&&fms.auxBlink?C.cyan:"#aaa",border:`1px solid ${activeView===v?C.green:v==="AUX"&&fms.auxBlink?C.cyan:"#444"}`,borderRadius:3,fontSize:11,fontWeight:"bold",cursor:"pointer",fontFamily:M,animation:v==="AUX"&&fms.auxBlink?"blink 1s infinite":"none"},}, v==="CDU"?"LOWER MFD":v==="FWD"?"FWD PANEL":v==="AUX"?"AUX DSP":v)
+        React.createElement('button', { key: v, onClick: ()=>{switchView(v);if(v==="AUX"){setFms(function(p){return{...p,auxBlink:false};});}}, style: {padding:"5px 14px",background:activeView===v?"#0a2a0a":v==="AUX"&&fms.auxBlink?"transparent":"#111",color:activeView===v?C.green:v==="AUX"&&fms.auxBlink?C.cyan:"#aaa",border:`1px solid ${activeView===v?C.green:v==="AUX"&&fms.auxBlink?C.cyan:"#444"}`,borderRadius:3,fontSize:16,fontWeight:"bold",cursor:"pointer",fontFamily:M,animation:v==="AUX"&&fms.auxBlink?"blink 1s infinite":"none"},}, v==="CDU"?"LOWER MFD":v==="FWD"?"FWD PANEL":v==="AUX"?"AUX DSP":v)
       ))
       , React.createElement('button', { onClick: function(){
         var rteLegs=[{via:"OSPO2C",to:"OSPOT"},{via:"Y782",to:"TGU"},{via:"Y781",to:"BESNA"},{via:"Y209",to:"IKE"}];
@@ -22451,7 +22493,7 @@ function B787Cockpit(){
           efbPerf:{aprt:"",rwy:"",intx:"",cond:"",wind:"",oat:"",qnh:"",rtg:"OPTIMUM",ic:"NO",atm:"MAX",flap:"OPTIMUM",aiEng:"ENG AUTO",icing:"NO",rtl:"20/30",tow:"",zfw:"",cg:"25",calcDone:false,sentToFmc:false,calcV1:"",calcVR:"",calcV2:"",calcFlap:"",calcThrust:"",calcAccelHt:"",calcDTO:"",calcSelTemp:"",calcVref30:"",calcRwyIntx:"",calcTOGW:""}
         });
         updateRouteLegs(preset);preset.computedLegs=buildLegs(preset);setFms(preset);
-      }, style: {padding:"5px 10px",background:"#0a0a2a",color:"#aaccff",border:"1px solid #4466aa",borderRadius:3,fontSize:10,fontWeight:"bold",cursor:"pointer",fontFamily:M},}, "Load CDU setup")
+      }, style: {padding:"5px 10px",background:"#0a0a2a",color:"#aaccff",border:"1px solid #4466aa",borderRadius:3,fontSize:16,fontWeight:"bold",cursor:"pointer",fontFamily:M},}, "Load CDU setup")
       , React.createElement('div', { style: {flex:1},})
       , React.createElement('span', { style: {color:C.green,fontSize:9},}, "FMS:", fms.phase)
       , React.createElement('span', { style: {color:C.cyan,fontSize:9},}, fms.origin||"----", "→", fms.dest||"----")
