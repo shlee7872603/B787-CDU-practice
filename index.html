@@ -9,7 +9,7 @@
 <meta name="theme-color" content="#050505">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>B787 CDU Practice v2.8.36</title>
+<title>B787 CDU Practice v2.8.36a</title>
 <style>*{margin:0;padding:0;box-sizing:border-box;-webkit-user-select:none;user-select:none}body{background:#050505;overflow-x:hidden}</style>
 </head>
 <body>
@@ -19124,10 +19124,10 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
       else if(p==="THRUST_LIM"){if(side==="L"&&num===2)s.thrustMode="TO";if(side==="L"&&num===3)s.thrustMode="TO 1";if(side==="L"&&num===4)s.thrustMode="TO 2";if(side==="L"&&num===1)set("selOat");if(side==="L"&&num===6)go("INIT_REF");if(side==="R"&&num===6)go("TOREF1");}
       else if(p==="APPROACH_REF"){
         if(side==="L"&&num===1&&sp){s.grWt=sp;s.scratchpad="";}
-        if(side==="R"&&num===1){s.appFlapSpd="20";var _gw2=parseFloat(s.grWt||0);if(_gw2>100){s.vref=String(Math.round(115+_gw2*0.065)+6);s.landFlaps="20";}}
-        if(side==="R"&&num===2){s.appFlapSpd="25";var _gw3=parseFloat(s.grWt||0);if(_gw3>100){s.vref=String(Math.round(115+_gw3*0.065)+3);s.landFlaps="25";}}
+        if(side==="R"&&num===1){s.appFlapSpd="20";var _gw2=parseFloat(s.grWt||0);if(_gw2>100){s.vref=String(Math.round(115+_gw2*0.065)+6);s.landFlaps="20";}s.scratchpad="";s._skipCopy=true;}
+        if(side==="R"&&num===2){s.appFlapSpd="25";var _gw3=parseFloat(s.grWt||0);if(_gw3>100){s.vref=String(Math.round(115+_gw3*0.065)+3);s.landFlaps="25";}s.scratchpad="";s._skipCopy=true;}
         if(side==="L"&&num===3)s.appLandRef=s.appLandRef==="QFE"?"QNH":"QFE";
-        if(side==="R"&&num===3){s.appFlapSpd="30";var _gw4=parseFloat(s.grWt||0);if(_gw4>100){s.vref=String(Math.round(115+_gw4*0.065));s.landFlaps="30";}}
+        if(side==="R"&&num===3){s.appFlapSpd="30";var _gw4=parseFloat(s.grWt||0);if(_gw4>100){s.vref=String(Math.round(115+_gw4*0.065));s.landFlaps="30";}s.scratchpad="";s._skipCopy=true;}
         if(side==="R"&&num===4&&sp){s.appFlapSpd=sp.split("/")[0];s.scratchpad="";}
         if(side==="L"&&num===5)s.appGsOn=!s.appGsOn;
         if(side==="R"&&num===5&&sp){s.appWindCorr=sp;s.scratchpad="";}
@@ -19771,7 +19771,7 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
       }
       else{if(side==="L"&&num===6)go("INIT_REF");}
       // Universal scratchpad copy-back: if sp was empty and still empty, copy displayed field value
-      if(!sp&&s.scratchpad===""&&s.page===p){
+      if(!sp&&s.scratchpad===""&&s.page===p&&!s._skipCopy){
         try{
           var _pd=cduPageData(s);
           if(_pd&&_pd.rows){
@@ -19789,6 +19789,7 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
         s.cursorIdx=(pn.num-1)*2+(pn.side==="R"?1:0);
         delete s._perfNext;
       }
+      if(s._skipCopy)delete s._skipCopy;
       return s;
     });
   },[setFms]);
@@ -20184,26 +20185,26 @@ function MFKKeypad({fms,setFms,mfdMode,setMfdMode}) {
   var cursorJump=function(i){moveCursorTo(i);};
   const hi=["E","N","S","W"];
   return (
-    React.createElement('div', { style: {width:"245px",flexShrink:0,alignSelf:"stretch",background:`linear-gradient(180deg,${C.mfkPanel} 0%,#4a5248 50%,#3e4540 100%)`,padding:"10px 14px",borderRadius:"4px",display:"flex",flexDirection:"column",gap:"4px",border:"2px solid #555",boxShadow:"inset 0 1px 0 rgba(255,255,255,0.1),0 2px 8px rgba(0,0,0,0.6)",justifyContent:"space-between"},}
+    React.createElement('div', { style: {width:"265px",flexShrink:0,alignSelf:"stretch",background:`linear-gradient(180deg,${C.mfkPanel} 0%,#4a5248 50%,#3e4540 100%)`,padding:"10px 14px",borderRadius:"4px",display:"flex",flexDirection:"column",gap:"2px",border:"2px solid #555",boxShadow:"inset 0 1px 0 rgba(255,255,255,0.1),0 2px 8px rgba(0,0,0,0.6)",justifyContent:"space-between"},}
       , React.createElement('div', { style: {textAlign:"center",color:C.white,fontSize:"16px",fontWeight:"bold",letterSpacing:"2px",fontFamily:M},}, "LOWER MFD" )
-      , [["SYS","CDU","INFO"],["CHKL","COMM","ND"]].map((r,i)=>(React.createElement('div', { key: i, style: {display:"flex",gap:"5px",justifyContent:"center"},}, r.map(m=>React.createElement(MBtn, { key: m, l: m, a: mfdMode===m,})))))
+      , [["SYS","CDU","INFO"],["CHKL","COMM","ND"]].map((r,i)=>(React.createElement('div', { key: i, style: {display:"flex",gap:"3px",justifyContent:"center"},}, r.map(m=>React.createElement(MBtn, { key: m, l: m, a: mfdMode===m,})))))
       , React.createElement('div', { style: {height:2},})
-      , React.createElement('div', { style: {display:"flex",gap:"8px"},}
-        , React.createElement('div', { style: {display:"flex",flexDirection:"column",gap:"6px"},}
-          , [["1","2","3"],["4","5","6"],["7","8","9"],[".","0","+/-"]].map((r,i)=>(React.createElement('div', { key: i, style: {display:"flex",gap:"8px"},}, r.map(k=>React.createElement(NumBtn, { key: k, l: k,})))))
+      , React.createElement('div', { style: {display:"flex",gap:"4px"},}
+        , React.createElement('div', { style: {display:"flex",flexDirection:"column",gap:"3px"},}
+          , [["1","2","3"],["4","5","6"],["7","8","9"],[".","0","+/-"]].map((r,i)=>(React.createElement('div', { key: i, style: {display:"flex",gap:"4px"},}, r.map(k=>React.createElement(NumBtn, { key: k, l: k,})))))
         )
         , React.createElement('div', { style: {paddingTop:4},}, React.createElement('button', { onClick: ()=>{}, style: {width:"48px",height:"135px",borderRadius:"3px",background:"linear-gradient(180deg,#2a2a2a 0%,#1a1a1a 100%)",color:C.white,border:"1px solid #555",fontSize:"12px",fontWeight:"bold",cursor:"pointer",fontFamily:M,writingMode:"vertical-lr",letterSpacing:"2px",boxShadow:"0 2px 4px rgba(0,0,0,0.5)"},}, "ENTER"))
       )
       , React.createElement('div', { style: {height:2},})
-      , [["A","B","C","D","E"],["F","G","H","I","J"],["K","L","M","N","O"],["P","Q","R","S","T"],["U","V","W","X","Y"],["Z","SP","DEL","/","CLR"]].map((r,i)=>(React.createElement('div', { key: i, style: {display:"flex",gap:"4px",justifyContent:"center"},}, r.map(k=>React.createElement(ABtn, { key: k, l: k, hi: hi.includes(k),})))))
+      , [["A","B","C","D","E"],["F","G","H","I","J"],["K","L","M","N","O"],["P","Q","R","S","T"],["U","V","W","X","Y"],["Z","SP","DEL","/","CLR"]].map((r,i)=>(React.createElement('div', { key: i, style: {display:"flex",gap:"2px",justifyContent:"center"},}, r.map(k=>React.createElement(ABtn, { key: k, l: k, hi: hi.includes(k),})))))
       , React.createElement('div', { style: {display:"flex",justifyContent:"flex-end",padding:"0 4px"},}, React.createElement('div', { style: {width:"40px",height:"5px",borderRadius:"2px",background:fms.execLight?C.execGr:"#222",border:"1px solid #444",boxShadow:fms.execLight?`0 0 6px ${C.execGr}`:"none"},}))
-      , React.createElement('div', { style: {display:"flex",gap:"6px",justifyContent:"center"},}
+      , React.createElement('div', { style: {display:"flex",gap:"3px",justifyContent:"center"},}
         , React.createElement('button', { onClick: handlePrev, style: {width:"56px",height:"34px",borderRadius:"3px",background:"linear-gradient(180deg,#3a3a3a 0%,#2a2a2a 100%)",color:C.white,border:"1px solid #555",fontSize:"11px",fontWeight:"bold",cursor:"pointer",fontFamily:M,boxShadow:"0 1px 3px rgba(0,0,0,0.5)",lineHeight:1.1,whiteSpace:"pre-line",textAlign:"center"},}, "PREV\nPAGE")
         , React.createElement('button', { onClick: handleNext, style: {width:"56px",height:"34px",borderRadius:"3px",background:"linear-gradient(180deg,#3a3a3a 0%,#2a2a2a 100%)",color:C.white,border:"1px solid #555",fontSize:"11px",fontWeight:"bold",cursor:"pointer",fontFamily:M,boxShadow:"0 1px 3px rgba(0,0,0,0.5)",lineHeight:1.1,whiteSpace:"pre-line",textAlign:"center"},}, "NEXT\nPAGE")
         , React.createElement('button', { onClick: ()=>setFms(p=>{if(!p.execLight)return p;var n={...p,execLight:false,phase:p.origin&&p.dest?"ACTIVE":p.phase};if(p.depSid)n.depSidAct=true;if(p.arrStar)n.arrStarAct=true;if(p.arrApp)n.arrAppAct=true;if(n.computedLegs)n.computedLegs.forEach(function(l){delete l.inserted;});n._snapshot={depSid:n.depSid,depRwy:n.depRwy,depTrans:n.depTrans,arrStar:n.arrStar,arrApp:n.arrApp,arrTrans:n.arrTrans,routeLegs:JSON.parse(JSON.stringify(n.routeLegs)),computedLegs:JSON.parse(JSON.stringify(n.computedLegs||[]))};return n;}), style: {width:"66px",height:"34px",borderRadius:"3px",background:fms.execLight?"#003300":"linear-gradient(180deg,#3a3a3a 0%,#2a2a2a 100%)",color:fms.execLight?C.execGr:C.white,border:`2px solid ${fms.execLight?C.execGr:"#555"}`,fontSize:"13px",fontWeight:"bold",cursor:"pointer",fontFamily:M,boxShadow:fms.execLight?`0 0 8px rgba(0,187,0,0.5)`:"0 1px 3px rgba(0,0,0,0.5)"},}, "EXEC")
       )
       /* ═══ FCOM 10.10.53 #4/#5: Cursor Control + #3: Touch Pad ═══ */
-      , React.createElement('div', { style: {display:"flex",flexDirection:"column",alignItems:"center",marginTop:2,gap:6},}
+      , React.createElement('div', { style: {display:"flex",flexDirection:"column",alignItems:"center",marginTop:2,gap:3},}
         /* Cursor Control Selector (outer ring) + Select Switch (inner button) */
         , React.createElement('div', { style: {display:"flex",flexDirection:"column",alignItems:"center"},}
           , React.createElement('div', { style: {color:C.white,fontSize:"9px",fontWeight:"bold",letterSpacing:"1px",marginBottom:3,fontFamily:M},}, "CURSOR CONTROL" )
@@ -20230,7 +20231,7 @@ function MFKKeypad({fms,setFms,mfdMode,setMfdMode}) {
           )
         )
         /* Touch Pad — FCOM 10.10.57: corners=L1/R1/L6/R6, center=drag */
-        , React.createElement('div', { style: {width:217,height:217,background:"#0a0a0a",border:"3px solid #444",borderRadius:6,touchAction:"none",boxShadow:"inset 0 2px 12px rgba(0,0,0,0.9)",position:"relative"},
+        , React.createElement('div', { style: {width:237,height:237,background:"#0a0a0a",border:"3px solid #444",borderRadius:6,touchAction:"none",boxShadow:"inset 0 2px 12px rgba(0,0,0,0.9)",position:"relative"},
           onPointerDown: function(e){if(e.target!==e.currentTarget)return;e.preventDefault();e.currentTarget.setPointerCapture(e.pointerId);var t=e.currentTarget;t._lx=e.clientX;t._ly=e.clientY;t._moved=false;var scr=document.getElementById("cduScreen");var cur=document.getElementById("cduCursor");if(scr&&cur&&typeof CUR.cx!=="number"){var r=scr.getBoundingClientRect();CUR.cx=r.width/2;CUR.cy=r.height/2;cur.style.left=CUR.cx+"px";cur.style.top=CUR.cy+"px";cur.style.display="block";}},
           onPointerMove: function(e){if(!e.currentTarget.hasPointerCapture(e.pointerId))return;var t=e.currentTarget;var dx=e.clientX-t._lx;var dy=e.clientY-t._ly;t._lx=e.clientX;t._ly=e.clientY;if(Math.abs(dx)>1||Math.abs(dy)>1)t._moved=true;var scr=document.getElementById("cduScreen");var cur=document.getElementById("cduCursor");if(!scr||!cur)return;var r=scr.getBoundingClientRect();var s=2.5;CUR.cx=Math.max(0,Math.min(r.width,(typeof CUR.cx==="number"?CUR.cx:r.width/2)+dx*s));CUR.cy=Math.max(0,Math.min(r.height,(typeof CUR.cy==="number"?CUR.cy:r.height/2)+dy*s));cur.style.left=CUR.cx+"px";cur.style.top=CUR.cy+"px";cur.style.display="block";updateCursorHover();},
           onPointerUp: function(e){if(e.currentTarget.hasPointerCapture(e.pointerId))e.currentTarget.releasePointerCapture(e.pointerId);},}
@@ -22394,21 +22395,20 @@ function B787Cockpit(){
         React.createElement('div', {style:{color:"#00cccc",fontSize:33,fontWeight:"bold",letterSpacing:4,marginBottom:4}}, "B787 DREAMLINER"),
         React.createElement('div', {style:{color:"#aaa",fontSize:14,letterSpacing:2}}, "COCKPIT PROCEDURE SIMULATOR"),
         React.createElement('div', {style:{color:"#777",fontSize:14,marginTop:4}}, "FOR TRAINING PURPOSE ONLY"),
-        React.createElement('div', {style:{color:"#00bb00",fontSize:11,marginTop:12,letterSpacing:1}}, "v2.8.36 \u00a0|\u00a0 by SHLee7872603")
+        React.createElement('div', {style:{color:"#00bb00",fontSize:11,marginTop:12,letterSpacing:1}}, "v2.8.36a \u00a0|\u00a0 by SHLee7872603")
       ),
       React.createElement('div', {style:{borderTop:"1px solid #333",borderBottom:"1px solid #333",padding:"14px 0",marginBottom:16}},
         React.createElement(ChkRow, {checked:ckIPad,onToggle:function(){setCkIPad(function(p){return!p;});}},
-          React.createElement('div', {style:{color:"#00cccc",fontSize:17,fontWeight:"bold",marginBottom:8,letterSpacing:1}}, "PATCH NOTES v2.8.36"),
+          React.createElement('div', {style:{color:"#00cccc",fontSize:17,fontWeight:"bold",marginBottom:8,letterSpacing:1}}, "PATCH NOTES v2.8.36a"),
           React.createElement('div', {style:{color:"#aaa",fontSize:14,fontWeight:"bold",lineHeight:1.8}},
-            React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginBottom:2}}, "v2.8.36"),
-            React.createElement('div', null, "\u2022 AUX Display \ub9ac\ub514\uc790\uc778 (FCOM 10.10.63, \ud68c\uc0c9\ubc30\uacbd/cyan\ub77c\ubca8)"),
-            React.createElement('div', null, "\u2022 DCL\u2192AUX \uc5f0\ub3d9 (SENDING/SENT\u2192AUX \uae5c\ube61\uc784+\uba54\uc2dc\uc9c0, CANC \ud074\ub9ac\uc5b4)"),
+            React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginBottom:2}}, "v2.8.36a"),
+            React.createElement('div', null, "\u2022 CDU Row 48px\uace0\uc815 (Title 20px + Data 28px), Row\uac04 8px"),
+            React.createElement('div', null, "\u2022 \uae00\uc790\ud3ed scaleX(0.726), letterSpacing +1px"),
+            React.createElement('div', null, "\u2022 \uba54\ub274\ubc84\ud2bc 8\uac1c \ubc30\uce58, MFK \ud328\ub110 +20px, \ud2b8\ub799\ud328\ub4dc +20px"),
+            React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginTop:8,marginBottom:2}}, "v2.8.36"),
+            React.createElement('div', null, "\u2022 AUX Display \ub9ac\ub514\uc790\uc778 (FCOM 10.10.63)"),
+            React.createElement('div', null, "\u2022 DCL\u2192AUX \uc5f0\ub3d9 \u00b7 CANC \ud074\ub9ac\uc5b4"),
             React.createElement('div', null, "\u2022 LEGS modify FCOM 11.42.1-7 \uc804\uba74 \uc7ac\uad6c\ud604"),
-            React.createElement('div', null, "\u2022 CDU \ud654\uba74 \ub808\uc774\uc544\uc6c3 \uc804\uba74 \uc870\uc815 (Row/\uae00\uc790/\uac04\uaca9)"),
-            React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginTop:8,marginBottom:2}}, "v2.8.35"),
-            React.createElement('div', null, "\u2022 FIX INFO \ud398\uc774\uc9c0 FCOM 11.42.40-41 \uad6c\ud604"),
-            React.createElement('div', null, "\u2022 EFB LANDING \ud398\uc774\uc9c0 \ucd94\uac00"),
-            React.createElement('div', null, "\u2022 AUX Display \ucd94\uac00 \u00b7 Datalink ACPT/CANC/RJCT"),
 
           )
         )
@@ -22476,8 +22476,8 @@ function B787Cockpit(){
     , React.createElement('div', { style: {width:"100%",display:"flex",alignItems:"center",padding:"6px 12px",background:"#0a0a0a",borderBottom:"1px solid #222",gap:10,flexShrink:0},}
       , React.createElement('span', { style: {color:C.white,fontSize:"16px",fontWeight:"bold",letterSpacing:"2px"},}, "B787")
       , React.createElement('div', { style: {width:1,height:18,background:"#333"},})
-      , React.createElement('button', { onClick: ()=>{setFms(initFMS());switchView("CDU");}, style: {padding:"5px 10px",background:"#1a0a0a",color:C.red,border:"1px solid #600",borderRadius:3,fontSize:16,fontWeight:"bold",cursor:"pointer",fontFamily:M},}, "초기화")
-        , React.createElement('button', { onClick: ()=>setSplash(true), style: {padding:"5px 10px",background:"#0a0a1a",color:"#aaccff",border:"1px solid #446",borderRadius:3,fontSize:10,fontWeight:"bold",cursor:"pointer",fontFamily:M},}, "INFO")
+      , React.createElement('button', { onClick: ()=>{setFms(initFMS());switchView("CDU");}, style: {padding:"4px 8px",background:"#1a0a0a",color:C.red,border:"1px solid #600",borderRadius:3,fontSize:12,fontWeight:"bold",cursor:"pointer",fontFamily:M},}, "초기화")
+        , React.createElement('button', { onClick: ()=>setSplash(true), style: {padding:"4px 8px",background:"#0a0a1a",color:"#aaccff",border:"1px solid #446",borderRadius:3,fontSize:12,fontWeight:"bold",cursor:"pointer",fontFamily:M},}, "INFO")
       , React.createElement('div', { style: {width:1,height:18,background:"#333"},})
       , ["CDU","EFB","FWD","AUX"].map(v=>(
         React.createElement('button', { key: v, onClick: ()=>{switchView(v);if(v==="AUX"){setFms(function(p){return{...p,auxBlink:false};});}}, style: {padding:"5px 14px",background:activeView===v?"#0a2a0a":v==="AUX"&&fms.auxBlink?"transparent":"#111",color:activeView===v?C.green:v==="AUX"&&fms.auxBlink?C.cyan:"#aaa",border:`1px solid ${activeView===v?C.green:v==="AUX"&&fms.auxBlink?C.cyan:"#444"}`,borderRadius:3,fontSize:16,fontWeight:"bold",cursor:"pointer",fontFamily:M,animation:v==="AUX"&&fms.auxBlink?"blink 1s infinite":"none"},}, v==="CDU"?"LOWER MFD":v==="FWD"?"FWD PANEL":v==="AUX"?"AUX DSP":v)
@@ -22493,7 +22493,7 @@ function B787Cockpit(){
           efbPerf:{aprt:"",rwy:"",intx:"",cond:"",wind:"",oat:"",qnh:"",rtg:"OPTIMUM",ic:"NO",atm:"MAX",flap:"OPTIMUM",aiEng:"ENG AUTO",icing:"NO",rtl:"20/30",tow:"",zfw:"",cg:"25",calcDone:false,sentToFmc:false,calcV1:"",calcVR:"",calcV2:"",calcFlap:"",calcThrust:"",calcAccelHt:"",calcDTO:"",calcSelTemp:"",calcVref30:"",calcRwyIntx:"",calcTOGW:""}
         });
         updateRouteLegs(preset);preset.computedLegs=buildLegs(preset);setFms(preset);
-      }, style: {padding:"5px 10px",background:"#0a0a2a",color:"#aaccff",border:"1px solid #4466aa",borderRadius:3,fontSize:16,fontWeight:"bold",cursor:"pointer",fontFamily:M},}, "Load CDU setup")
+      }, style: {padding:"4px 8px",background:"#0a0a2a",color:"#aaccff",border:"1px solid #4466aa",borderRadius:3,fontSize:12,fontWeight:"bold",cursor:"pointer",fontFamily:M},}, "CDU setup")
       , React.createElement('div', { style: {flex:1},})
       , React.createElement('span', { style: {color:C.green,fontSize:9},}, "FMS:", fms.phase)
       , React.createElement('span', { style: {color:C.cyan,fontSize:9},}, fms.origin||"----", "→", fms.dest||"----")
