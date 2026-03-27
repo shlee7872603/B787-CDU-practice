@@ -9,7 +9,7 @@
 <meta name="theme-color" content="#050505">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>B787 CDU Practice v2.8.36b</title>
+<title>B787 CDU Practice v2.8.37a</title>
 <style>*{margin:0;padding:0;box-sizing:border-box;-webkit-user-select:none;user-select:none}body{background:#050505;overflow-x:hidden}</style>
 </head>
 <body>
@@ -17427,9 +17427,13 @@ FLIGHT_DB.KAL782=FLIGHT_DB.KAL788;
 // ═══════ Airport-based DEP/ARR data (keyed by ICAO) ═══════
 const AIRPORT_DB = {
   RKSI:{
+    pos:"N37°27.7 E126°26.6",
+    gates:{A01:"N37°27.8 E126°26.4",A02:"N37°27.7 E126°26.5",B01:"N37°27.6 E126°26.7",B02:"N37°27.5 E126°26.8"},
     depSids:["OSPO2C","EGOB2C"],depRwys:["15R","15L"],
     arrStars:["GUKD2E","KARB2E","OLME2E"],arrApps:["ILS 33R","ILS 15L","ILS 33L","RNAV 34L"]},
   RJFF:{
+    pos:"N33°35.2 E130°27.1",
+    gates:{1:"N33°35.3 E130°27.0",2:"N33°35.1 E130°27.2",3:"N33°35.2 E130°27.0"},
     depSids:["HAKAT5","TOGIK2","OGUNI5","YAMEK7"],depRwys:["34R","34L","16L","16R"],
     arrStars:["ISKUPE","HONOKE","ATSAGE","SARUPE"],arrApps:["RNP 16L","ILS 16L","RNAV 34R"]},
 };
@@ -17814,6 +17818,7 @@ const initFMS = () => ({
   phase:"PREFLIGHT",page:"IDENT",scratchpad:"",execLight:false,cursorIdx:null,
   computedLegs:[],
   origin:"",dest:"",fltNo:"",coRoute:"",runway:"",refAirport:"",
+  posGate:"", setInertialPos:"", setHdg:"", // POS INIT fields (FCOM 11.40.8)
   rteUplinkPending:false, // true after REQUEST, before LOAD
   model:"787-9",engRating:"GEnx-1B74/75",navData:"BE10407001",
   navActive:"MAR15APR11/26",opProgram:"PS40735540-123",dragFF:"+0.0/+0.0",
@@ -17857,7 +17862,8 @@ const initFMS = () => ({
   // OFFSET state (FCOM 11.42.19)
   offsetDist:"",offsetStart:"",offsetEnd:"",offsetSlopStart:"",offsetSlopEnd:"",
   pendingUplink:null, // FCOM 11.40.44: pending TAKEOFF REF UPLINK data
-  auxMsg:"", auxBlink:false, // AUX Display message & tab blink
+  auxMsgs:[], auxBlink:false, // AUX Display message queue & tab blink
+  dclMsg:null, // DCL clearance message (shared between COMM and AUX)
   // Speed mode
   spdMode:"ECON SPD",
   // CLB page state (FCOM 11.41.3)
@@ -17886,6 +17892,8 @@ const initFMS = () => ({
 // ═══════ UNIFIED CDU ROW: [LSK_L] [title+data] [LSK_R] ═══════
 // Each LSK position = title line (small) + data line (large), dash aligned to data
 function CDURow({n, tl="",tr="",dl="",dr="",dc="",tlc=C.white,trc=C.white,dlc=C.white,drc=C.white,dcc=C.white,onL,onR,sep=false,tlFull,tlFullBg,tlFullColor,tlBg,cursorSide,discLine}) {
+  // FCOM: cyan=prompt/default(Small), magenta=FMC calc(Small), green/white=pilot entry(Large)
+  const isSmall = (c) => c===C.cyan || c===C.magenta;
   const Dash = ({onClick,lsk}) => (
     React.createElement('button', { 'data-lsk': lsk, onClick: onClick, style: {
       width:"11px",height:"24px",background:C.lskDash,border:"none",cursor:"pointer",
@@ -17918,20 +17926,20 @@ function CDURow({n, tl="",tr="",dl="",dr="",dc="",tlc=C.white,trc=C.white,dlc=C.
         /* 3-column layout when dc (center data) is present */
         React.createElement('div', { style: {display:"flex",alignItems:"center",height:"28px"},}
           , React.createElement(Dash, { lsk: "L"+n, onClick: onL,})
-          , React.createElement('div', { 'data-lsk-area': "L"+n, onClick: onL, style: {color:dlc,fontSize:"28px",fontFamily:M,padding:"0 4px",letterSpacing:"1.5px",fontWeight:"bold",whiteSpace:"pre",flex:1,outline:hlL&&dl?"2px solid #ff00ff":"none",cursor:"pointer"},}, dl)
-          , React.createElement('div', { style: {color:dcc,fontSize:"28px",fontFamily:M,padding:"0 4px",letterSpacing:"1.5px",fontWeight:"bold",whiteSpace:"pre",flex:1,textAlign:"center"},}, dc)
-          , React.createElement('div', { 'data-lsk-area': "R"+n, onClick: onR, style: {color:drc,fontSize:"28px",fontFamily:M,padding:"0 4px",letterSpacing:"1.5px",fontWeight:"bold",whiteSpace:"pre",flex:1,textAlign:"right",outline:hlR&&dr?"2px solid #ff00ff":"none",cursor:"pointer"},}, dr)
+          , React.createElement('div', { 'data-lsk-area': "L"+n, onClick: onL, style: {color:dlc,fontSize:isSmall(dlc)?"22px":"28px",fontFamily:M,padding:"0 4px",letterSpacing:"1.5px",fontWeight:"bold",whiteSpace:"pre",flex:1,outline:hlL&&dl?"2px solid #ff00ff":"none",cursor:"pointer"},}, dl)
+          , React.createElement('div', { style: {color:dcc,fontSize:isSmall(dcc)?"22px":"28px",fontFamily:M,padding:"0 4px",letterSpacing:"1.5px",fontWeight:"bold",whiteSpace:"pre",flex:1,textAlign:"center"},}, dc)
+          , React.createElement('div', { 'data-lsk-area': "R"+n, onClick: onR, style: {color:drc,fontSize:isSmall(drc)?"22px":"28px",fontFamily:M,padding:"0 4px",letterSpacing:"1.5px",fontWeight:"bold",whiteSpace:"pre",flex:1,textAlign:"right",outline:hlR&&dr?"2px solid #ff00ff":"none",cursor:"pointer"},}, dr)
           , React.createElement(Dash, { lsk: "R"+n, onClick: onR,})
         )
       ) : (
         React.createElement('div', { style: {display:"flex",alignItems:"center",height:"28px"},}
           , React.createElement('div', { style: {display:"flex",alignItems:"center",flex:1},}
             , React.createElement(Dash, { lsk: "L"+n, onClick: onL,})
-            , React.createElement('div', { 'data-lsk-area': "L"+n, onClick: onL, style: {color:dlc,fontSize:"28px",fontFamily:M,padding:"0 4px",letterSpacing:"1.5px",fontWeight:"bold",whiteSpace:"pre",display:typeof dl==="object"?"flex":"inline-flex",flex:typeof dl==="object"?1:undefined,alignItems:"center",outline:hlL&&dl?"2px solid #ff00ff":"none",cursor:"pointer"},}, dl)
+            , React.createElement('div', { 'data-lsk-area': "L"+n, onClick: onL, style: {color:dlc,fontSize:isSmall(dlc)?"22px":"28px",fontFamily:M,padding:"0 4px",letterSpacing:"1.5px",fontWeight:"bold",whiteSpace:"pre",display:typeof dl==="object"?"flex":"inline-flex",flex:typeof dl==="object"?1:undefined,alignItems:"center",outline:hlL&&dl?"2px solid #ff00ff":"none",cursor:"pointer"},}, dl)
             , typeof dl!=="object"&&React.createElement('div', { style: {flex:1},})
           )
           , React.createElement('div', { style: {display:"flex",alignItems:"center"},}
-            , React.createElement('div', { 'data-lsk-area': "R"+n, onClick: onR, style: {color:drc,fontSize:"28px",fontFamily:M,textAlign:"right",padding:"0 4px",letterSpacing:"1.5px",fontWeight:"bold",whiteSpace:"pre",display:"inline-flex",alignItems:"center",outline:hlR&&dr?"2px solid #ff00ff":"none",cursor:"pointer"},}, dr)
+            , React.createElement('div', { 'data-lsk-area': "R"+n, onClick: onR, style: {color:drc,fontSize:isSmall(drc)?"22px":"28px",fontFamily:M,textAlign:"right",padding:"0 4px",letterSpacing:"1.5px",fontWeight:"bold",whiteSpace:"pre",display:"inline-flex",alignItems:"center",outline:hlR&&dr?"2px solid #ff00ff":"none",cursor:"pointer"},}, dr)
             , React.createElement(Dash, { lsk: "R"+n, onClick: onR,})
           )
         )
@@ -17966,18 +17974,42 @@ function cduPageData(fms) {
       {dl:"<TAKEOFF",dlc:C.cyan},
       {dl:"<APPROACH",dr:"MAINT>",dlc:C.cyan,drc:C.cyan},
     ]},
-    POS_INIT: {title:"POS INIT",titleSub:"1/4", rows:[
-      {tl:"REF AIRPORT",tr:"LAST POS",dl:fms.refAirport||"----",
-       dr:(fms.refAirport||fms.origin)==="RJFF"?"N33°35.2 E130°27.1":"N37°33.8 E126°47.9",
-       dlc:fms.refAirport?C.green:C.cyan,drc:C.green},
-      {tl:"GATE",dl:""},
-      {tl:"UTC",tr:"GPS POS",dl:new Date().toISOString().substr(11,5)+"Z",
-       dr:fms.origin==="RJFF"?"N33°35.2 E130°27.1":"N37°33.8 E126°47.9",
-       dlc:C.green,drc:C.green},
-      {tr:"SET INERTIAL POS",dr:"---°--.-- ----°--.-",drc:C.cyan},
-      {},
-      {dl:"<INDEX",dr:"ROUTE>",dlc:C.cyan,drc:C.cyan},
-    ],sep:5},
+    POS_INIT: (()=>{
+      // FCOM 11.40.8: Position Initialization Page 1/4
+      const refAprt=fms.refAirport||fms.origin||"";
+      const aprtDb=AIRPORT_DB[refAprt.toUpperCase()];
+      const aprtPos=aprtDb?aprtDb.pos:"";
+      // Gate position: refine lat/lon when gate entered
+      const gatePos=(fms.posGate&&aprtDb&&aprtDb.gates)?aprtDb.gates[fms.posGate.toUpperCase()]||"":"";
+      // LAST POS = last FMC calculated position (use origin airport pos as sim)
+      const lastPos=aprtPos||"---°--.-- ----°--.-";
+      // GPS POS = GPS present position
+      const gpsPos=aprtPos||"---°--.-- ----°--.-";
+      // UTC from GPS
+      const utc=new Date().toISOString().substr(11,5)+"Z";
+      return {title:"POS INIT",titleSub:"1/4",rows:[
+        // Row 1: LAST POS (R1) — FCOM 11.40.8
+        {tr:"LAST POS",dr:lastPos,drc:C.green},
+        // Row 2: REF AIRPORT (L2) — FCOM 11.40.8
+        {tl:"REF AIRPORT",
+         dl:refAprt||"----",
+         dlc:refAprt?C.green:C.cyan},
+        // Row 3: GATE (L3) — optional after REF AIRPORT
+        {tl:"GATE",
+         dl:fms.posGate?(fms.posGate+(gatePos?" "+gatePos:"")):"",
+         dlc:fms.posGate?C.green:C.cyan},
+        // Row 4: UTC (L4) | GPS POS (R4)
+        {tl:"UTC",tr:"GPS POS",
+         dl:utc,dr:gpsPos,
+         dlc:C.green,drc:C.green},
+        // Row 5: SET INERTIAL POS (R5)
+        {tr:"SET INERTIAL POS",
+         dr:fms.setInertialPos||"---°--.-- ----°--.-",
+         drc:fms.setInertialPos?C.green:C.cyan},
+        // Row 6: <INDEX (L6) | ROUTE> (R6)
+        {dl:"<INDEX",dr:"ROUTE>",dlc:C.cyan,drc:C.cyan},
+      ],sep:5};
+    })(),
     RTE_1: {title:fms.execLight&&fms.phase==="ACTIVE"?"MOD RTE 1":(fms.phase==="ACTIVE"?"ACT RTE 1":"RTE 1"),titleSub:`1/${Math.max(2,Math.ceil(fms.routeLegs.length/5)+1)}`, rows:[
       {tl:"ORIGIN",tr:"DEST",dl:fms.origin||"▯▯▯▯",dr:fms.dest||"▯▯▯▯",dlc:fms.origin?C.green:C.cyan,drc:fms.dest?C.green:C.cyan},
       {tl:"RUNWAY",tr:"FLT NO",dl:fms.runway||"-----",dr:fms.fltNo||"----------",dlc:fms.runway?C.green:C.cyan,drc:fms.fltNo?C.green:C.cyan},
@@ -18786,7 +18818,7 @@ function cduPageData(fms) {
        dlc:C.white,drc:selFlap?C.magenta:C.cyan},
       {tl:"G/S",tr:"WIND CORR",
        dl:fms.appGsOn?"<ON     OFF":"ON     <OFF",
-       dr:"+"+(fms.appWindCorr||"05")+"KT",
+       dr:"+"+(fms.appWindCorr||"05").replace(/^\+/,"").replace(/KT$/i,"")+"KT",
        dlc:C.green,drc:C.green},
       {dl:"<INDEX",dr:"THRUST LIM>",dlc:C.cyan,drc:C.cyan},
     ],sep:5};})(),
@@ -18802,22 +18834,45 @@ function cduPageData(fms) {
       {dr:"RTE 1>",drc:C.cyan},
     ],sep:5},
     // ═══ POS REF 2/4 (FCOM 11.40.8) ═══
-    POS_REF:{title:"POS REF",titleSub:"2/4",rows:[
+    POS_REF:(()=>{
+      // FCOM 11.40.11: POS REF 2/4 — FMC, IRU, GPS-IRU, RADIO positions
+      const apDb=AIRPORT_DB[(fms.origin||"").toUpperCase()];
+      const posStr=apDb?apDb.pos:"---°--.-- ----°--.-";
+      return {title:"POS REF",titleSub:"2/4",rows:[
       {tl:"FMC (GPS-IRU)",tr:"POS UPDATE",
-       dl:fms.origin==="RJFF"?"N33°35.2 E130°27.1":(fms.origin==="RKSI"?"N37°33.8 E126°47.9":"N--°--.-- E---°--.-"),
-       dr:"ARM>",dlc:C.green,drc:C.cyan},
-      {tl:"IRU L",tr:"ACTUAL 0.02NM",
-       dl:fms.origin==="RJFF"?"N33°35.2 E130°27.1":(fms.origin==="RKSI"?"N37°33.8 E126°47.9":"N--°--.-- E---°--.-"),
-       dlc:C.green,drc:C.green},
-      {tl:"GPS-IRU L",tr:"ACTUAL 0.01NM",
-       dl:fms.origin==="RJFF"?"N33°35.2 E130°27.1":(fms.origin==="RKSI"?"N37°33.8 E126°47.9":"N--°--.-- E---°--.-"),
-       dlc:C.green,drc:C.green},
+       dl:posStr,dr:"ARM>",dlc:C.green,drc:C.cyan},
+      {tl:"IRU L",tr:"ACTUAL 4.00NM",
+       dl:posStr,dlc:C.green,drc:C.green},
+      {tl:"GPS-IRU L",tr:"ACTUAL 4.00NM",
+       dl:posStr,dlc:C.green,drc:C.green},
       {tl:"RADIO L",tr:"ACTUAL 0.34NM",
-       dl:fms.origin==="RJFF"?"N33°35.2 E130°27.1":(fms.origin==="RKSI"?"N37°33.8 E126°47.9":"N--°--.-- E---°--.-"),
-       dlc:C.green,drc:C.green},
+       dl:posStr,dlc:C.green,drc:C.green},
       {tl:"RNP/ACTUAL",tr:"DME DME",
-       dl:"0.30/0.10NM",dr:(fms.origin==="RKSI"?"SOT PSN":"---  ---"),dlc:C.green,drc:C.green},
+       dl:"0.50/0.10NM",dr:fms.origin==="RKSI"?"BFI PAE":"---  ---",dlc:C.green,drc:C.green},
       {dl:"<INDEX",dr:"BRG/DIST>",dlc:C.cyan,drc:C.cyan},
+    ],sep:5};})(),
+    // FCOM 11.40.14: POS REF 3/4 — FMC L/R/C positions + NAV mode toggles
+    POS_REF_3:(()=>{
+      const fmcPos=AIRPORT_DB[(fms.origin||"").toUpperCase()];
+      const posStr=fmcPos?fmcPos.pos:"---°--.-- ----°--.-";
+      return {title:"POS REF",titleSub:"3/4",rows:[
+        {tr:"GPS NAV",dr:"OFF←→ON>",drc:C.green},
+        {tr:"DME/DME NAV",dr:"OFF←→ON>",drc:C.green},
+        {tl:"FMC  L  (MASTER)",tr:"VOR/DME NAV",
+         dl:posStr,dr:"OFF←→ON>",dlc:C.green,drc:C.green},
+        {tl:"FMC  R  (SPARE)",tr:"LOC NAV",
+         dl:posStr,dr:"OFF←→ON>",dlc:C.green,drc:C.green},
+        {tl:"FMC  C  (BACKUP)",dl:posStr,dlc:C.green},
+        {dl:"<INDEX",dr:"LAT/LON>",dlc:C.cyan,drc:C.cyan},
+      ],sep:5};
+    })(),
+    // FCOM 11.40.16: POS REF 4/4 — IRS status
+    POS_REF_4:{title:"POS REF",titleSub:"4/4",rows:[
+      {tl:"IRS L",tr:"STATUS",dl:"N37°27.7 E126°26.6",dr:"ALIGNED",dlc:C.green,drc:C.green},
+      {tl:"IRS C",dl:"N37°27.7 E126°26.6",dr:"ALIGNED",dlc:C.green,drc:C.green},
+      {tl:"IRS R",dl:"N37°27.7 E126°26.6",dr:"ALIGNED",dlc:C.green,drc:C.green},
+      {},{},
+      {dl:"<INDEX",dr:"LAT/LON>",dlc:C.cyan,drc:C.cyan},
     ],sep:5},
     HOLD:{title:"HOLD",rows:[
       {tl:"FIX",dl:"▯▯▯▯▯",dlc:C.cyan},
@@ -18953,7 +19008,40 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
       const go=pg=>{s.page=pg;};const set=f=>{if(sp==="DELETE"){s[f]="";s.scratchpad="";}else if(sp){s[f]=sp;s.scratchpad="";}else if(s[f]&&s[f]!=="---"){s.scratchpad=String(s[f]);}};
       if(p==="INIT_REF"){if(side==="L"){const t=["","IDENT","POS_INIT","PERF_INIT","THRUST_LIM","TOREF1","APPROACH_REF"];if(t[num])go(t[num]);}if(side==="R"&&num===1)go("NAV_DATA");if(side==="R"&&num===2)go("ALTN");if(side==="R"&&num===3)go("OFFSET");if(side==="R"&&num===6)go("INIT_REF");}
       else if(p==="IDENT"){if(side==="L"&&num===6)go("INIT_REF");if(side==="R"&&num===6)go("POS_INIT");}
-      else if(p==="POS_INIT"){if(side==="L"&&num===1)set("refAirport");if(side==="L"&&num===6)go("INIT_REF");if(side==="R"&&num===6)go("RTE_1");}
+      else if(p==="POS_INIT"){
+        // FCOM 11.40.8: R1 = LAST POS — copy to scratchpad
+        if(side==="R"&&num===1){
+          var _apDb1=AIRPORT_DB[(s.refAirport||s.origin||"").toUpperCase()];
+          if(_apDb1&&_apDb1.pos)s.scratchpad=_apDb1.pos;
+        }
+        // FCOM 11.40.8: L2 = REF AIRPORT — entry clears GATE
+        if(side==="L"&&num===2){
+          if(sp==="DELETE"){s.refAirport="";s.posGate="";s.scratchpad="";}
+          else if(sp){s.refAirport=sp.toUpperCase();s.posGate="";s.scratchpad="";}
+          else if(s.refAirport){s.scratchpad=s.refAirport;}
+        }
+        // FCOM 11.40.9: L3 = GATE — optional, only after REF AIRPORT entered
+        if(side==="L"&&num===3){
+          var _refA=s.refAirport||s.origin||"";
+          if(_refA&&sp){s.posGate=sp.toUpperCase();s.scratchpad="";}
+          else if(s.posGate){s.scratchpad=s.posGate;}
+        }
+        // FCOM 11.40.9: R4 = GPS POS — copy to scratchpad
+        if(side==="R"&&num===4){
+          var _apDb3=AIRPORT_DB[(s.refAirport||s.origin||"").toUpperCase()];
+          if(_apDb3&&_apDb3.pos)s.scratchpad=_apDb3.pos;
+        }
+        // FCOM 11.40.9-10: R5 = SET INERTIAL POS — enter from scratchpad
+        if(side==="R"&&num===5){
+          if(sp==="DELETE"){s.setInertialPos="";s.scratchpad="";}
+          else if(sp){s.setInertialPos=sp;s.scratchpad="";}
+          else if(s.setInertialPos){s.scratchpad=s.setInertialPos;}
+        }
+        // FCOM 11.40.8: L6 = <INDEX
+        if(side==="L"&&num===6)go("INIT_REF");
+        // FCOM 11.40.8: R6 = ROUTE>
+        if(side==="R"&&num===6)go("RTE_1");
+      }
       else if(p==="RTE_1"){
         if(side==="L"&&num===1)set("origin");
         if(side==="R"&&num===1)set("dest");
@@ -19634,6 +19722,14 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
         if(side==="L"&&num===6)go("INIT_REF");
         if(side==="R"&&num===6){/* BRG/DIST toggle */}
       }
+      else if(p==="POS_REF_3"){
+        if(side==="L"&&num===6)go("INIT_REF");
+        if(side==="R"&&num===6){/* LAT/LON toggle */}
+      }
+      else if(p==="POS_REF_4"){
+        if(side==="L"&&num===6)go("INIT_REF");
+        if(side==="R"&&num===6){/* LAT/LON toggle */}
+      }
       else if(p==="OFFSET"){
         // FCOM 11.42.19: L1 offset dist entry (e.g. L10.5, R5.0)
         if(side==="L"&&num===1&&sp){s.offsetDist=sp.toUpperCase();s.scratchpad="";s.execLight=true;}
@@ -19829,10 +19925,18 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
     if(p.page==="RKSI_ARR"&&!p.arrStar&&!p.arrApp&&(p.arrPage||1)>1)return{...p,arrPage:(p.arrPage||1)-1};
     if(p.page==="CRZ")return{...p,page:"CLB"};
     if(p.page==="DES")return{...p,page:"CRZ"};
+    if(p.page==="POS_REF")return{...p,page:"POS_INIT"};
+    if(p.page==="POS_REF_3")return{...p,page:"POS_REF"};
+    if(p.page==="POS_REF_4")return{...p,page:"POS_REF_3"};
+    if(p.page==="POS_INIT")return{...p,page:"POS_REF_4"};
     return p;
   });
   const handleNext = ()=>setFms(p=>{
     if(p.page==="TOREF1")return{...p,page:"TOREF2"};
+    if(p.page==="POS_INIT")return{...p,page:"POS_REF"};
+    if(p.page==="POS_REF")return{...p,page:"POS_REF_3"};
+    if(p.page==="POS_REF_3")return{...p,page:"POS_REF_4"};
+    if(p.page==="POS_REF_4")return{...p,page:"POS_INIT"};
     if(p.page==="RTE_1")return{...p,page:"RTE_1_2",rtePage:2};
     if(p.page==="RTE_1_2"){const mx=Math.ceil(p.routeLegs.length/5)+1;if(p.rtePage<mx)return{...p,rtePage:p.rtePage+1};}
     if(p.page==="LEGS"){var cl=p.computedLegs||[];var mx=Math.max(1,Math.ceil((cl.length||(p.routeLegs.length+2))/5));if(p.legsPage<mx)return{...p,legsPage:p.legsPage+1};return{...p,legsPage:1};}
@@ -21211,7 +21315,7 @@ function ChecklistView({fms,setFms}){
 function CommView({fms,setFms}){
   const [mainTab,setMainTab]=useState("ATC");const [sub,setSub]=useState(null);
   const [infoMsg,setInfoMsg]=useState("");  // FCOM 5.40.19: SENDING/SENT/ACCEPTING/ACCEPTED
-  const [dclMsg,setDclMsg]=useState(null);
+
   const [atisMsg,setAtisMsg]=useState(null);
   const [gateMsg,setGateMsg]=useState(null);
   const [etaMsg,setEtaMsg]=useState(null);
@@ -21304,10 +21408,10 @@ function CommView({fms,setFms}){
     if(mainTab==="FLT_INFO"){if(sub==="DEP CLR")_fc=7;else if(sub==="ATIS")_fc=6;}
     if(mainTab==="COMPANY"){if(sub==="ACARS")_fc=21;else if(sub==="ETA")_fc=6;else if(sub==="REQ GATE")_fc=5;else _fc=2;}
   }
-  if(mainTab==="NEW_MSG"&&!msgView){_fc=1;if(dclMsg)_fc++;if(atisMsg)_fc++;if(gateMsg)_fc++;if(etaMsg)_fc++;if(acarsMsg)_fc++;}
+  if(mainTab==="NEW_MSG"&&!msgView){_fc=1;if(fms.dclMsg)_fc++;if(atisMsg)_fc++;if(gateMsg)_fc++;if(etaMsg)_fc++;if(acarsMsg)_fc++;}
   for(var _fi=0;_fi<_fc;_fi++)CUR.areas.push(900+_fi);
   if(sub||mainTab==="NEW_MSG"){
-    if(mainTab==="NEW_MSG"&&msgView){var _nc=0;if((msgView==="LOADSHEET"&&!lsAccepted)||(msgView==="DCL"&&dclMsg&&!dclMsg.accepted))_nc++;if(msgView==="ATIS"||msgView==="GATE"||msgView==="ETA"||msgView==="ACARS")_nc++;_nc+=2;for(var _ni=0;_ni<_nc;_ni++)CUR.areas.push(800+_ni);}
+    if(mainTab==="NEW_MSG"&&msgView){var _nc=0;if((msgView==="LOADSHEET"&&!lsAccepted)||(msgView==="DCL"&&fms.dclMsg&&!fms.dclMsg.accepted))_nc++;if(msgView==="ATIS"||msgView==="GATE"||msgView==="ETA"||msgView==="ACARS")_nc++;_nc+=2;for(var _ni=0;_ni<_nc;_ni++)CUR.areas.push(800+_ni);}
     else if(mainTab==="NEW_MSG"&&!msgView){CUR.areas.push(800,801);}
     else{CUR.areas.push(800,801,802,803,804);}
   }
@@ -21559,12 +21663,12 @@ function CommView({fms,setFms}){
             , React.createElement('span', { style: {color:C.white,fontSize:"16px",fontFamily:M,flexShrink:0},}, "COMPANY")
           );})()
           /* DCL row — if received */
-          , dclMsg&&(function(){var myIdx=900+_fIdx++;var hl=fms.cursorIdx===myIdx;return React.createElement('button', { 'data-comm-fld': String(myIdx), onClick: function(){setMsgView("DCL");}, style: {display:"flex",width:"100%",padding:"10px 10px",background:"transparent",border:"none",borderBottom:"1px solid #555",cursor:"pointer",alignItems:"flex-start",gap:10,textAlign:"left",outline:hl?"2px solid #ff00ff":"none"},}
+          , fms.dclMsg&&(function(){var myIdx=900+_fIdx++;var hl=fms.cursorIdx===myIdx;return React.createElement('button', { 'data-comm-fld': String(myIdx), onClick: function(){setMsgView("DCL");}, style: {display:"flex",width:"100%",padding:"10px 10px",background:"transparent",border:"none",borderBottom:"1px solid #555",cursor:"pointer",alignItems:"flex-start",gap:10,textAlign:"left",outline:hl?"2px solid #ff00ff":"none"},}
             , React.createElement('div', { style: {flexShrink:0,width:54},}
               , React.createElement('span', { style: {color:C.white,fontSize:"16px",fontFamily:M},}, (function(){var d=new Date();d.setMinutes(d.getMinutes()-1);return d.toISOString().substr(11,4).replace(":","")+"Z";})())
-              , !dclMsg.accepted&&React.createElement('div', { style: {color:"#ff00ff",fontSize:"16px",lineHeight:1},}, "+")
+              , !fms.dclMsg.accepted&&React.createElement('div', { style: {color:"#ff00ff",fontSize:"16px",lineHeight:1},}, "+")
             )
-            , React.createElement('span', { style: {color:C.white,fontSize:"16px",fontFamily:M,flex:1},}, dclMsg.accepted?"DEPARTURE CLEARANCE \u2713":"DEPARTURE CLEARANCE")
+            , React.createElement('span', { style: {color:C.white,fontSize:"16px",fontFamily:M,flex:1},}, fms.dclMsg.accepted?"DEPARTURE CLEARANCE \u2713":"DEPARTURE CLEARANCE")
             , React.createElement('span', { style: {color:C.white,fontSize:"16px",fontFamily:M,flexShrink:0},}, "ATC")
           );})()
           /* ATIS row */
@@ -21608,19 +21712,19 @@ function CommView({fms,setFms}){
           , React.createElement('pre', { style: {color:C.green,fontSize:"15px",fontFamily:M,lineHeight:1.6,whiteSpace:"pre-wrap",margin:0},}, "LOADSHEET\nREV 01    KE0781    ICN/FUK\nCREW _/_ DHC 0/0  TTL _/_  CGO ____\nPAX F_ C_ Y___  INF_  TTL ___ POB 230\nBW ______        BI ___\nSOW ____ DOI ____\nZFW 355000   TOW 390000   LAW ______\nTOF 35000    TIF ______\nMACZFW __    MACTOW 23.0\nWING FUEL ______ TAIL FUEL 0\nTTL FUEL 36000 TAXI FUEL 1000\nACTUAL PAYLOAD ____")
         )
       ))
-      , msgView==="DCL"&&dclMsg&&(React.createElement('div', { style: {border:"1px solid #888"},}
+      , msgView==="DCL"&&fms.dclMsg&&(React.createElement('div', { style: {border:"1px solid #888"},}
         /* FCOM 5.40.93: header — time | title | ACCEPTED + FROM */
         , React.createElement('div', { style: {display:"flex",alignItems:"flex-start",padding:"8px 10px",borderBottom:"1px solid #555"},}
           , React.createElement('span', { style: {color:C.white,fontSize:"16px",fontFamily:M,flexShrink:0,width:54},}, (()=>{const d=new Date();d.setMinutes(d.getMinutes()-1);return d.toISOString().substr(11,4).replace(":","")+"z";})())
           , React.createElement('span', { style: {color:C.white,fontSize:"16px",fontFamily:M,flex:1,textAlign:"center"},}, "ATC UPLINK" )
           , React.createElement('div', { style: {textAlign:"right",flexShrink:0},}
-            , dclMsg.accepted&&React.createElement('div', { style: {color:C.white,fontSize:"16px",fontFamily:M},}, "ACCEPTED")
+            , fms.dclMsg.accepted&&React.createElement('div', { style: {color:C.white,fontSize:"16px",fontFamily:M},}, "ACCEPTED")
             , React.createElement('div', { style: {color:C.white,fontSize:"16px",fontFamily:M},}, "FROM RKSI" )
           )
         )
         /* Message content */
         , React.createElement('div', { style: {padding:"8px 10px"},}
-          , React.createElement('div', { style: {color:C.green,fontSize:"16px",fontFamily:M,lineHeight:1.7,whiteSpace:"pre-wrap"},}, dclMsg.text)
+          , React.createElement('div', { style: {color:C.green,fontSize:"16px",fontFamily:M,lineHeight:1.7,whiteSpace:"pre-wrap"},}, fms.dclMsg.text)
         )
       ))
       , msgView==="ATIS"&&atisMsg&&(React.createElement('div', { style: {border:"1px solid #888"},}
@@ -21684,7 +21788,7 @@ function CommView({fms,setFms}){
     },}
       , mainTab==="NEW_MSG"&&msgView?(React.createElement(React.Fragment, null
         , msgView==="LOADSHEET"&&!lsAccepted&&CmdBtn({l:"ACCEPT",onClick:function(){setInfoMsg("ACCEPTING");setTimeout(function(){setInfoMsg("ACCEPTED");setLsAccepted(true);setTimeout(function(){setInfoMsg("");},2000);},1000);}})
-        , msgView==="DCL"&&dclMsg&&!dclMsg.accepted&&CmdBtn({l:"ACCEPT",onClick:function(){setInfoMsg("ACCEPTING");setTimeout(function(){setInfoMsg("ACCEPTED");setDclMsg(function(p){return Object.assign({},p,{accepted:true});});setTimeout(function(){setInfoMsg("");},2000);},1000);}})
+        , msgView==="DCL"&&fms.dclMsg&&!fms.dclMsg.accepted&&CmdBtn({l:"ACCEPT",onClick:function(){setInfoMsg("ACCEPTING");setTimeout(function(){setInfoMsg("ACCEPTED");setFms(function(p){var msgs=[].concat(p.auxMsgs);for(var i=0;i<msgs.length;i++){if(msgs[i].type==="dcl"&&!msgs[i].accepted){msgs[i]=Object.assign({},msgs[i],{accepted:true});break;}}return{...p,dclMsg:Object.assign({},p.dclMsg,{accepted:true}),auxMsgs:msgs};});setTimeout(function(){setInfoMsg("");setFms(function(p){var msgs=[].concat(p.auxMsgs);msgs.push({text:"CLEARANCE CONFIRMED",type:"info",id:Date.now()});return{...p,auxMsgs:msgs,auxBlink:true};});},2000);},1000);}})
         
         , (msgView==="ATIS"||msgView==="GATE"||msgView==="ETA"||msgView==="ACARS")&&CmdBtn({l:"PRINT"})
         , React.createElement('div', { style: {flex:1},})
@@ -21699,23 +21803,22 @@ function CommView({fms,setFms}){
         , CmdBtn({l:"SEND",onClick:function(){
           if(mainTab==="FLT_INFO"&&sub==="DEP CLR"){
             setInfoMsg("SENDING");
+            var _flt=getF("depFltNo",fms.fltNo||"KAL781");
+            var _dest=getF("depDest",fms.dest||"RJFF");
+            var _rwy=fms.runway||"15R";
+            var _sid=fms.depSid||"OSPO2C";
+            var _dclText=_flt+", CLEARED TO "+_dest+", OFF "+_rwy+", "+_sid+" THEN AS FILED, FL290, DEP FREQ 125.15, SQ 0203";
             setTimeout(function(){setInfoMsg("SENT");
-              /* 2초 후: AUX DSP 탭 깜빡임 + AUX 메시지 표시 */
+              /* +2s: REQUEST BEING PROCESSED STANDBY */
               setTimeout(function(){
-                setFms(function(prev){return{...prev,auxMsg:"REQUEST BEING PROCESSED\nSTANDBY",auxBlink:true};});
+                setFms(function(prev){var msgs=[].concat(prev.auxMsgs);msgs.push({text:"REQUEST BEING PROCESSED\nSTANDBY",type:"info",id:Date.now()});return{...prev,auxMsgs:msgs,auxBlink:true};});
               },2000);
+              /* +4s: DCL clearance content with ACCEPT/REJECT */
               setTimeout(function(){
                 setInfoMsg("");
-                var flt=getF("depFltNo",fms.fltNo||"KAL781");
-                var dest=getF("depDest",fms.dest||"RJFF");
-                var rwy=fms.runway||"15R";
-                var sid=fms.depSid||"OSPO2C";
-                setDclMsg({
-                  text:flt+", CLEARED TO "+dest+", OFF "+rwy+", "+sid+" THEN AS FILED, FL290, DEP FREQ 125.15, SQ 0203",
-                  accepted:false
-                });
+                setFms(function(prev){var msgs=[].concat(prev.auxMsgs);msgs.push({text:_dclText,type:"dcl",id:Date.now(),accepted:false});return{...prev,auxMsgs:msgs,auxBlink:true,dclMsg:{text:_dclText,accepted:false}};});
                 setMainTab("NEW_MSG");setSub(null);setMsgView(null);
-              },2000);
+              },4000);
             },1000);
           }
           if(mainTab==="FLT_INFO"&&sub==="ATIS"){
@@ -22402,20 +22505,20 @@ function B787Cockpit(){
         React.createElement('div', {style:{color:"#00cccc",fontSize:33,fontWeight:"bold",letterSpacing:4,marginBottom:4}}, "B787 DREAMLINER"),
         React.createElement('div', {style:{color:"#aaa",fontSize:14,letterSpacing:2}}, "COCKPIT PROCEDURE SIMULATOR"),
         React.createElement('div', {style:{color:"#777",fontSize:14,marginTop:4}}, "FOR TRAINING PURPOSE ONLY"),
-        React.createElement('div', {style:{color:"#00bb00",fontSize:11,marginTop:12,letterSpacing:1}}, "v2.8.36b \u00a0|\u00a0 by SHLee7872603")
+        React.createElement('div', {style:{color:"#00bb00",fontSize:11,marginTop:12,letterSpacing:1}}, "v2.8.37a \u00a0|\u00a0 by SHLee7872603")
       ),
       React.createElement('div', {style:{borderTop:"1px solid #333",borderBottom:"1px solid #333",padding:"14px 0",marginBottom:16}},
         React.createElement(ChkRow, {checked:ckIPad,onToggle:function(){setCkIPad(function(p){return!p;});}},
-          React.createElement('div', {style:{color:"#00cccc",fontSize:17,fontWeight:"bold",marginBottom:8,letterSpacing:1}}, "PATCH NOTES v2.8.36b"),
+          React.createElement('div', {style:{color:"#00cccc",fontSize:17,fontWeight:"bold",marginBottom:8,letterSpacing:1}}, "PATCH NOTES v2.8.37a"),
           React.createElement('div', {style:{color:"#aaa",fontSize:14,fontWeight:"bold",lineHeight:1.8}},
-            React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginBottom:2}}, "v2.8.36b"),
-            React.createElement('div', null, "\u2022 APPROACH REF R1-R3 \u2192 \uc2a4\ud06c\ub798\uce58\ud328\ub4dc \ubcf5\uc0ac \u2192 R4 \uc785\ub825 \ubc29\uc2dd\uc73c\ub85c \ubcc0\uacbd"),
-            React.createElement('div', null, "\u2022 RTE VIA/TO \uc218\ub3d9\uc785\ub825 \uc2dc VIA \uc124\uc815\ub41c \ud589\uc5d0 DISC \ubc29\uc9c0"),
-            React.createElement('div', null, "\u2022 ROUTE DISCONTINUITY Title \ud589\uc73c\ub85c \ud1b5\ud569"),
-            React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginTop:8,marginBottom:2}}, "v2.8.36a"),
-            React.createElement('div', null, "\u2022 CDU \ud654\uba74 \ub808\uc774\uc544\uc6c3 \uc804\uba74 \uc870\uc815 (Row 48px, scaleX 0.726)"),
-            React.createElement('div', null, "\u2022 LEGS modify FCOM 11.42.1-7 \uc804\uba74 \uc7ac\uad6c\ud604"),
-            React.createElement('div', null, "\u2022 AUX Display \ub9ac\ub514\uc790\uc778 \u00b7 DCL\u2192AUX \uc5f0\ub3d9"),
+            React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginBottom:2}}, "v2.8.37a"),
+            React.createElement('div', null, "\u2022 AUX Display \uba54\uc2dc\uc9c0 \ud050 \uad6c\ud604 (FIFO, \uccab \uba54\uc2dc\uc9c0\ub9cc \ud45c\uc2dc)"),
+            React.createElement('div', null, "\u2022 DCL\u2192AUX ACPT/CANC/RJCT \uc5f0\ub3d9 + COMM \ub3d9\uae30\ud654"),
+            React.createElement('div', null, "\u2022 ACCEPT\u2192ACCEPTING\u2192ACCEPTED \ub2e8\uacc4\ubcc4 \ud45c\uc2dc"),
+            React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginTop:8,marginBottom:2}}, "v2.8.37"),
+            React.createElement('div', null, "\u2022 CDU Small/Large \uae00\uc790 (cyan/magenta=22px, green/white=28px)"),
+            React.createElement('div', null, "\u2022 POS INIT 1/4~4/4 FCOM 11.40.8 \uad6c\ud604"),
+            React.createElement('div', null, "\u2022 APPROACH REF R1-R3\u2192SP\u2192R4 \u00b7 RTE VIA/TO DISC \ubc29\uc9c0"),
 
           )
         )
@@ -22561,19 +22664,23 @@ function B787Cockpit(){
                 /* Annunciator ring inside ACPT — large white circle outline */
                 , React.createElement('circle', { cx: 137, cy: 51, r: 26, fill: "none", stroke: "#ccc", strokeWidth: 2.5,})
                 /* ACPT text inside the ring */
-                , React.createElement('text', { x: 137, y: 57, textAnchor: "middle", fill: "#ddd", fontSize: 17, fontWeight: "bold", fontFamily: M,}, "ACPT")
+                , React.createElement('text', { x: 137, y: 57, textAnchor: "middle", fill: "#ddd", fontSize: 17, fontWeight: "bold", fontFamily: M, pointerEvents: "none",}, "ACPT")
+                /* Clickable overlay for ACPT — accept first DCL message */
+                , React.createElement('rect', { x: 100, y: 14, width: 74, height: 74, rx: 5, fill: "transparent", style: {cursor:"pointer"}, onClick: ()=>{setFms(function(p){var msgs=[].concat(p.auxMsgs);var di=-1;for(var i=0;i<msgs.length;i++){if(msgs[i].type==="dcl"&&!msgs[i].accepted){di=i;break;}}if(di<0)return p;msgs[di]=Object.assign({},msgs[di],{accepted:"accepting"});return{...p,auxMsgs:msgs};});setTimeout(function(){setFms(function(p){var msgs=[].concat(p.auxMsgs);var di=-1;for(var i=0;i<msgs.length;i++){if(msgs[i].type==="dcl"&&msgs[i].accepted==="accepting"){di=i;break;}}if(di<0)return p;msgs[di]=Object.assign({},msgs[di],{accepted:true});return{...p,auxMsgs:msgs,dclMsg:p.dclMsg?Object.assign({},p.dclMsg,{accepted:true}):p.dclMsg};});setTimeout(function(){setFms(function(p){var msgs=[].concat(p.auxMsgs);msgs.push({text:"CLEARANCE CONFIRMED",type:"info",id:Date.now()});return{...p,auxMsgs:msgs,auxBlink:true};});},2000);},1000);},})
 
                 /* CANC button */
                 , React.createElement('rect', { x: 178, y: 14, width: 74, height: 74, rx: 5, fill: "url(#btnG)", stroke: "#555", strokeWidth: 1.5, filter: "url(#btnShadow)",})
                 , React.createElement('line', { x1: 181, y1: 16, x2: 249, y2: 16, stroke: "rgba(255,255,255,0.1)", strokeWidth: 1,})
                 , React.createElement('text', { x: 215, y: 57, textAnchor: "middle", fill: "#ddd", fontSize: 17, fontWeight: "bold", fontFamily: M, pointerEvents: "none",}, "CANC")
-                /* Clickable overlay for CANC — clears AUX message */
-                , React.createElement('rect', { x: 178, y: 14, width: 74, height: 74, rx: 5, fill: "transparent", style: {cursor:"pointer"}, onClick: ()=>{setFms(function(p){return{...p,auxMsg:"",auxBlink:false};});},})
+                /* Clickable overlay for CANC — removes first message from queue */
+                , React.createElement('rect', { x: 178, y: 14, width: 74, height: 74, rx: 5, fill: "transparent", style: {cursor:"pointer"}, onClick: ()=>{setFms(function(p){var msgs=[].concat(p.auxMsgs);if(msgs.length)msgs.shift();return{...p,auxMsgs:msgs,auxBlink:msgs.length>0};});},})
 
                 /* RJCT button */
                 , React.createElement('rect', { x: 256, y: 14, width: 74, height: 74, rx: 5, fill: "url(#btnG)", stroke: "#555", strokeWidth: 1.5, filter: "url(#btnShadow)",})
                 , React.createElement('line', { x1: 259, y1: 16, x2: 327, y2: 16, stroke: "rgba(255,255,255,0.1)", strokeWidth: 1,})
-                , React.createElement('text', { x: 293, y: 57, textAnchor: "middle", fill: "#ddd", fontSize: 17, fontWeight: "bold", fontFamily: M,}, "RJCT")
+                , React.createElement('text', { x: 293, y: 57, textAnchor: "middle", fill: "#ddd", fontSize: 17, fontWeight: "bold", fontFamily: M, pointerEvents: "none",}, "RJCT")
+                /* Clickable overlay for RJCT — reject first DCL message */
+                , React.createElement('rect', { x: 256, y: 14, width: 74, height: 74, rx: 5, fill: "transparent", style: {cursor:"pointer"}, onClick: ()=>{setFms(function(p){var msgs=[].concat(p.auxMsgs);var di=-1;for(var i=0;i<msgs.length;i++){if(msgs[i].type==="dcl"&&!msgs[i].accepted){di=i;break;}}if(di<0)return p;msgs.splice(di,1);msgs.push({text:"CLEARANCE REJECTED",type:"info",id:Date.now()});return{...p,auxMsgs:msgs,auxBlink:msgs.length>0};});},})
 
                 /* Small indicator light below buttons (visible in photo) */
                 , React.createElement('circle', { cx: 215, cy: 100, r: 5, fill: "#111", stroke: "#555", strokeWidth: 1,})
@@ -22640,10 +22747,16 @@ function B787Cockpit(){
                 , React.createElement('span', { style: {color:"#fff",fontSize:17,fontWeight:"bold"},}, "00:01")
               )
             )
-            /* ATC Data Block (#2) — black area, shows AUX messages */
-            , React.createElement('div', { style: {background:"#000",margin:"0 14px",minHeight:280,border:"1px solid #222",padding:12,display:"flex",flexDirection:"column"},}
-              , fms.auxMsg
-                ? React.createElement('div', { style: {color:"#fff",fontSize:18,fontWeight:"bold",fontFamily:M,letterSpacing:1,lineHeight:1.6,whiteSpace:"pre-line"},}, fms.auxMsg)
+            /* ATC Data Block (#2) — black area, shows first AUX message only */
+            , React.createElement('div', { style: {background:"#000",margin:"0 14px",minHeight:280,border:"1px solid #222",padding:12,display:"flex",flexDirection:"column",gap:8,overflow:"auto"},}
+              , fms.auxMsgs&&fms.auxMsgs.length>0
+                ? (function(){var msg=fms.auxMsgs[0];return React.createElement('div', null
+                  , React.createElement('div', { style: {color:"#fff",fontSize:16,fontWeight:"bold",fontFamily:M,letterSpacing:1,lineHeight:1.5,whiteSpace:"pre-line"},}, msg.text)
+                  , msg.type==="dcl"&&React.createElement('div', { style: {display:"flex",justifyContent:"space-between",marginTop:10,gap:8},}
+                    , !msg.accepted?React.createElement('button', { onClick: ()=>{setFms(function(p){var msgs=[].concat(p.auxMsgs);msgs[0]=Object.assign({},msgs[0],{accepted:"accepting"});return{...p,auxMsgs:msgs};});setTimeout(function(){setFms(function(p){var msgs=[].concat(p.auxMsgs);msgs[0]=Object.assign({},msgs[0],{accepted:true});return{...p,auxMsgs:msgs,dclMsg:p.dclMsg?Object.assign({},p.dclMsg,{accepted:true}):p.dclMsg};});setTimeout(function(){setFms(function(p){var msgs=[].concat(p.auxMsgs);msgs.push({text:"CLEARANCE CONFIRMED",type:"info",id:Date.now()});return{...p,auxMsgs:msgs,auxBlink:true};});},2000);},1000);}, style: {flex:1,padding:"6px",background:"transparent",color:"#fff",border:"none",fontSize:16,fontWeight:"bold",cursor:"pointer",fontFamily:M,textAlign:"left"},}, "ACCEPT"):msg.accepted==="accepting"?React.createElement('span', { style: {flex:1,padding:"6px",color:"#fff",fontSize:16,fontWeight:"bold",fontFamily:M},}, "ACCEPTING"):React.createElement('span', { style: {flex:1,padding:"6px",color:"#fff",fontSize:16,fontWeight:"bold",fontFamily:M},}, "ACCEPTED")
+                    , !msg.accepted&&React.createElement('button', { onClick: ()=>{setFms(function(p){var msgs=[].concat(p.auxMsgs);msgs.shift();msgs.push({text:"CLEARANCE REJECTED",type:"info",id:Date.now()});return{...p,auxMsgs:msgs,auxBlink:msgs.length>0};});}, style: {flex:1,padding:"6px",background:"transparent",color:"#fff",border:"none",fontSize:16,fontWeight:"bold",cursor:"pointer",fontFamily:M,textAlign:"right"},}, "REJECT")
+                  )
+                );})()
                 : React.createElement('span', { style: {color:"#333",fontSize:12},}, "ATC DATA BLOCK")
             )
             /* OUTBOARD DISPLAY UNITS label */
