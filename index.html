@@ -9,7 +9,7 @@
 <meta name="theme-color" content="#050505">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>B787 CDU Practice v2.8.37a</title>
+<title>B787 CDU Practice v2.8.37b</title>
 <style>*{margin:0;padding:0;box-sizing:border-box;-webkit-user-select:none;user-select:none}body{background:#050505;overflow-x:hidden}</style>
 </head>
 <body>
@@ -17702,12 +17702,20 @@ function buildLegs(fms){
   }
 
   // STAR — DISC check: last leg wpt vs STAR entry. Merge if same, DISC if different.
+  // Also check if STAR entry exists earlier in legs — if so, trim back and merge seamlessly.
   var star=NAV_DATA[fms.arrStar];
   if(star&&star.type==="STAR"){
     var starWpts=star.wpts.map(function(w){return Object.assign({},w,{via:fms.arrStar});});
     var lastWpt=legs.length?legs[legs.length-1].wpt:"";
     var starEntry=starWpts[0].wpt;
-    if(lastWpt&&starEntry&&lastWpt===starEntry){
+    // Check if starEntry exists earlier in legs (before last wpt)
+    var starEntryIdx=-1;
+    for(var si=0;si<legs.length;si++){if(!legs[si].isDisc&&legs[si].wpt===starEntry){starEntryIdx=si;break;}}
+    if(starEntryIdx>=0){
+      // STAR entry found in enroute — trim legs to that point and merge
+      legs=legs.slice(0,starEntryIdx+1);
+      legs=legs.concat(starWpts.slice(1));
+    } else if(lastWpt&&starEntry&&lastWpt===starEntry){
       // Auto-merge: skip STAR first wpt (already reached via enroute)
       legs=legs.concat(starWpts.slice(1));
     } else if(lastWpt&&starEntry){
@@ -17774,7 +17782,12 @@ function updateRouteLegs(fms){
     var lastTo=lastLeg?lastLeg.to:"";
     var starEntry=star.wpts[0].wpt;
     var starExit=star.wpts[star.wpts.length-1].wpt;
-    if(lastTo&&starEntry&&lastTo!==starEntry&&!(lastLeg&&lastLeg._disc)){
+    // Check if starEntry exists in enroute (route passes through it — no DISC needed)
+    var fltKey2=(fms.fltNo||"").toUpperCase();
+    var enr2=ENROUTE_LEGS[fltKey2]||[];
+    var starInEnroute=false;
+    for(var ei2=0;ei2<enr2.length;ei2++){if(enr2[ei2].wpt===starEntry){starInEnroute=true;break;}}
+    if(lastTo&&starEntry&&lastTo!==starEntry&&!starInEnroute&&!(lastLeg&&lastLeg._disc)){
       fms.routeLegs.push({via:"DISCONTINUITY",to:"",_disc:true});
     }
     fms.routeLegs.push({via:fms.arrStar,to:starExit,_star:true});
@@ -17891,7 +17904,7 @@ const initFMS = () => ({
 
 // ═══════ UNIFIED CDU ROW: [LSK_L] [title+data] [LSK_R] ═══════
 // Each LSK position = title line (small) + data line (large), dash aligned to data
-function CDURow({n, tl="",tr="",dl="",dr="",dc="",tlc=C.white,trc=C.white,dlc=C.white,drc=C.white,dcc=C.white,onL,onR,sep=false,tlFull,tlFullBg,tlFullColor,tlBg,cursorSide,discLine}) {
+function CDURow({n, tl="",tr="",dl="",dr="",dc="",tlc=C.white,trc=C.white,dlc=C.white,drc=C.white,dcc=C.white,onL,onR,sep=false,tlFull,tlFullBg,tlFullColor,tlBg,cursorSide,discLine,dlBg,drBg}) {
   // FCOM: cyan=prompt/default(Small), magenta=FMC calc(Small), green/white=pilot entry(Large)
   const isSmall = (c) => c===C.cyan || c===C.magenta;
   const Dash = ({onClick,lsk}) => (
@@ -17926,20 +17939,20 @@ function CDURow({n, tl="",tr="",dl="",dr="",dc="",tlc=C.white,trc=C.white,dlc=C.
         /* 3-column layout when dc (center data) is present */
         React.createElement('div', { style: {display:"flex",alignItems:"center",height:"28px"},}
           , React.createElement(Dash, { lsk: "L"+n, onClick: onL,})
-          , React.createElement('div', { 'data-lsk-area': "L"+n, onClick: onL, style: {color:dlc,fontSize:isSmall(dlc)?"22px":"28px",fontFamily:M,padding:"0 4px",letterSpacing:"1.5px",fontWeight:"bold",whiteSpace:"pre",flex:1,outline:hlL&&dl?"2px solid #ff00ff":"none",cursor:"pointer"},}, dl)
+          , React.createElement('div', { 'data-lsk-area': "L"+n, onClick: onL, style: {color:dlc,fontSize:isSmall(dlc)?"22px":"28px",fontFamily:M,padding:"0 4px",letterSpacing:"1.5px",fontWeight:"bold",whiteSpace:"pre",flex:1,outline:hlL&&dl?"2px solid #ff00ff":"none",cursor:"pointer",background:dlBg?"#1e1e28":"transparent"},}, dl)
           , React.createElement('div', { style: {color:dcc,fontSize:isSmall(dcc)?"22px":"28px",fontFamily:M,padding:"0 4px",letterSpacing:"1.5px",fontWeight:"bold",whiteSpace:"pre",flex:1,textAlign:"center"},}, dc)
-          , React.createElement('div', { 'data-lsk-area': "R"+n, onClick: onR, style: {color:drc,fontSize:isSmall(drc)?"22px":"28px",fontFamily:M,padding:"0 4px",letterSpacing:"1.5px",fontWeight:"bold",whiteSpace:"pre",flex:1,textAlign:"right",outline:hlR&&dr?"2px solid #ff00ff":"none",cursor:"pointer"},}, dr)
+          , React.createElement('div', { 'data-lsk-area': "R"+n, onClick: onR, style: {color:drc,fontSize:isSmall(drc)?"22px":"28px",fontFamily:M,padding:"0 4px",letterSpacing:"1.5px",fontWeight:"bold",whiteSpace:"pre",flex:1,textAlign:"right",outline:hlR&&dr?"2px solid #ff00ff":"none",cursor:"pointer",background:drBg?"#1e1e28":"transparent"},}, dr)
           , React.createElement(Dash, { lsk: "R"+n, onClick: onR,})
         )
       ) : (
         React.createElement('div', { style: {display:"flex",alignItems:"center",height:"28px"},}
           , React.createElement('div', { style: {display:"flex",alignItems:"center",flex:1},}
             , React.createElement(Dash, { lsk: "L"+n, onClick: onL,})
-            , React.createElement('div', { 'data-lsk-area': "L"+n, onClick: onL, style: {color:dlc,fontSize:isSmall(dlc)?"22px":"28px",fontFamily:M,padding:"0 4px",letterSpacing:"1.5px",fontWeight:"bold",whiteSpace:"pre",display:typeof dl==="object"?"flex":"inline-flex",flex:typeof dl==="object"?1:undefined,alignItems:"center",outline:hlL&&dl?"2px solid #ff00ff":"none",cursor:"pointer"},}, dl)
+            , React.createElement('div', { 'data-lsk-area': "L"+n, onClick: onL, style: {color:dlc,fontSize:isSmall(dlc)?"22px":"28px",fontFamily:M,padding:"0 4px",letterSpacing:"1.5px",fontWeight:"bold",whiteSpace:"pre",display:typeof dl==="object"?"flex":"inline-flex",flex:typeof dl==="object"?1:undefined,alignItems:"center",outline:hlL&&dl?"2px solid #ff00ff":"none",cursor:"pointer",background:dlBg?"#1e1e28":"transparent"},}, dl)
             , typeof dl!=="object"&&React.createElement('div', { style: {flex:1},})
           )
           , React.createElement('div', { style: {display:"flex",alignItems:"center"},}
-            , React.createElement('div', { 'data-lsk-area': "R"+n, onClick: onR, style: {color:drc,fontSize:isSmall(drc)?"22px":"28px",fontFamily:M,textAlign:"right",padding:"0 4px",letterSpacing:"1.5px",fontWeight:"bold",whiteSpace:"pre",display:"inline-flex",alignItems:"center",outline:hlR&&dr?"2px solid #ff00ff":"none",cursor:"pointer"},}, dr)
+            , React.createElement('div', { 'data-lsk-area': "R"+n, onClick: onR, style: {color:drc,fontSize:isSmall(drc)?"22px":"28px",fontFamily:M,textAlign:"right",padding:"0 4px",letterSpacing:"1.5px",fontWeight:"bold",whiteSpace:"pre",display:"inline-flex",alignItems:"center",outline:hlR&&dr?"2px solid #ff00ff":"none",cursor:"pointer",background:drBg?"#1e1e28":"transparent"},}, dr)
             , React.createElement(Dash, { lsk: "R"+n, onClick: onR,})
           )
         )
@@ -17963,7 +17976,7 @@ function cduPageData(fms) {
       {tl:"NAV DATA",tr:"ACTIVE",dl:fms.navData,dr:fms.navActive,dlc:C.green,drc:C.green},
       {tr:"",dl:"",dr:"APR12MAY09/26",drc:C.cyan},
       {tl:"OP PROGRAM",tr:"SUPP DATA",dl:fms.opProgram,dr:"MAR 01/26",dlc:C.green,drc:C.green},
-      {tr:"DRAG/FF",dl:"",dr:fms.dragFF,drc:C.cyan,trc:C.dim},
+      {tr:"DRAG/FF",dl:"",dr:fms.dragFF,drc:C.cyan,trc:C.dim,drBg:true},
       {dl:"<INDEX",dr:"POS INIT>",dlc:C.cyan,drc:C.cyan},
     ],sep:5},
     INIT_REF: {title:"INIT/REF INDEX", rows:[
@@ -17993,11 +18006,11 @@ function cduPageData(fms) {
         // Row 2: REF AIRPORT (L2) — FCOM 11.40.8
         {tl:"REF AIRPORT",
          dl:refAprt||"----",
-         dlc:refAprt?C.green:C.cyan},
+         dlc:refAprt?C.green:C.cyan,dlBg:true},
         // Row 3: GATE (L3) — optional after REF AIRPORT
         {tl:"GATE",
          dl:fms.posGate?(fms.posGate+(gatePos?" "+gatePos:"")):"",
-         dlc:fms.posGate?C.green:C.cyan},
+         dlc:fms.posGate?C.green:C.cyan,dlBg:true},
         // Row 4: UTC (L4) | GPS POS (R4)
         {tl:"UTC",tr:"GPS POS",
          dl:utc,dr:gpsPos,
@@ -18005,15 +18018,15 @@ function cduPageData(fms) {
         // Row 5: SET INERTIAL POS (R5)
         {tr:"SET INERTIAL POS",
          dr:fms.setInertialPos||"---°--.-- ----°--.-",
-         drc:fms.setInertialPos?C.green:C.cyan},
+         drc:fms.setInertialPos?C.green:C.cyan,drBg:true},
         // Row 6: <INDEX (L6) | ROUTE> (R6)
         {dl:"<INDEX",dr:"ROUTE>",dlc:C.cyan,drc:C.cyan},
       ],sep:5};
     })(),
     RTE_1: {title:fms.execLight&&fms.phase==="ACTIVE"?"MOD RTE 1":(fms.phase==="ACTIVE"?"ACT RTE 1":"RTE 1"),titleSub:`1/${Math.max(2,Math.ceil(fms.routeLegs.length/5)+1)}`, rows:[
-      {tl:"ORIGIN",tr:"DEST",dl:fms.origin||"▯▯▯▯",dr:fms.dest||"▯▯▯▯",dlc:fms.origin?C.green:C.cyan,drc:fms.dest?C.green:C.cyan},
-      {tl:"RUNWAY",tr:"FLT NO",dl:fms.runway||"-----",dr:fms.fltNo||"----------",dlc:fms.runway?C.green:C.cyan,drc:fms.fltNo?C.green:C.cyan},
-      {tl:"ROUTE",tr:"CO ROUTE",dl:fms.phase==="ACTIVE"?"<REPORT":"<REQUEST",dr:fms.coRoute||"----------",dlc:C.cyan,drc:C.cyan},
+      {tl:"ORIGIN",tr:"DEST",dl:fms.origin||"▯▯▯▯",dr:fms.dest||"▯▯▯▯",dlc:fms.origin?C.green:C.cyan,drc:fms.dest?C.green:C.cyan,dlBg:true,drBg:true},
+      {tl:"RUNWAY",tr:"FLT NO",dl:fms.runway||"-----",dr:fms.fltNo||"----------",dlc:fms.runway?C.green:C.cyan,drc:fms.fltNo?C.green:C.cyan,dlBg:true,drBg:true},
+      {tl:"ROUTE",tr:"CO ROUTE",dl:fms.phase==="ACTIVE"?"<REPORT":"<REQUEST",dr:fms.coRoute||"----------",dlc:C.cyan,drc:C.cyan,drBg:true},
       {dr:fms.phase==="ACTIVE"?"RTE COPY>":"",drc:C.cyan},
       {tl:fms.phase==="ACTIVE"?"ROUTE":"",
        dl:fms.rteUplinkPending?"<LOAD":(fms.phase==="ACTIVE"?"<PRINT":""),
@@ -18029,13 +18042,13 @@ function cduPageData(fms) {
       for(let i=0; i<5; i++) {
         const leg = legsSlice[i];
         if(leg&&leg._disc) rows.push({tl:i===0?"VIA   ROUTE DISCONTINUITY":"------  ROUTE  DISCONTINUITY  ------",tr:i===0?"TO":"",
-          dl:"□□□□□",dr:"-----",dlc:C.white,drc:C.white,tlc:C.white,trc:C.dim});
+          dl:"□□□□□",dr:"-----",dlc:C.white,drc:C.white,dlBg:true,drBg:true,tlc:C.white,trc:C.dim});
         else if(leg) rows.push({tl:i===0?"VIA":"",tr:i===0?"TO":"",
-          dl:leg.via||"DIRECT",dr:leg.to||(leg.via?"-----":""),
+          dl:leg.via||"DIRECT",dr:leg.to||(leg.via?"-----":""),dlBg:true,drBg:true,
           dlc:leg._star||leg._app||leg._appTrans||leg._sid||leg._missed?C.cyan:C.green,drc:leg._star||leg._app||leg._appTrans||leg._sid||leg._missed?C.cyan:leg.to?C.green:C.white,
           tlc:C.dim,trc:C.dim});
         else rows.push({tl:i===0&&!legsSlice.length?"VIA":"",tr:i===0&&!legsSlice.length?"TO":"",
-          dl:"-----",dr:"▯▯▯▯▯",dlc:C.cyan,drc:C.cyan,tlc:C.dim,trc:C.dim});
+          dl:"-----",dr:"▯▯▯▯▯",dlc:C.cyan,drc:C.cyan,dlBg:true,drBg:true,tlc:C.dim,trc:C.dim});
       }
       rows.push({dl:(fms.routeLegs.length||fms.execLight)?"<ERASE":"<RTE 2",dr:"PERF INIT>",dlc:C.cyan,drc:C.cyan});
       return {title:fms.execLight&&fms.phase==="ACTIVE"?"MOD RTE 1":(fms.phase==="ACTIVE"?"ACT RTE 1":"RTE 1"),titleSub:`${fms.rtePage}/${totalPages}`,rows,sep:5};
@@ -18043,26 +18056,26 @@ function cduPageData(fms) {
     PERF_INIT: {title:"PERF INIT", rows:[
       {tl:"GR WT",tr:"CRZ ALT",
        dl:fms.grWt||"",dr:fms.crzAlt||"▯▯▯▯▯",
-       dlc:fms.grWt?C.green:C.white,drc:fms.crzAlt?C.green:C.cyan},
+       dlc:fms.grWt?C.green:C.white,drc:fms.crzAlt?C.green:C.cyan,drBg:true},
       {tl:"FUEL       CALC",tr:"COST INDEX",
        dl:fms.fuel&&fms.fuel!=="85.0"?fms.fuel:"",dr:fms.costIndex||"▯▯▯▯",
-       dlc:C.green,drc:fms.costIndex?C.green:C.cyan},
+       dlc:C.green,drc:fms.costIndex?C.green:C.cyan,drBg:true},
       {tl:"ZFW",tr:"MIN FUEL TEMP",
        dl:fms.zfw||"▯▯▯.▯",dr:fms.minFuelTemp&&fms.minFuelTemp!=="-40"?fms.minFuelTemp+"°C":"▯▯°C",
-       dlc:fms.zfw?C.green:C.cyan,drc:fms.minFuelTemp&&fms.minFuelTemp!=="-40"?C.green:C.cyan},
+       dlc:fms.zfw?C.green:C.cyan,drc:fms.minFuelTemp&&fms.minFuelTemp!=="-40"?C.green:C.cyan,dlBg:true,drBg:true},
       {tl:"RESERVES",tr:"CRZ CG",
        dl:fms.reserves?""+fms.reserves:"▯▯.▯",
        dr:fms.crzCg?(fms.crzCg+"%"):"20.0%",
        dlc:fms.reserves?C.green:C.cyan,
-       drc:C.green},
+       drc:C.green,dlBg:true,drBg:true},
       {tl:"DATA LINK",tr:"STEP SIZE",
        dl:"<REQUEST",dr:fms.stepSize||"▯▯▯▯",
-       dlc:C.cyan,drc:fms.stepSize?C.green:C.cyan},
+       dlc:C.cyan,drc:fms.stepSize?C.green:C.cyan,drBg:true},
       {dl:"<INDEX",dr:"THRUST LIM>",dlc:C.cyan,drc:C.cyan},
     ],sep:5},
     THRUST_LIM: {title:"THRUST LIM", rows:[
       {tl:"SEL/OAT",tr:"TO N1",
-       dl:`${fms.selOat==="---"?"---":fms.selOat+"°C"}/${fms.oat}°C`,
+       dl:`${fms.selOat==="---"?"---":fms.selOat+"°C"}/${fms.oat}°C`,dlBg:true,
        dr:fms.toN1!=="---"?fms.toN1:"101.1%",
        dlc:C.green,drc:C.magenta},
       {dl:fms.thrustMode==="D-TO"?"<TO":"<TO     <SEL>",
@@ -18086,14 +18099,14 @@ function cduPageData(fms) {
       return {title:"TAKEOFF REF",titleSub:"1/2", rows:[
         {tl:"FLAPS",tr:"V1",
          dl:fms.flaps||"▯▯",dr:fms.v1,
-         dlc:fms.flaps?C.green:C.cyan,drc:fms.v1!=="---"?C.magenta:C.cyan},
+         dlc:fms.flaps?C.green:C.cyan,drc:fms.v1!=="---"?C.magenta:C.cyan,dlBg:true,drBg:true},
         {tl:"THRUST",tr:"VR",
          dl:fms.selOat!=="---"?`${fms.selOat}°C ${fms.thrustMode}`:`${fms.oat}°C ${fms.thrustMode}`,
          dr:fms.vr,
-         dlc:C.green,drc:fms.vr!=="---"?C.magenta:C.cyan},
+         dlc:C.green,drc:fms.vr!=="---"?C.magenta:C.cyan,drBg:true},
         {tl:"CG    TRIM",tr:"V2",
-         dl:fms.cg?`${fms.cg}% ${fms.trim}`:"▯▯%",dr:fms.v2,
-         dlc:fms.cg?C.green:C.cyan,drc:fms.v2!=="---"?C.magenta:C.cyan},
+         dl:fms.cg?(fms.trim?`${fms.cg}% ${fms.trim}`:`${fms.cg}%`):"▯▯%",dr:fms.v2,
+         dlc:fms.cg?C.green:C.cyan,drc:fms.v2!=="---"?C.magenta:C.cyan,dlBg:true,drBg:true},
         {tl:"RWY/POS",tr:"GR WT   TOGW",
          dl:fms.runway?`${fms.runway}/----`:"---/----",
          dr:fms.grWt?(fms.grWt+"  "+(fms.togw||fms.grWt)):(fms.togw||""),
@@ -18457,7 +18470,7 @@ function cduPageData(fms) {
         const isActive=startIdx+i===0 && fms.phase==="ACTIVE" && !fms.execLight;
         // FCOM 11.42.2: Discontinuity — ROUTE DISCONTINUITY in title, □□□□□ in data
         if(leg.isDisc){
-          rows.push({tl:"------  ROUTE  DISCONTINUITY  ------",dl:"□□□□□",dlc:C.white,tlc:C.white});
+          rows.push({tl:"------  ROUTE  DISCONTINUITY  ------",dl:"□□□□□",dlc:C.white,tlc:C.white,dlBg:true});
           return;
         }
         // FCOM 11.42.14: Holding pattern display
@@ -18467,7 +18480,7 @@ function cduPageData(fms) {
             tl:holdInfo,
             dl:leg.wpt,dr:leg.spdAlt||"",
             dlc:C.white,drc:C.magenta,
-            tlc:C.white
+            tlc:C.white,dlBg:true,drBg:true
           });
           return;
         }
@@ -18485,7 +18498,7 @@ function cduPageData(fms) {
           tl:crsDistTitle,
           dl:wptName,dr:spdAltDisplay,
           dlc:wptColor,drc:spdAltColor,
-          tlc:C.white
+          tlc:C.white,dlBg:true,drBg:true
         });
       });
       while(rows.length<5) rows.push({});
@@ -18805,7 +18818,7 @@ function cduPageData(fms) {
       {tl:"GROSS WT",tr:"FLAPS       VREF",
        dl:hasGw?String(gw):"\u25af\u25af\u25af.\u25af",
        dr:"20      "+vref20+"KT",
-       dlc:hasGw?C.green:C.cyan,drc:selFlap==="20"?C.green:C.white},
+       dlc:hasGw?C.green:C.cyan,dlBg:true,drc:selFlap==="20"?C.green:C.white},
       {dr:"25      "+vref25+"KT",
        drc:selFlap==="25"?C.green:C.white},
       {tl:"LANDING REF",
@@ -18815,11 +18828,11 @@ function cduPageData(fms) {
       {tl:(fms.dest||"")+(rwyName?" "+rwyName:""),tr:"FLAP/SPEED",
        dl:rwyL?(rwyL.ft+"FT "+rwyL.m+"M"):"",
        dr:selFlap?selFlap+"/"+({20:vref20,25:vref25,30:vref30}[selFlap]||"---"):"--/---",
-       dlc:C.white,drc:selFlap?C.magenta:C.cyan},
+       dlc:C.white,drc:selFlap?C.magenta:C.cyan,drBg:true},
       {tl:"G/S",tr:"WIND CORR",
        dl:fms.appGsOn?"<ON     OFF":"ON     <OFF",
        dr:"+"+(fms.appWindCorr||"05").replace(/^\+/,"").replace(/KT$/i,"")+"KT",
-       dlc:C.green,drc:C.green},
+       dlc:C.green,drc:fms.appWindCorr?C.green:C.cyan,drBg:true},
       {dl:"<INDEX",dr:"THRUST LIM>",dlc:C.cyan,drc:C.cyan},
     ],sep:5};})(),
     OFFSET:{title:fms.phase==="ACTIVE"?"ACT LATERAL OFFSET":"LATERAL OFFSET",rows:[
@@ -19206,30 +19219,30 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
       }
       else if(p==="PERF_INIT"){
         // Auto-advance cursor: ZFW(L3) → RESERVE(L4) → CRZ ALT(R1) → COST INDEX(R2) → THRUST LIM(R6)
-        if(side==="L"&&num===3&&sp){s.zfw=sp;s.scratchpad="";s.grWt=(parseFloat(sp)+parseFloat(s.fuel||0)).toFixed(1);s.helpMsg="RESERVES";s._perfNext={side:"L",num:4};}
-        if(side==="L"&&num===4&&sp){s.reserves=sp;s.scratchpad="";s.helpMsg="CRZ ALT";s._perfNext={side:"R",num:1};}
-        if(side==="R"&&num===1&&sp){s.crzAlt=sp;s.scratchpad="";s.helpMsg="COST INDEX";s._perfNext={side:"R",num:2};}
-        if(side==="R"&&num===2&&sp){s.costIndex=sp;s.scratchpad="";s.helpMsg="";s._perfNext={side:"R",num:6};}
-        if(side==="R"&&num===3&&sp){s.minFuelTemp=sp;s.scratchpad="";}
-        if(side==="R"&&num===4&&sp){s.crzCg=sp;s.scratchpad="";}
-        if(side==="R"&&num===5&&sp){s.stepSize=sp;s.scratchpad="";}
+        if(side==="L"&&num===3&&sp){if(sp==="DELETE"){s.zfw="";s.grWt="";s.scratchpad="";}else{s.zfw=sp;s.scratchpad="";s.grWt=(parseFloat(sp)+parseFloat(s.fuel||0)).toFixed(1);s.helpMsg="RESERVES";s._perfNext={side:"L",num:4};}}
+        if(side==="L"&&num===4&&sp){if(sp==="DELETE"){s.reserves="";s.scratchpad="";}else{s.reserves=sp;s.scratchpad="";s.helpMsg="CRZ ALT";s._perfNext={side:"R",num:1};}}
+        if(side==="R"&&num===1&&sp){if(sp==="DELETE"){s.crzAlt="";s.scratchpad="";}else{s.crzAlt=sp;s.scratchpad="";s.helpMsg="COST INDEX";s._perfNext={side:"R",num:2};}}
+        if(side==="R"&&num===2&&sp){if(sp==="DELETE"){s.costIndex="";s.scratchpad="";}else{s.costIndex=sp;s.scratchpad="";s.helpMsg="";s._perfNext={side:"R",num:6};}}
+        if(side==="R"&&num===3&&sp){if(sp==="DELETE"){s.minFuelTemp="";s.scratchpad="";}else{s.minFuelTemp=sp.replace(/°C$/i,"");s.scratchpad="";}}
+        if(side==="R"&&num===4&&sp){if(sp==="DELETE"){s.crzCg="";s.scratchpad="";}else{s.crzCg=sp;s.scratchpad="";}}
+        if(side==="R"&&num===5&&sp){if(sp==="DELETE"){s.stepSize="";s.scratchpad="";}else{s.stepSize=sp;s.scratchpad="";}}
         if(side==="L"&&num===6)go("INIT_REF");
         if(side==="R"&&num===6)go("THRUST_LIM");
       }
       else if(p==="THRUST_LIM"){if(side==="L"&&num===2)s.thrustMode="TO";if(side==="L"&&num===3)s.thrustMode="TO 1";if(side==="L"&&num===4)s.thrustMode="TO 2";if(side==="L"&&num===1)set("selOat");if(side==="L"&&num===6)go("INIT_REF");if(side==="R"&&num===6)go("TOREF1");}
       else if(p==="APPROACH_REF"){
-        if(side==="L"&&num===1&&sp){s.grWt=sp;s.scratchpad="";}
-        if(side==="R"&&num===1){var _gw2=parseFloat(s.grWt||0);if(_gw2>100){s.scratchpad="20/"+String(Math.round(115+_gw2*0.065)+6);}}
-        if(side==="R"&&num===2){var _gw3=parseFloat(s.grWt||0);if(_gw3>100){s.scratchpad="25/"+String(Math.round(115+_gw3*0.065)+3);}}
+        if(side==="L"&&num===1&&sp){if(sp==="DELETE"){s.grWt="";s.scratchpad="";}else{s.grWt=sp;s.scratchpad="";}}
+        if(side==="R"&&num===1){if(sp){var _p1=sp.split("/");s.appFlapSpd=_p1[0];s.landFlaps=_p1[0];if(_p1[1])s.vref=_p1[1];s.scratchpad="";}else{var _gw2=parseFloat(s.grWt||0);if(_gw2>100){s.scratchpad="20/"+String(Math.round(115+_gw2*0.065)+6);}}}
+        if(side==="R"&&num===2){if(sp){var _p2=sp.split("/");s.appFlapSpd=_p2[0];s.landFlaps=_p2[0];if(_p2[1])s.vref=_p2[1];s.scratchpad="";}else{var _gw3=parseFloat(s.grWt||0);if(_gw3>100){s.scratchpad="25/"+String(Math.round(115+_gw3*0.065)+3);}}}
         if(side==="L"&&num===3)s.appLandRef=s.appLandRef==="QFE"?"QNH":"QFE";
-        if(side==="R"&&num===3){var _gw4=parseFloat(s.grWt||0);if(_gw4>100){s.scratchpad="30/"+String(Math.round(115+_gw4*0.065));}}
-        if(side==="R"&&num===4&&sp){var _parts=sp.split("/");s.appFlapSpd=_parts[0];s.landFlaps=_parts[0];if(_parts[1])s.vref=_parts[1];s.scratchpad="";}
+        if(side==="R"&&num===3){if(sp){var _p3=sp.split("/");s.appFlapSpd=_p3[0];s.landFlaps=_p3[0];if(_p3[1])s.vref=_p3[1];s.scratchpad="";}else{var _gw4=parseFloat(s.grWt||0);if(_gw4>100){s.scratchpad="30/"+String(Math.round(115+_gw4*0.065));}}}
+        if(side==="R"&&num===4&&sp){if(sp==="DELETE"){s.appFlapSpd="";s.landFlaps="";s.vref="";s.scratchpad="";}else{var _parts=sp.split("/");s.appFlapSpd=_parts[0];s.landFlaps=_parts[0];if(_parts[1])s.vref=_parts[1];s.scratchpad="";}}
         if(side==="L"&&num===5)s.appGsOn=!s.appGsOn;
-        if(side==="R"&&num===5&&sp){s.appWindCorr=sp;s.scratchpad="";}
+        if(side==="R"&&num===5&&sp){if(sp==="DELETE"){s.appWindCorr="";s.scratchpad="";}else{s.appWindCorr=sp;s.scratchpad="";}}
         if(side==="L"&&num===6)go("INIT_REF");
         if(side==="R"&&num===6)go("THRUST_LIM");
       }
-      else if(p==="TOREF1"){if(side==="L"&&num===1)set("flaps");if(side==="R"&&num===1)set("v1");if(side==="R"&&num===2)set("vr");if(side==="R"&&num===3)set("v2");if(side==="L"&&num===3&&sp){s.cg=sp;s.scratchpad="";s.trim=(parseFloat(sp)*.5).toFixed(2);}if(side==="L"&&num===6)go("INIT_REF");if(side==="R"&&num===6){
+      else if(p==="TOREF1"){if(side==="L"&&num===1)set("flaps");if(side==="R"&&num===1)set("v1");if(side==="R"&&num===2)set("vr");if(side==="R"&&num===3)set("v2");if(side==="L"&&num===3&&sp){if(sp==="DELETE"){s.cg="";s.trim="";s.scratchpad="";}else{s.cg=sp;s.scratchpad="";}}if(side==="L"&&num===6)go("INIT_REF");if(side==="R"&&num===6){
         // FCOM 11.40.47: R6 shows THRUST LIM> if preflight complete, PERF INIT> if not
         const pfOk=!!(s.origin&&s.dest&&s.routeLegs.length&&s.flaps&&s.v1&&s.v1!=="---"&&s.vr&&s.vr!=="---"&&s.v2&&s.v2!=="---"&&s.cg&&s.grWt&&s.fuel&&s.zfw&&s.crzAlt);
         go(pfOk?"THRUST_LIM":"PERF_INIT");
@@ -19247,6 +19260,7 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
           if(u.v1)s.v1=u.v1;if(u.vr)s.vr=u.vr;if(u.v2)s.v2=u.v2;
           if(u.flaps)s.flaps=u.flaps;
           if(u.cg){s.cg=u.cg;s.trim=u.trim;}
+          if(u.eoAccelHt)s.eoAccelHt=u.eoAccelHt;
           if(u.thrustMode){s.thrustMode=u.thrustMode;s.selOat=u.selOat;}
           // NOTE: ACCEL HT is NOT changed by uplink (FCOM 11.40.47)
           if(u.wind)s.wind=u.wind;
@@ -19355,9 +19369,15 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
             // --- Target is a normal waypoint ---
             else {
               // Check if inputWpt already exists elsewhere in legs (Change Sequence — FCOM 11.42.5-6)
+              // Prefer match AFTER target idx (merge forward), fallback to before
               let inputExistsAt=-1;
-              for(let k=0;k<legs.length;k++){
-                if(k!==idx&&!legs[k].isDisc&&!legs[k].isRwy&&legs[k].wpt===inputWpt){inputExistsAt=k;break;}
+              for(let k=idx+1;k<legs.length;k++){
+                if(!legs[k].isDisc&&!legs[k].isRwy&&legs[k].wpt===inputWpt){inputExistsAt=k;break;}
+              }
+              if(inputExistsAt<0){
+                for(let k=0;k<idx;k++){
+                  if(!legs[k].isDisc&&!legs[k].isRwy&&legs[k].wpt===inputWpt){inputExistsAt=k;break;}
+                }
               }
 
               if(inputExistsAt>=0){
@@ -19366,24 +19386,31 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
                 // At L1 (idx=0): this is DIRECT TO — bypass runway and intermediate waypoints
                 if(inputExistsAt>idx){
                   legs.splice(idx,inputExistsAt-idx);
+                  // Dedup: if prev wpt has same name as current (merged), remove duplicate
+                  if(idx>0&&idx<legs.length&&!legs[idx].isDisc&&!legs[idx-1].isDisc&&legs[idx-1].wpt===legs[idx].wpt){
+                    legs.splice(idx,1);
+                  }
                 } else {
                   legs.splice(idx,1);
                 }
                 // ── Sync routeLegs → RTE page (FCOM 11.42.5-6) ──
-                var remainingWpts=[];
-                for(var rw=0;rw<legs.length;rw++){if(!legs[rw].isRwy&&!legs[rw].isDest&&!legs[rw].isDisc)remainingWpts.push(legs[rw].wpt);}
-                // Remove routeLegs whose endpoint was removed from LEGS
-                s.routeLegs=s.routeLegs.filter(function(rl){return remainingWpts.indexOf(rl.to)>=0;});
-                // Ensure first routeLeg is DIRECT to inputWpt
-                if(s.routeLegs.length>0&&s.routeLegs[0].to===inputWpt){
-                  s.routeLegs[0]={via:"DIRECT",to:s.routeLegs[0].to};
-                } else {
-                  var alreadyEndpoint=false;
-                  for(var ri=0;ri<s.routeLegs.length;ri++){if(s.routeLegs[ri].to===inputWpt){alreadyEndpoint=true;break;}}
-                  if(!alreadyEndpoint){
-                    s.routeLegs.unshift({via:"DIRECT",to:inputWpt});
+                var remainingWpts=new Set();
+                for(var rw=0;rw<legs.length;rw++){if(!legs[rw].isRwy&&!legs[rw].isDest&&!legs[rw].isDisc)remainingWpts.add(legs[rw].wpt);}
+                // Update routeLegs: if a leg's TO was removed but inputWpt is on same airway, update TO
+                var newRL=[];
+                for(var ri=0;ri<s.routeLegs.length;ri++){
+                  var rl=s.routeLegs[ri];
+                  if(remainingWpts.has(rl.to)){newRL.push(rl);}
+                  else if(!rl._star&&!rl._app&&!rl._appTrans&&!rl._disc&&!rl._missed){
+                    // TO removed — check if inputWpt is on this airway
+                    var awyWpts=AIRWAY_DB[rl.via];
+                    if(awyWpts&&awyWpts.indexOf(inputWpt)>=0){
+                      newRL.push(Object.assign({},rl,{to:inputWpt}));
+                    }
+                    // else: routeLeg dropped (wpt completely gone)
                   }
                 }
+                s.routeLegs=newRL;
                 s.scratchpad="";s.execLight=true;s.helpMsg="";
               } else {
                 // ── Add Waypoint (FCOM 11.42.2) ──
@@ -19606,38 +19633,38 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
         if(!s.depSid&&!s.depRwy){
           // ═══ No selection: L1-L4=SID, R1-R4=RWY ═══
           if(side==="L"&&num>=1&&num<=4&&sids[num-1]){
-            s.depSid=sids[num-1]; s.depSidAct=false; s.execLight=true;
+            s.depSid=sids[num-1]; s.depSidAct=false; s.execLight=true;s._skipCopy=true;
             updateRouteLegs(s);s.computedLegs=buildLegs(s);
           }
           if(side==="R"&&num>=1&&num<=4&&rwys[num-1]){
-            s.depRwy=rwys[num-1]; s.runway=rwys[num-1]; s.execLight=true;
+            s.depRwy=rwys[num-1]; s.runway=rwys[num-1]; s.execLight=true;s._skipCopy=true;
           }
         } else if(s.depSid&&!s.depRwy){
           // ═══ SID selected: L1=deselect, R1-R4=RWY ═══
           if(side==="L"&&num===1){
-            s.depSid="";s.depTrans="";s.depSidAct=false;s.execLight=true;
+            s.depSid="";s.depTrans="";s.depSidAct=false;s.execLight=true;s._skipCopy=true;
             updateRouteLegs(s);s.computedLegs=buildLegs(s);
           }
           if(side==="R"&&num>=1&&num<=4&&rwys[num-1]){
-            s.depRwy=rwys[num-1]; s.runway=rwys[num-1]; s.execLight=true;
+            s.depRwy=rwys[num-1]; s.runway=rwys[num-1]; s.execLight=true;s._skipCopy=true;
           }
         } else if(!s.depSid&&s.depRwy){
           // ═══ RWY selected: L1-L4=SID, R1=deselect ═══
           if(side==="L"&&num>=1&&num<=4&&sids[num-1]){
-            s.depSid=sids[num-1]; s.depSidAct=false; s.execLight=true;
+            s.depSid=sids[num-1]; s.depSidAct=false; s.execLight=true;s._skipCopy=true;
             updateRouteLegs(s);s.computedLegs=buildLegs(s);
           }
           if(side==="R"&&num===1){
-            s.depRwy=""; s.execLight=true;
+            s.depRwy=""; s.execLight=true;s._skipCopy=true;
           }
         } else {
           // ═══ Both selected: L1=deselect SID, R1=deselect RWY ═══
           if(side==="L"&&num===1){
-            s.depSid="";s.depTrans="";s.depSidAct=false;s.execLight=true;
+            s.depSid="";s.depTrans="";s.depSidAct=false;s.execLight=true;s._skipCopy=true;
             updateRouteLegs(s);s.computedLegs=buildLegs(s);
           }
           if(side==="R"&&num===1){
-            s.depRwy=""; s.execLight=true;
+            s.depRwy=""; s.execLight=true;s._skipCopy=true;
           }
         }
       }
@@ -19661,59 +19688,59 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
           if(side==="L"&&num>=1&&num<=5){
             var starIdx=si+(num-1);
             if(stars[starIdx]){
-              s.arrStar=stars[starIdx];s.arrStarAct=false;s.execLight=true;
+              s.arrStar=stars[starIdx];s.arrStarAct=false;s.execLight=true;s._skipCopy=true;
               updateRouteLegs(s);s.computedLegs=buildLegs(s);
             }
           }
           if(side==="R"&&num>=1&&num<=5){
             var appIdx=si+(num-1);
             if(apps[appIdx]){
-              s.arrApp=apps[appIdx].replace(/\s/g,"");s.arrAppAct=false;s.execLight=true;
+              s.arrApp=apps[appIdx].replace(/\s/g,"");s.arrAppAct=false;s.execLight=true;s._skipCopy=true;
               updateRouteLegs(s);s.computedLegs=buildLegs(s);
             }
           }
         } else if(s.arrStar&&!s.arrApp){
           // ═══ STAR selected, no APP — R1-R4=APP list (apps[0]-apps[3]) ═══
           if(side==="L"&&num===1){
-            s.arrStar="";s.arrStarAct=false;s.execLight=true;
+            s.arrStar="";s.arrStarAct=false;s.execLight=true;s._skipCopy=true;
             updateRouteLegs(s);s.computedLegs=buildLegs(s);
           }
           if(side==="R"&&num>=1&&num<=4&&apps[num-1]){
-            s.arrApp=apps[num-1].replace(/\s/g,"");s.arrAppAct=false;s.execLight=true;
+            s.arrApp=apps[num-1].replace(/\s/g,"");s.arrAppAct=false;s.execLight=true;s._skipCopy=true;
             updateRouteLegs(s);s.computedLegs=buildLegs(s);
           }
         } else if(!s.arrStar&&s.arrApp){
           // ═══ APP selected, no STAR — L1-L4=STAR list (stars[0]-stars[3]), R2=APP TRANS ═══
           if(side==="R"&&num===1){
-            s.arrApp="";s.arrAppAct=false;s.arrTrans="";s.execLight=true;
+            s.arrApp="";s.arrAppAct=false;s.arrTrans="";s.execLight=true;s._skipCopy=true;
             updateRouteLegs(s);s.computedLegs=buildLegs(s);
           }
           if(side==="L"&&num>=1&&num<=4&&stars[num-1]){
-            s.arrStar=stars[num-1];s.arrStarAct=false;s.execLight=true;
+            s.arrStar=stars[num-1];s.arrStarAct=false;s.execLight=true;s._skipCopy=true;
             updateRouteLegs(s);s.computedLegs=buildLegs(s);
           }
           // R2-R4: APP TRANS selection from list
           if(side==="R"&&num>=2&&num<=4){
             var aN2=NAV_DATA[(s.arrApp||"").replace(/\s/g,"")];
             var tArr2=aN2&&aN2.trans?aN2.trans:[];
-            if(tArr2[num-2]){s.arrTrans=tArr2[num-2];s.execLight=true;
+            if(tArr2[num-2]){s.arrTrans=tArr2[num-2];s.execLight=true;s._skipCopy=true;
               updateRouteLegs(s);s.computedLegs=buildLegs(s);}
           }
         } else {
           // ═══ Both selected ═══
           if(side==="L"&&num===1){
-            s.arrStar="";s.arrStarAct=false;s.execLight=true;
+            s.arrStar="";s.arrStarAct=false;s.execLight=true;s._skipCopy=true;
             updateRouteLegs(s);s.computedLegs=buildLegs(s);
           }
           if(side==="R"&&num===1){
-            s.arrApp="";s.arrAppAct=false;s.arrTrans="";s.execLight=true;
+            s.arrApp="";s.arrAppAct=false;s.arrTrans="";s.execLight=true;s._skipCopy=true;
             updateRouteLegs(s);s.computedLegs=buildLegs(s);
           }
           // R2-R4: APP TRANS selection from list
           if(side==="R"&&num>=2&&num<=4){
             var aN=NAV_DATA[(s.arrApp||"").replace(/\s/g,"")];
             var tArr=aN&&aN.trans?aN.trans:[];
-            if(tArr[num-2]){s.arrTrans=tArr[num-2];s.execLight=true;
+            if(tArr[num-2]){s.arrTrans=tArr[num-2];s.execLight=true;s._skipCopy=true;
               updateRouteLegs(s);s.computedLegs=buildLegs(s);}
           }
         }
@@ -19889,8 +19916,10 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
       // PERF INIT auto-advance cursor
       if(s._perfNext){
         var pn=s._perfNext;
-        s.cursorIdx=(pn.num-1)*2+(pn.side==="R"?1:0);
+        var _nextIdx=(pn.num-1)*2+(pn.side==="R"?1:0);
+        s.cursorIdx=_nextIdx;
         delete s._perfNext;
+        setTimeout(function(){if(CUR.posAt)CUR.posAt(_nextIdx);},150);
       }
       if(s._skipCopy)delete s._skipCopy;
       return s;
@@ -19902,7 +19931,7 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
   const handleFunc = useCallback(cmd => {
     setMfdMode("CDU");
     const map={"INIT REF":"INIT_REF","RTE":"RTE_1","DEP ARR":"DEP_ARR","ALTN":"ALTN","VNAV":"CLB","FIX":"FIX","LEGS":"LEGS","HOLD":"HOLD","FMC COMM":"FMC_COMM","PROG":"PROGRESS","NAV RAD":"NAV_RADIO","OFST":"OFFSET","RTA":"RTA"};
-    if(map[cmd])setFms(p=>{var dest=map[cmd];if(cmd==="INIT REF"){var _pfc=!!(p.origin&&p.dest&&p.routeLegs&&p.routeLegs.length&&p.flaps&&p.v1&&p.v1!=="---"&&p.vr&&p.vr!=="---"&&p.v2&&p.v2!=="---"&&p.cg&&p.trim&&p.grWt&&p.fuel&&p.zfw&&p.crzAlt);if(_pfc)dest="APPROACH_REF";else if(p.phase==="ACTIVE")dest="PERF_INIT";}if(cmd==="VNAV"&&p.chkl&&p.chkl.clIdx>=5)dest="CRZ";var _rteStartPage=1;if(cmd==="RTE"){var _pfc2=!!(p.origin&&p.dest&&p.routeLegs&&p.routeLegs.length&&p.flaps&&p.v1&&p.v1!=="---"&&p.vr&&p.vr!=="---"&&p.v2&&p.v2!=="---"&&p.cg&&p.trim&&p.grWt&&p.fuel&&p.zfw&&p.crzAlt);if(_pfc2){dest="RTE_1_2";_rteStartPage=2;}}var n={...p,page:dest,
+    if(map[cmd])setFms(p=>{var dest=map[cmd];if(cmd==="INIT REF"){var _pfc=!!(p.origin&&p.dest&&p.routeLegs&&p.routeLegs.length&&p.flaps&&p.v1&&p.v1!=="---"&&p.vr&&p.vr!=="---"&&p.v2&&p.v2!=="---"&&p.cg&&p.trim&&p.grWt&&p.fuel&&p.zfw&&p.crzAlt);if(_pfc&&p.chkl&&p.chkl.clIdx>=5)dest="APPROACH_REF";else if(p.phase==="ACTIVE")dest="PERF_INIT";}if(cmd==="VNAV"&&p.chkl&&p.chkl.clIdx>=5)dest="CRZ";var _rteStartPage=1;if(cmd==="RTE"){var _pfc2=!!(p.origin&&p.dest&&p.routeLegs&&p.routeLegs.length&&p.flaps&&p.v1&&p.v1!=="---"&&p.vr&&p.vr!=="---"&&p.v2&&p.v2!=="---"&&p.cg&&p.trim&&p.grWt&&p.fuel&&p.zfw&&p.crzAlt);if(_pfc2&&p.chkl&&p.chkl.clIdx>=5){dest="RTE_1_2";_rteStartPage=2;}}var n={...p,page:dest,
       rtePage:cmd==="RTE"?_rteStartPage:p.rtePage,
       legsPage:cmd==="LEGS"?1:p.legsPage,
       progPage:cmd==="PROG"?1:p.progPage,
@@ -20051,8 +20080,33 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
           , React.createElement(ScrBtn, { fk: "27", label: "NEXT\nPAGE", onClick: handleNext,})
         )
       )
-      /* Message area — FCOM 11.10.1 #5: bottom ~20% of CDU */
-      , React.createElement('div', { style: {flex:"3 1 0",padding:"4px 8px",borderTop:"1px solid #333",minHeight:0},}
+      /* Message area — Phase preset buttons */
+      , React.createElement('div', { style: {flex:"3 1 0",padding:"6px 8px",borderTop:"1px solid #333",minHeight:0,display:"flex",alignItems:"center"},}
+        , (function(){
+          var phases=["INITIAL","CDU SETUP\nCOMPLETE","BFR T/O","CRUISE"];
+          var phaseColors=["#334","#336","#353","#533"];
+          var mkCk=function(upTo){var ck={};var counts=[10,8,6,5,3];for(var ci=0;ci<upTo;ci++){for(var ii=0;ii<counts[ci];ii++)ck[ci+"-"+ii]=true;}return ck;};
+          return React.createElement('div', { style: {display:"flex",gap:"3px",width:"100%"},}
+            , phases.map(function(ph,pi){
+              return React.createElement('button', { key: ph, onClick: function(){
+                var rteLegs=[{via:"OSPO2C",to:"OSPOT"},{via:"Y782",to:"TGU"},{via:"Y781",to:"BESNA"},{via:"Y209",to:"IKE"}];
+                if(pi===0){setFms(initFMS());setMfdMode("CDU");}
+                else if(pi===1){
+                  var p1=Object.assign({},initFMS(),{fltNo:"KAL781",origin:"RKSI",dest:"RJFF",runway:"15R",depRwy:"15R",routeLegs:rteLegs,depSid:"OSPO2C",depSidAct:true,phase:"ACTIVE",grWt:"391.0",fuel:"36.0",zfw:"355.0",reserves:"9.0",crzAlt:"FL310",costIndex:"50",efbInit:true,page:"PERF_INIT",chkl:{tab:"NORMAL",clIdx:1,cur:0,ck:mkCk(1),ovrd:{},menuMode:false},efbPerf:{aprt:"",rwy:"",intx:"",cond:"",wind:"",oat:"",qnh:"",rtg:"OPTIMUM",ic:"NO",atm:"MAX",flap:"OPTIMUM",aiEng:"ENG AUTO",icing:"NO",rtl:"20/30",tow:"",zfw:"",cg:"25",calcDone:false,sentToFmc:false,calcV1:"",calcVR:"",calcV2:"",calcFlap:"",calcThrust:"",calcAccelHt:"",calcDTO:"",calcSelTemp:"",calcVref30:"",calcRwyIntx:"",calcTOGW:""}});
+                  updateRouteLegs(p1);p1.computedLegs=buildLegs(p1);setFms(p1);setMfdMode("CDU");
+                } else if(pi===2){
+                  var d2=FLIGHT_DB["KAL781"]||{};var cgVal2=23;var trimVal2=(cgVal2*0.22-0.06).toFixed(2);
+                  var p2=Object.assign({},initFMS(),{fltNo:"KAL781",origin:"RKSI",dest:"RJFF",runway:"15R",depRwy:"15R",routeLegs:rteLegs,depSid:"OSPO2C",depSidAct:true,phase:"ACTIVE",grWt:"391.0",fuel:"36.0",zfw:"355.0",reserves:"9.0",crzAlt:"FL310",costIndex:"50",flaps:d2.perfFlap||"5",v1:d2.perfV1||"166",vr:d2.perfVR||"171",v2:d2.perfV2||"175",cg:"23",trim:trimVal2,thrustMode:"D-TO",selOat:d2.perfSelTemp||"42",togw:"391.0",toN1:(d2.perfDTO||"91.3")+"%",eoAccelHt:(d2.perfAccelHt||"860")+"FT",wind:d2.wind?d2.wind.replace("/","°/")+"KT":"240°/05KT",arrStar:"ISKUPE",arrStarAct:true,arrApp:"ILS16L",arrAppAct:true,arrTrans:"ENTIX",efbInit:true,page:"TOREF1",chkl:{tab:"NORMAL",clIdx:3,cur:0,ck:mkCk(3),ovrd:{},menuMode:false},efbPerf:{aprt:"RKSI / ICN",rwy:"15R",intx:"FULL 15R",cond:"DRY",wind:d2.wind||"240/05",oat:d2.oat||"15",qnh:d2.qnh||"1013",rtg:"OPTIMUM",ic:"NO",atm:"MAX",flap:"OPTIMUM",aiEng:"ENG AUTO",icing:"NO",rtl:"20/30",tow:"391000",zfw:"355000",cg:"23",calcDone:true,sentToFmc:true,calcV1:d2.perfV1||"166",calcVR:d2.perfVR||"171",calcV2:d2.perfV2||"175",calcFlap:d2.perfFlap||"5",calcThrust:d2.perfThrust||"42°C D-TO",calcAccelHt:d2.perfAccelHt||"860",calcDTO:d2.perfDTO||"91.3",calcSelTemp:d2.perfSelTemp||"42",calcVref30:d2.perfVref30||"150",calcRwyIntx:"FULL 15R",calcTOGW:"391000"}});
+                  updateRouteLegs(p2);p2.computedLegs=buildLegs(p2);setFms(p2);setMfdMode("CDU");
+                } else {
+                  var d3=FLIGHT_DB["KAL781"]||{};var cgVal3=23;var trimVal3=(cgVal3*0.22-0.06).toFixed(2);
+                  var p3=Object.assign({},initFMS(),{fltNo:"KAL781",origin:"RKSI",dest:"RJFF",runway:"15R",depRwy:"15R",routeLegs:rteLegs,depSid:"OSPO2C",depSidAct:true,phase:"ACTIVE",grWt:"391.0",fuel:"36.0",zfw:"355.0",reserves:"9.0",crzAlt:"FL310",costIndex:"50",flaps:d3.perfFlap||"5",v1:d3.perfV1||"166",vr:d3.perfVR||"171",v2:d3.perfV2||"175",cg:"23",trim:trimVal3,thrustMode:"D-TO",selOat:d3.perfSelTemp||"42",togw:"391.0",toN1:(d3.perfDTO||"91.3")+"%",eoAccelHt:(d3.perfAccelHt||"860")+"FT",wind:d3.wind?d3.wind.replace("/","°/")+"KT":"240°/05KT",arrStar:"ISKUPE",arrStarAct:true,arrApp:"ILS16L",arrAppAct:true,arrTrans:"ENTIX",efbInit:true,page:"CRZ",chkl:{tab:"NORMAL",clIdx:5,cur:0,ck:mkCk(5),ovrd:{},menuMode:false},efbPerf:{aprt:"RKSI / ICN",rwy:"15R",intx:"FULL 15R",cond:"DRY",wind:d3.wind||"240/05",oat:d3.oat||"15",qnh:d3.qnh||"1013",rtg:"OPTIMUM",ic:"NO",atm:"MAX",flap:"OPTIMUM",aiEng:"ENG AUTO",icing:"NO",rtl:"20/30",tow:"391000",zfw:"355000",cg:"23",calcDone:true,sentToFmc:true,calcV1:d3.perfV1||"166",calcVR:d3.perfVR||"171",calcV2:d3.perfV2||"175",calcFlap:d3.perfFlap||"5",calcThrust:d3.perfThrust||"42°C D-TO",calcAccelHt:d3.perfAccelHt||"860",calcDTO:d3.perfDTO||"91.3",calcSelTemp:d3.perfSelTemp||"42",calcVref30:d3.perfVref30||"150",calcRwyIntx:"FULL 15R",calcTOGW:"391000"}});
+                  updateRouteLegs(p3);p3.computedLegs=buildLegs(p3);setFms(p3);setMfdMode("CDU");
+                }
+              }, style: {flex:1,padding:"8px 2px",background:phaseColors[pi],color:"#ccc",border:"1px solid #555",borderRadius:3,fontSize:19,fontWeight:"bold",cursor:"pointer",fontFamily:M,lineHeight:1.2,textAlign:"center",whiteSpace:"pre-line"},}, ph);
+            })
+          );
+        })()
       )
     ));
   };
@@ -20130,7 +20184,7 @@ function MFKKeypad({fms,setFms,mfdMode,setMfdMode}) {
     }
     // Default: CDU scratchpad
     if(k==="CLR")s.scratchpad=s.scratchpad.slice(0,-1);else if(k==="DEL")s.scratchpad="DELETE";else if(k==="SP")s.scratchpad+=" ";else if(k==="+/-")s.scratchpad+=s.scratchpad.endsWith("-")?"+":"-";else if(k==="PREV\nPAGE"||k==="NEXT\nPAGE")return s;else if(k.length===1&&s.scratchpad.length<24)s.scratchpad+=k;return s;});};
-  const NumBtn=({l})=>(React.createElement('button', { onClick: ()=>hk(l), style: {width:"42px",height:"42px",borderRadius:"50%",background:"radial-gradient(circle at 40% 35%,#555 0%,#2a2a2a 70%,#1a1a1a 100%)",color:C.white,border:"2px solid #444",fontSize:"14px",fontWeight:"bold",cursor:"pointer",fontFamily:M,boxShadow:"0 2px 4px rgba(0,0,0,0.6),inset 0 1px 1px rgba(255,255,255,0.15)"},}, l));
+  const NumBtn=({l})=>(React.createElement('button', { onClick: ()=>hk(l), style: {width:"43px",height:"43px",borderRadius:"50%",background:"radial-gradient(circle at 40% 35%,#555 0%,#2a2a2a 70%,#1a1a1a 100%)",color:C.white,border:"2px solid #444",fontSize:"14px",fontWeight:"bold",cursor:"pointer",fontFamily:M,boxShadow:"0 2px 4px rgba(0,0,0,0.6),inset 0 1px 1px rgba(255,255,255,0.15)"},}, l));
   var _clrTimer=null;
   const ABtn=({l,hi=false})=>{
     if(l==="CLR"){
@@ -20141,12 +20195,12 @@ function MFKKeypad({fms,setFms,mfdMode,setMfdMode}) {
         onMouseLeave: ()=>{if(_clrTimer){clearTimeout(_clrTimer);_clrTimer=null;}},
         onTouchStart: ()=>{_clrTimer=setTimeout(()=>{setFms(p=>({...p,scratchpad:""}));_clrTimer=null;},2000);},
         onTouchEnd: ()=>{if(_clrTimer){clearTimeout(_clrTimer);_clrTimer=null;}},
-        style: {width:"42px",height:"40px",borderRadius:"3px",background:hi?"#3a3a3a":"linear-gradient(180deg,#3a3a3a 0%,#2a2a2a 100%)",color:C.white,border:hi?"2px solid #88cccc":"1px solid #555",fontSize:"14px",fontWeight:"bold",cursor:"pointer",fontFamily:M,boxShadow:"0 1px 3px rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,255,255,0.1)"},
+        style: {width:"43px",height:"41px",borderRadius:"3px",background:hi?"#3a3a3a":"linear-gradient(180deg,#3a3a3a 0%,#2a2a2a 100%)",color:C.white,border:hi?"2px solid #88cccc":"1px solid #555",fontSize:"14px",fontWeight:"bold",cursor:"pointer",fontFamily:M,boxShadow:"0 1px 3px rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,255,255,0.1)"},
       }, l);
     }
-    return React.createElement('button', { onClick: ()=>hk(l), style: {width:"42px",height:"40px",borderRadius:"3px",background:hi?"#3a3a3a":"linear-gradient(180deg,#3a3a3a 0%,#2a2a2a 100%)",color:C.white,border:hi?"2px solid #88cccc":"1px solid #555",fontSize:"14px",fontWeight:"bold",cursor:"pointer",fontFamily:M,boxShadow:"0 1px 3px rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,255,255,0.1)"},}, l);
+    return React.createElement('button', { onClick: ()=>hk(l), style: {width:"43px",height:"41px",borderRadius:"3px",background:hi?"#3a3a3a":"linear-gradient(180deg,#3a3a3a 0%,#2a2a2a 100%)",color:C.white,border:hi?"2px solid #88cccc":"1px solid #555",fontSize:"14px",fontWeight:"bold",cursor:"pointer",fontFamily:M,boxShadow:"0 1px 3px rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,255,255,0.1)"},}, l);
   };
-  const MBtn=({l,a})=>(React.createElement('button', { onClick: ()=>{if(l==="CHKL"){setFms(function(p){return Object.assign({},p,{cursorIdx:null,prevMfdMode:mfdMode,prevPage:p.page});});setMfdMode(l);}else{setMfdMode(l);if(l==="COMM")setFms(function(p){return Object.assign({},p,{cursorIdx:null});});}}, style: {width:"55px",height:"28px",borderRadius:"3px",position:"relative",background:a?"#2a2a2a":"#3a3a3a",color:C.white,border:a?"2px solid #fff":"1px solid #555",fontSize:"16px",fontWeight:"bold",cursor:"pointer",fontFamily:M,boxShadow:a?"0 0 4px rgba(255,255,255,0.3)":"0 1px 3px rgba(0,0,0,0.4)"},}
+  const MBtn=({l,a})=>(React.createElement('button', { onClick: ()=>{if(l==="CHKL"){setFms(function(p){var c=Object.assign({},p.chkl||{tab:"NORMAL",clIdx:0,cur:0,ck:{},ovrd:{},menuMode:false});var CL=CUR.CHECKLISTS||[];if(CL.length>0&&CL[c.clIdx]){var _allDone=CL[c.clIdx].items.every(function(_it,ii){if(c.ovrd[c.clIdx+"-"+ii])return true;if(_it.t==="closed")return true;return!!c.ck[c.clIdx+"-"+ii];});if(_allDone){var _found=false;for(var _i=0;_i<CL.length;_i++){var _done=CL[_i].items.every(function(_it2,ii2){if(c.ovrd[_i+"-"+ii2])return true;if(_it2.t==="closed")return true;return!!c.ck[_i+"-"+ii2];});if(!_done){c.clIdx=_i;c.cur=0;c.menuMode=false;_found=true;break;}}if(!_found)c.menuMode=true;}}return Object.assign({},p,{cursorIdx:null,prevMfdMode:mfdMode,prevPage:p.page,chkl:c});});setMfdMode(l);}else{setMfdMode(l);if(l==="COMM")setFms(function(p){return Object.assign({},p,{cursorIdx:null});});}}, style: {width:"55px",height:"28px",borderRadius:"3px",position:"relative",background:a?"#2a2a2a":"#3a3a3a",color:C.white,border:a?"2px solid #fff":"1px solid #555",fontSize:"16px",fontWeight:"bold",cursor:"pointer",fontFamily:M,boxShadow:a?"0 0 4px rgba(255,255,255,0.3)":"0 1px 3px rgba(0,0,0,0.4)"},}
     , l));
   // Move DOM cursor to LSK position AND set cursorIdx
   function jumpCursor(idx){if(CUR.hoverEl)CUR.hoverEl.style.outline="none";CUR.hoverKey=null;CUR.hoverEl=null;CUR.set(function(p){var n=Object.assign({},p,{cursorIdx:idx});if(idx>=100&&idx<200)n.chkl=Object.assign({},p.chkl,{cur:idx-100});return n;});setTimeout(function(){positionCursorAt(idx);},120);}
@@ -20167,7 +20221,9 @@ function MFKKeypad({fms,setFms,mfdMode,setMfdMode}) {
       var cur=document.getElementById("cduCursor");
       if(!scr||!cur)return;
       var el;
-      if(idx>=900){
+      if(idx>=1100){
+        el=scr.querySelector('[data-sys-tab="'+(idx-1100)+'"]');
+      }else if(idx>=900){
         var txtEl=scr.querySelector('[data-comm-fld-text="'+idx+'"]');
         var fldEl=scr.querySelector('[data-comm-fld="'+idx+'"]');
         if(txtEl&&fldEl){
@@ -20211,6 +20267,7 @@ function MFKKeypad({fms,setFms,mfdMode,setMfdMode}) {
       cur.style.left=CUR.cx+"px";cur.style.top=CUR.cy+"px";cur.style.display="block";
     },delay);
   };
+  CUR.posAt=positionCursorAt;
   var cursorCW=function(){var aa=CUR.areas||[];if(!aa.length)return;var cur=CUR.idx;var next;if(cur===null)next=aa[0];else{var idx=aa.indexOf(cur);if(idx<0)next=aa[0];else if(idx<aa.length-1)next=aa[idx+1];else return;}moveCursorTo(next);};
   var cursorCCW=function(){var aa=CUR.areas||[];if(!aa.length)return;var cur=CUR.idx;var next;if(cur===null)next=aa[aa.length-1];else{var idx=aa.indexOf(cur);if(idx<0)next=aa[aa.length-1];else if(idx>0)next=aa[idx-1];else return;}moveCursorTo(next);};
   var cursorSelect=function(){
@@ -20234,7 +20291,7 @@ function MFKKeypad({fms,setFms,mfdMode,setMfdMode}) {
         var target=el;
         for(var _w=0;_w<8;_w++){
           if(!target)break;
-          if(target.tagName==="BUTTON"||target.hasAttribute("data-chkl-item")||target.hasAttribute("data-chkl-menu")||target.hasAttribute("data-chkl-rst")||target.hasAttribute("data-comm-tab")||target.hasAttribute("data-comm-btn")||target.hasAttribute("data-comm-cmd")||target.hasAttribute("data-comm-fld")){
+          if(target.tagName==="BUTTON"||target.hasAttribute("data-chkl-item")||target.hasAttribute("data-chkl-menu")||target.hasAttribute("data-chkl-rst")||target.hasAttribute("data-comm-tab")||target.hasAttribute("data-comm-btn")||target.hasAttribute("data-comm-cmd")||target.hasAttribute("data-comm-fld")||target.hasAttribute("data-sys-tab")){
             target.click();return;
           }
           target=target.parentElement;
@@ -20242,7 +20299,7 @@ function MFKKeypad({fms,setFms,mfdMode,setMfdMode}) {
       }
     }
     // Fallback: use cursorIdx
-    CUR.set(function(p){var cur=p.cursorIdx;if(cur===null)return p;var scr2=document.getElementById("cduScreen");if(cur>=900){if(scr2){var btnF=scr2.querySelector('[data-comm-fld="'+cur+'"]');if(btnF)setTimeout(function(){btnF.click();},0);}return p;}if(cur>=800){if(scr2){var btnC=scr2.querySelector('[data-comm-cmd="'+cur+'"]');if(btnC)setTimeout(function(){btnC.click();},0);}return p;}if(cur>=700){if(scr2){var btnB=scr2.querySelector('[data-comm-btn="'+cur+'"]');if(btnB)setTimeout(function(){btnB.click();},0);}return p;}if(cur>=600){if(scr2){var btnT=scr2.querySelector('[data-comm-tab="'+cur+'"]');if(btnT)setTimeout(function(){btnT.click();},0);}return p;}if(cur>=500){if(scr2){var btnR=scr2.querySelector('[data-chkl-rst="'+cur+'"]');if(btnR)setTimeout(function(){btnR.click();},0);}return p;}if(cur>=400){if(scr2){var btn00=scr2.querySelector('[data-chkl-menu="'+(cur-400)+'"]');if(btn00)setTimeout(function(){btn00.click();},0);}return p;}if(cur>=300){if(scr2){var btn0=scr2.querySelector('[data-chkl-tab="'+cur+'"]');if(btn0)setTimeout(function(){btn0.click();},0);}return p;}if(cur>=200){if(scr2){var btn=scr2.querySelector('[data-chkl-cmd="'+(cur-200)+'"]');if(btn)setTimeout(function(){btn.click();},0);}return p;}if(cur>=100){if(scr2){var btn2=scr2.querySelector('[data-chkl-item="'+(cur-100)+'"]');if(btn2)setTimeout(function(){btn2.click();},0);}return p;}if(cur>=12){if(scr2){var btn3=scr2.querySelector('[data-fk="'+cur+'"]');if(btn3)setTimeout(function(){btn3.click();},0);}return p;}if(CUR.lsk)CUR.lsk(cur%2===0?"L":"R",Math.floor(cur/2)+1);return p;});};
+    CUR.set(function(p){var cur=p.cursorIdx;if(cur===null)return p;var scr2=document.getElementById("cduScreen");if(cur>=1100){if(scr2){var btnS=scr2.querySelector('[data-sys-tab="'+(cur-1100)+'"]');if(btnS)setTimeout(function(){btnS.click();},0);}return p;}if(cur>=900){if(scr2){var btnF=scr2.querySelector('[data-comm-fld="'+cur+'"]');if(btnF)setTimeout(function(){btnF.click();},0);}return p;}if(cur>=800){if(scr2){var btnC=scr2.querySelector('[data-comm-cmd="'+cur+'"]');if(btnC)setTimeout(function(){btnC.click();},0);}return p;}if(cur>=700){if(scr2){var btnB=scr2.querySelector('[data-comm-btn="'+cur+'"]');if(btnB)setTimeout(function(){btnB.click();},0);}return p;}if(cur>=600){if(scr2){var btnT=scr2.querySelector('[data-comm-tab="'+cur+'"]');if(btnT)setTimeout(function(){btnT.click();},0);}return p;}if(cur>=500){if(scr2){var btnR=scr2.querySelector('[data-chkl-rst="'+cur+'"]');if(btnR)setTimeout(function(){btnR.click();},0);}return p;}if(cur>=400){if(scr2){var btn00=scr2.querySelector('[data-chkl-menu="'+(cur-400)+'"]');if(btn00)setTimeout(function(){btn00.click();},0);}return p;}if(cur>=300){if(scr2){var btn0=scr2.querySelector('[data-chkl-tab="'+cur+'"]');if(btn0)setTimeout(function(){btn0.click();},0);}return p;}if(cur>=200){if(scr2){var btn=scr2.querySelector('[data-chkl-cmd="'+(cur-200)+'"]');if(btn)setTimeout(function(){btn.click();},0);}return p;}if(cur>=100){if(scr2){var btn2=scr2.querySelector('[data-chkl-item="'+(cur-100)+'"]');if(btn2)setTimeout(function(){btn2.click();},0);}return p;}if(cur>=12){if(scr2){var btn3=scr2.querySelector('[data-fk="'+cur+'"]');if(btn3)setTimeout(function(){btn3.click();},0);}return p;}if(CUR.lsk)CUR.lsk(cur%2===0?"L":"R",Math.floor(cur/2)+1);return p;});};
   var updateCursorHover=function(){
     var scr=document.getElementById("cduScreen");
     if(!scr||typeof CUR.cx!=="number")return;
@@ -20272,8 +20329,8 @@ function MFKKeypad({fms,setFms,mfdMode,setMfdMode}) {
           if(dist<22){var fkI=parseInt(fk.getAttribute("data-fk"));if(aa.indexOf(fkI)>=0&&dist<bestDist){bestDist=dist;bestKey="FK"+fkI;bestEl=fk;}}
         }
       }
-    }else if(CUR.mode==="COMM"||CUR.mode==="CHKL"){
-      var attrs=["data-comm-tab","data-comm-btn","data-comm-cmd","data-comm-fld","data-chkl-tab","data-chkl-item","data-chkl-menu","data-chkl-rst","data-chkl-cmd"];
+    }else if(CUR.mode==="COMM"||CUR.mode==="CHKL"||CUR.mode==="SYS"){
+      var attrs=["data-comm-tab","data-comm-btn","data-comm-cmd","data-comm-fld","data-chkl-tab","data-chkl-item","data-chkl-menu","data-chkl-rst","data-chkl-cmd","data-sys-tab"];
       for(var ai=0;ai<attrs.length;ai++){
         var els=scr.querySelectorAll("["+attrs[ai]+"]");
         for(var ei=0;ei<els.length;ei++){
@@ -20304,15 +20361,15 @@ function MFKKeypad({fms,setFms,mfdMode,setMfdMode}) {
         , React.createElement('div', { style: {display:"flex",flexDirection:"column",gap:"3px"},}
           , [["1","2","3"],["4","5","6"],["7","8","9"],[".","0","+/-"]].map((r,i)=>(React.createElement('div', { key: i, style: {display:"flex",gap:"4px"},}, r.map(k=>React.createElement(NumBtn, { key: k, l: k,})))))
         )
-        , React.createElement('div', { style: {paddingTop:4},}, React.createElement('button', { onClick: ()=>{}, style: {width:"48px",height:"135px",borderRadius:"3px",background:"linear-gradient(180deg,#2a2a2a 0%,#1a1a1a 100%)",color:C.white,border:"1px solid #555",fontSize:"12px",fontWeight:"bold",cursor:"pointer",fontFamily:M,writingMode:"vertical-lr",letterSpacing:"2px",boxShadow:"0 2px 4px rgba(0,0,0,0.5)"},}, "ENTER"))
+        , React.createElement('div', { style: {paddingTop:4},}, React.createElement('button', { onClick: ()=>{}, style: {width:"49px",height:"136px",borderRadius:"3px",background:"linear-gradient(180deg,#2a2a2a 0%,#1a1a1a 100%)",color:C.white,border:"1px solid #555",fontSize:"12px",fontWeight:"bold",cursor:"pointer",fontFamily:M,writingMode:"vertical-lr",letterSpacing:"2px",boxShadow:"0 2px 4px rgba(0,0,0,0.5)"},}, "ENTER"))
       )
       , React.createElement('div', { style: {height:2},})
       , [["A","B","C","D","E"],["F","G","H","I","J"],["K","L","M","N","O"],["P","Q","R","S","T"],["U","V","W","X","Y"],["Z","SP","DEL","/","CLR"]].map((r,i)=>(React.createElement('div', { key: i, style: {display:"flex",gap:"2px",justifyContent:"center"},}, r.map(k=>React.createElement(ABtn, { key: k, l: k, hi: hi.includes(k),})))))
       , React.createElement('div', { style: {display:"flex",justifyContent:"flex-end",padding:"0 4px"},}, React.createElement('div', { style: {width:"40px",height:"5px",borderRadius:"2px",background:fms.execLight?C.execGr:"#222",border:"1px solid #444",boxShadow:fms.execLight?`0 0 6px ${C.execGr}`:"none"},}))
       , React.createElement('div', { style: {display:"flex",gap:"3px",justifyContent:"center"},}
-        , React.createElement('button', { onClick: handlePrev, style: {width:"56px",height:"34px",borderRadius:"3px",background:"linear-gradient(180deg,#3a3a3a 0%,#2a2a2a 100%)",color:C.white,border:"1px solid #555",fontSize:"11px",fontWeight:"bold",cursor:"pointer",fontFamily:M,boxShadow:"0 1px 3px rgba(0,0,0,0.5)",lineHeight:1.1,whiteSpace:"pre-line",textAlign:"center"},}, "PREV\nPAGE")
-        , React.createElement('button', { onClick: handleNext, style: {width:"56px",height:"34px",borderRadius:"3px",background:"linear-gradient(180deg,#3a3a3a 0%,#2a2a2a 100%)",color:C.white,border:"1px solid #555",fontSize:"11px",fontWeight:"bold",cursor:"pointer",fontFamily:M,boxShadow:"0 1px 3px rgba(0,0,0,0.5)",lineHeight:1.1,whiteSpace:"pre-line",textAlign:"center"},}, "NEXT\nPAGE")
-        , React.createElement('button', { onClick: ()=>setFms(p=>{if(!p.execLight)return p;var n={...p,execLight:false,phase:p.origin&&p.dest?"ACTIVE":p.phase};if(p.depSid)n.depSidAct=true;if(p.arrStar)n.arrStarAct=true;if(p.arrApp)n.arrAppAct=true;if(n.computedLegs)n.computedLegs.forEach(function(l){delete l.inserted;});n._snapshot={depSid:n.depSid,depRwy:n.depRwy,depTrans:n.depTrans,arrStar:n.arrStar,arrApp:n.arrApp,arrTrans:n.arrTrans,routeLegs:JSON.parse(JSON.stringify(n.routeLegs)),computedLegs:JSON.parse(JSON.stringify(n.computedLegs||[]))};return n;}), style: {width:"66px",height:"34px",borderRadius:"3px",background:fms.execLight?"#003300":"linear-gradient(180deg,#3a3a3a 0%,#2a2a2a 100%)",color:fms.execLight?C.execGr:C.white,border:`2px solid ${fms.execLight?C.execGr:"#555"}`,fontSize:"13px",fontWeight:"bold",cursor:"pointer",fontFamily:M,boxShadow:fms.execLight?`0 0 8px rgba(0,187,0,0.5)`:"0 1px 3px rgba(0,0,0,0.5)"},}, "EXEC")
+        , React.createElement('button', { onClick: handlePrev, style: {width:"57px",height:"35px",borderRadius:"3px",background:"linear-gradient(180deg,#3a3a3a 0%,#2a2a2a 100%)",color:C.white,border:"1px solid #555",fontSize:"11px",fontWeight:"bold",cursor:"pointer",fontFamily:M,boxShadow:"0 1px 3px rgba(0,0,0,0.5)",lineHeight:1.1,whiteSpace:"pre-line",textAlign:"center"},}, "PREV\nPAGE")
+        , React.createElement('button', { onClick: handleNext, style: {width:"57px",height:"35px",borderRadius:"3px",background:"linear-gradient(180deg,#3a3a3a 0%,#2a2a2a 100%)",color:C.white,border:"1px solid #555",fontSize:"11px",fontWeight:"bold",cursor:"pointer",fontFamily:M,boxShadow:"0 1px 3px rgba(0,0,0,0.5)",lineHeight:1.1,whiteSpace:"pre-line",textAlign:"center"},}, "NEXT\nPAGE")
+        , React.createElement('button', { onClick: ()=>setFms(p=>{if(!p.execLight)return p;var n={...p,execLight:false,phase:p.origin&&p.dest?"ACTIVE":p.phase};if(p.depSid)n.depSidAct=true;if(p.arrStar)n.arrStarAct=true;if(p.arrApp)n.arrAppAct=true;if(n.computedLegs)n.computedLegs.forEach(function(l){delete l.inserted;});n._snapshot={depSid:n.depSid,depRwy:n.depRwy,depTrans:n.depTrans,arrStar:n.arrStar,arrApp:n.arrApp,arrTrans:n.arrTrans,routeLegs:JSON.parse(JSON.stringify(n.routeLegs)),computedLegs:JSON.parse(JSON.stringify(n.computedLegs||[]))};return n;}), style: {width:"67px",height:"35px",borderRadius:"3px",background:fms.execLight?"#003300":"linear-gradient(180deg,#3a3a3a 0%,#2a2a2a 100%)",color:fms.execLight?C.execGr:C.white,border:`2px solid ${fms.execLight?C.execGr:"#555"}`,fontSize:"13px",fontWeight:"bold",cursor:"pointer",fontFamily:M,boxShadow:fms.execLight?`0 0 8px rgba(0,187,0,0.5)`:"0 1px 3px rgba(0,0,0,0.5)"},}, "EXEC")
       )
       /* ═══ FCOM 10.10.53 #4/#5: Cursor Control + #3: Touch Pad ═══ */
       , React.createElement('div', { style: {display:"flex",flexDirection:"column",alignItems:"center",marginTop:2,gap:3},}
@@ -20399,7 +20456,7 @@ function EFBPanel({fms,setFms,onClose}) {
       const rawZfw = prev.zfw || "";
       const towLbs = rawTow ? (parseFloat(rawTow) < 1000 ? Math.round(parseFloat(rawTow)*1000) : rawTow) : "";
       const zfwLbs = rawZfw ? (parseFloat(rawZfw) < 1000 ? Math.round(parseFloat(rawZfw)*1000) : rawZfw) : "";
-      return {...prev, chkl:{tab:"NORMAL",clIdx:0,cur:0,ck:{},ovrd:{},menuMode:false},
+      return {...prev,
   efbPerf:{...prev.efbPerf,
         // From CDU (editable)
         tow: towLbs ? String(towLbs) : "",
@@ -20424,7 +20481,7 @@ function EFBPanel({fms,setFms,onClose}) {
     if(!ep.tow && !fms.grWt) return;
     const d = db || {};
     const tow = ep.tow || fms.grWt || "---";
-    setFms(prev => ({...prev, chkl:{tab:"NORMAL",clIdx:0,cur:0,ck:{},ovrd:{},menuMode:false},
+    setFms(prev => ({...prev,
   efbPerf:{...prev.efbPerf,
       calcDone: true, sentToFmc: false,
       calcV1: d.perfV1 || "148", calcVR: d.perfVR || "153", calcV2: d.perfV2 || "158",
@@ -20463,6 +20520,7 @@ function EFBPanel({fms,setFms,onClose}) {
           v1: p.calcV1, vr: p.calcVR, v2: p.calcV2,
           flaps: p.calcFlap,
           cg: p.cg, trim: trimVal,
+          eoAccelHt: (p.calcAccelHt||d.perfAccelHt||"1500")+"FT",
           thrustMode: "D-TO", selOat: selTemp,
           wind: d.wind ? d.wind.replace("/","°/")+"KT" : prev.wind,
           rwyWind: rwyWindStr,
@@ -20485,7 +20543,7 @@ function EFBPanel({fms,setFms,onClose}) {
       const o = prev.origin || d.origin || "";
       const iata = iataMap[o] || "";
       const aprtDisp = iata ? `${o} / ${iata}` : o;
-      return {...prev, efbInit: true, chkl:{tab:"NORMAL",clIdx:0,cur:0,ck:{},ovrd:{},menuMode:false},
+      return {...prev, efbInit: true,
   efbPerf:{...prev.efbPerf,
         aprt: aprtDisp,
         rwy: prev.runway || d.runway || "",
@@ -21033,6 +21091,7 @@ function ChecklistView({fms,setFms}){
       {t:"closed",item:"PACKS",                    resp:"OFF F/O"},
     ]},
   ];
+  CUR.CHECKLISTS=CHECKLISTS;
 
   const cl=CHECKLISTS[clIdx]||CHECKLISTS[0];
   const items=cl.items;
@@ -21940,7 +21999,10 @@ function SysView(){
   const [tab,setTab]=useState("STAT");
   const tabs1=["STAT","ELEC","HYD","FUEL","AIR","DOOR"];
   const tabs2=["GEAR","FCTL","EFIS/DSP","MAINT","CB"];
-  const TB=({l,a})=>(React.createElement('button', { onClick: ()=>setTab(l), style: {flex:1,padding:"5px 2px",background:a?"#006600":"linear-gradient(180deg,#4a4a4a 0%,#333 100%)",color:a?C.green:C.white,border:a?"1px solid "+C.green:"1px solid #555",fontSize:20,fontWeight:"bold",cursor:"pointer",fontFamily:M,borderRadius:2},}, l));
+  const allTabs=tabs1.concat(tabs2);
+  const TB=({l,a,idx})=>(React.createElement('button', { 'data-sys-tab': String(idx), onClick: ()=>setTab(l), style: {flex:1,padding:"5px 2px",background:a?"#006600":"linear-gradient(180deg,#4a4a4a 0%,#333 100%)",color:a?C.green:C.white,border:a?"1px solid "+C.green:"1px solid #555",fontSize:20,fontWeight:"bold",cursor:"pointer",fontFamily:M,borderRadius:2},}, l));
+  // Register cursor areas for SYS tabs
+  CUR.areas=[];for(var _si=0;_si<allTabs.length;_si++)CUR.areas.push(1100+_si);
   const Box=({title,children})=>(React.createElement('div', { style: {border:"1px solid "+C.cyan,borderRadius:3,margin:"6px 8px",padding:"6px 10px",position:"relative"},}
     , React.createElement('div', { style: {position:"absolute",top:-7,left:12,background:"#0a0a0a",padding:"0 6px",color:C.cyan,fontSize:19,fontFamily:M,fontWeight:"bold"},}, title)
     , children
@@ -21950,8 +22012,8 @@ function SysView(){
   return(React.createElement('div', { style: {fontFamily:M,height:"100%",display:"flex",flexDirection:"column"},}
     /* Tab bars — FCOM 1.22.5 */
     , React.createElement('div', { style: {padding:"4px 4px 0"},}
-      , React.createElement('div', { style: {display:"flex",gap:2,marginBottom:2},}, tabs1.map(t=>React.createElement(TB, { key: t, l: t, a: tab===t,})))
-      , React.createElement('div', { style: {display:"flex",gap:2},}, tabs2.map(t=>React.createElement(TB, { key: t, l: t, a: tab===t,})))
+      , React.createElement('div', { style: {display:"flex",gap:2,marginBottom:2},}, tabs1.map((t,i)=>React.createElement(TB, { key: t, l: t, a: tab===t, idx: i,})))
+      , React.createElement('div', { style: {display:"flex",gap:2},}, tabs2.map((t,i)=>React.createElement(TB, { key: t, l: t, a: tab===t, idx: i+tabs1.length,})))
     )
 
     , React.createElement('div', { style: {flex:1,overflow:"auto",padding:"2px 0"},}
@@ -22505,20 +22567,20 @@ function B787Cockpit(){
         React.createElement('div', {style:{color:"#00cccc",fontSize:33,fontWeight:"bold",letterSpacing:4,marginBottom:4}}, "B787 DREAMLINER"),
         React.createElement('div', {style:{color:"#aaa",fontSize:14,letterSpacing:2}}, "COCKPIT PROCEDURE SIMULATOR"),
         React.createElement('div', {style:{color:"#777",fontSize:14,marginTop:4}}, "FOR TRAINING PURPOSE ONLY"),
-        React.createElement('div', {style:{color:"#00bb00",fontSize:11,marginTop:12,letterSpacing:1}}, "v2.8.37a \u00a0|\u00a0 by SHLee7872603")
+        React.createElement('div', {style:{color:"#00bb00",fontSize:11,marginTop:12,letterSpacing:1}}, "v2.8.37b \u00a0|\u00a0 by SHLee7872603")
       ),
       React.createElement('div', {style:{borderTop:"1px solid #333",borderBottom:"1px solid #333",padding:"14px 0",marginBottom:16}},
         React.createElement(ChkRow, {checked:ckIPad,onToggle:function(){setCkIPad(function(p){return!p;});}},
-          React.createElement('div', {style:{color:"#00cccc",fontSize:17,fontWeight:"bold",marginBottom:8,letterSpacing:1}}, "PATCH NOTES v2.8.37a"),
+          React.createElement('div', {style:{color:"#00cccc",fontSize:17,fontWeight:"bold",marginBottom:8,letterSpacing:1}}, "PATCH NOTES v2.8.37b"),
           React.createElement('div', {style:{color:"#aaa",fontSize:14,fontWeight:"bold",lineHeight:1.8}},
-            React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginBottom:2}}, "v2.8.37a"),
-            React.createElement('div', null, "\u2022 AUX Display \uba54\uc2dc\uc9c0 \ud050 \uad6c\ud604 (FIFO, \uccab \uba54\uc2dc\uc9c0\ub9cc \ud45c\uc2dc)"),
-            React.createElement('div', null, "\u2022 DCL\u2192AUX ACPT/CANC/RJCT \uc5f0\ub3d9 + COMM \ub3d9\uae30\ud654"),
-            React.createElement('div', null, "\u2022 ACCEPT\u2192ACCEPTING\u2192ACCEPTED \ub2e8\uacc4\ubcc4 \ud45c\uc2dc"),
-            React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginTop:8,marginBottom:2}}, "v2.8.37"),
-            React.createElement('div', null, "\u2022 CDU Small/Large \uae00\uc790 (cyan/magenta=22px, green/white=28px)"),
-            React.createElement('div', null, "\u2022 POS INIT 1/4~4/4 FCOM 11.40.8 \uad6c\ud604"),
-            React.createElement('div', null, "\u2022 APPROACH REF R1-R3\u2192SP\u2192R4 \u00b7 RTE VIA/TO DISC \ubc29\uc9c0"),
+            React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginBottom:2}}, "v2.8.37b"),
+            React.createElement('div', null, "\u2022 Phase \ubc84\ud2bc (INITIAL/CDU SETUP/BFR T\u002FO/CRUISE)"),
+            React.createElement('div', null, "\u2022 DELETE+LSK \u00b7 LEGS \ubcd1\ud569 \u00b7 DEP/ARR SP\ubc29\uc9c0"),
+            React.createElement('div', null, "\u2022 CHKL \uc790\ub3d9\uc804\ud658 \u00b7 SYS \ucee4\uc11c \u00b7 \uc785\ub825\ud544\ub4dc \ud68c\uc0c9\ubc30\uacbd"),
+            React.createElement('div', null, "\u2022 EFB\u2192FMC EO ACCEL \u00b7 TRIM ACCEPT \ud6c4 \ud45c\uc2dc"),
+            React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginTop:8,marginBottom:2}}, "v2.8.37a"),
+            React.createElement('div', null, "\u2022 AUX \uba54\uc2dc\uc9c0 \ud050 (FIFO) \u00b7 DCL ACPT/CANC/RJCT \uc5f0\ub3d9"),
+            React.createElement('div', null, "\u2022 Small/Large \uae00\uc790 \u00b7 POS INIT 1/4~4/4 \u00b7 wind corr \uc218\uc815"),
 
           )
         )
@@ -22592,18 +22654,6 @@ function B787Cockpit(){
       , ["CDU","EFB","FWD","AUX"].map(v=>(
         React.createElement('button', { key: v, onClick: ()=>{switchView(v);if(v==="AUX"){setFms(function(p){return{...p,auxBlink:false};});}}, style: {padding:"5px 14px",background:activeView===v?"#0a2a0a":v==="AUX"&&fms.auxBlink?"transparent":"#111",color:activeView===v?C.green:v==="AUX"&&fms.auxBlink?C.cyan:"#aaa",border:`1px solid ${activeView===v?C.green:v==="AUX"&&fms.auxBlink?C.cyan:"#444"}`,borderRadius:3,fontSize:16,fontWeight:"bold",cursor:"pointer",fontFamily:M,animation:v==="AUX"&&fms.auxBlink?"blink 1s infinite":"none"},}, v==="CDU"?"LOWER MFD":v==="FWD"?"FWD PANEL":v==="AUX"?"AUX DSP":v)
       ))
-      , React.createElement('button', { onClick: function(){
-        var rteLegs=[{via:"OSPO2C",to:"OSPOT"},{via:"Y782",to:"TGU"},{via:"Y781",to:"BESNA"},{via:"Y209",to:"IKE"}];
-        var preset=Object.assign({},initFMS(),{
-          fltNo:"KAL781",origin:"RKSI",dest:"RJFF",runway:"15R",depRwy:"15R",routeLegs:rteLegs,
-          depSid:"OSPO2C",depSidAct:true,phase:"ACTIVE",
-          grWt:"391.0",fuel:"36.0",zfw:"355.0",reserves:"9.0",crzAlt:"FL310",costIndex:"50",
-          page:"PERF_INIT",progPage:1,legsPage:1,rtePage:1,
-          efbInit:true,chkl:{tab:"NORMAL",clIdx:0,cur:0,ck:{},ovrd:{},menuMode:false},
-          efbPerf:{aprt:"",rwy:"",intx:"",cond:"",wind:"",oat:"",qnh:"",rtg:"OPTIMUM",ic:"NO",atm:"MAX",flap:"OPTIMUM",aiEng:"ENG AUTO",icing:"NO",rtl:"20/30",tow:"",zfw:"",cg:"25",calcDone:false,sentToFmc:false,calcV1:"",calcVR:"",calcV2:"",calcFlap:"",calcThrust:"",calcAccelHt:"",calcDTO:"",calcSelTemp:"",calcVref30:"",calcRwyIntx:"",calcTOGW:""}
-        });
-        updateRouteLegs(preset);preset.computedLegs=buildLegs(preset);setFms(preset);
-      }, style: {padding:"4px 8px",background:"#0a0a2a",color:"#aaccff",border:"1px solid #4466aa",borderRadius:3,fontSize:12,fontWeight:"bold",cursor:"pointer",fontFamily:M},}, "CDU setup")
       , React.createElement('div', { style: {flex:1},})
       , React.createElement('span', { style: {color:C.green,fontSize:9},}, "FMS:", fms.phase)
       , React.createElement('span', { style: {color:C.cyan,fontSize:9},}, fms.origin||"----", "→", fms.dest||"----")
