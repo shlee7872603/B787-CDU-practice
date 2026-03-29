@@ -19874,7 +19874,7 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
               s.scratchpad="";
             } else if(sp===""){
               // Empty scratchpad + click = select this alternate
-              if(s.altnAirports[idx]){s.altnSelected=idx;}
+              if(s.altnAirports[idx]){s.altnSelected=idx;s._skipCopy=true;}
             }
           }
           // R1-R4: Go to XXXX ALTN detail page (FCOM 11.43.25 #7)
@@ -19919,6 +19919,7 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
         var _nextIdx=(pn.num-1)*2+(pn.side==="R"?1:0);
         s.cursorIdx=_nextIdx;
         delete s._perfNext;
+        if(CUR.hoverEl)CUR.hoverEl.style.outline="none";CUR.hoverKey=null;CUR.hoverEl=null;
         setTimeout(function(){if(CUR.posAt)CUR.posAt(_nextIdx);},150);
       }
       if(s._skipCopy)delete s._skipCopy;
