@@ -9,7 +9,7 @@
 <meta name="theme-color" content="#050505">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>B787 CDU Practice v2.8.37c</title>
+<title>B787 CDU Practice v2.8.37d</title>
 <style>*{margin:0;padding:0;box-sizing:border-box;-webkit-user-select:none;user-select:none}body{background:#050505;overflow-x:hidden}</style>
 </head>
 <body>
@@ -17496,20 +17496,20 @@ const NAV_DATA = {
   OSPO2E:{type:"SID",rwy:"33R",exit:"OSPOT",wpts:[
     {wpt:"RW33R",crs:"334°",dist:"",spdAlt:"",pred:"",isRwy:true},
     {wpt:"EG020",crs:"334°",dist:"5.6NM",spdAlt:"",pred:"230/ 2000"},
-    {wpt:"EG040",crs:"079°",dist:"5.2NM",spdAlt:"230KT/4000B",pred:"230/ 4000B"},
-    {wpt:"ASIDI",crs:"119°",dist:"5.0NM",spdAlt:"5500",pred:"250/ 5500"},
-    {wpt:"EG070",crs:"147°",dist:"5.0NM",spdAlt:"7000",pred:"250/ 7000"},
-    {wpt:"EG140",crs:"152°",dist:"18NM",spdAlt:"14000",pred:"280/14000"},
-    {wpt:"EG160",crs:"152°",dist:"7.0NM",spdAlt:"FL160",pred:".780/FL160"},
+    {wpt:"EG040",crs:"079°",dist:"5.2NM",spdAlt:"230KT/4000A",pred:"230/ 4000A"},
+    {wpt:"ASIDI",crs:"119°",dist:"5.0NM",spdAlt:"5500A",pred:"250/ 5500A"},
+    {wpt:"EG070",crs:"147°",dist:"5.0NM",spdAlt:"7000A",pred:"250/ 7000A"},
+    {wpt:"EG140",crs:"152°",dist:"18NM",spdAlt:"14000A",pred:"280/14000A"},
+    {wpt:"EG160",crs:"152°",dist:"7.0NM",spdAlt:"FL160A",pred:".780/FL160A"},
     {wpt:"OSPOT",crs:"180°",dist:"20NM",spdAlt:"FL210A",pred:".780/FL210A"}]},
   EGOB2E:{type:"SID",rwy:"33R",exit:"EGOBA",wpts:[
     {wpt:"RW33R",crs:"334°",dist:"",spdAlt:"",pred:"",isRwy:true},
     {wpt:"EG020",crs:"334°",dist:"5.6NM",spdAlt:"",pred:"230/ 2000"},
-    {wpt:"EG040",crs:"079°",dist:"5.2NM",spdAlt:"230KT/4000B",pred:"230/ 4000B"},
-    {wpt:"ASIDI",crs:"119°",dist:"5.0NM",spdAlt:"5500",pred:"250/ 5500"},
-    {wpt:"EG070",crs:"147°",dist:"5.0NM",spdAlt:"7000",pred:"250/ 7000"},
-    {wpt:"EG140",crs:"152°",dist:"18NM",spdAlt:"14000",pred:"280/14000"},
-    {wpt:"SEL",  crs:"099°",dist:"5.8NM",spdAlt:"FL160",pred:".780/FL160"},
+    {wpt:"EG040",crs:"079°",dist:"5.2NM",spdAlt:"230KT/4000A",pred:"230/ 4000A"},
+    {wpt:"ASIDI",crs:"119°",dist:"5.0NM",spdAlt:"5500A",pred:"250/ 5500A"},
+    {wpt:"EG070",crs:"147°",dist:"5.0NM",spdAlt:"7000A",pred:"250/ 7000A"},
+    {wpt:"EG140",crs:"152°",dist:"18NM",spdAlt:"14000A",pred:"280/14000A"},
+    {wpt:"SEL",  crs:"099°",dist:"5.8NM",spdAlt:"FL160A",pred:".780/FL160A"},
     {wpt:"EGOBA",crs:"087°",dist:"22.0NM",spdAlt:"FL210A",pred:".780/FL210A"}]},
   // ═══ RKSI STARs (Jeppesen 20-2E, 26SEP25) ═══
   GUKD2E:{type:"STAR",entry:"GUKDO",wpts:[
@@ -17689,7 +17689,7 @@ function buildLegs(fms){
   var legs=[];
 
   // Determine last enroute TO from routeLegs (user may have modified via RTE page)
-  var enrouteRouteLegs=(fms.routeLegs||[]).filter(function(l){return !l._star&&!l._app&&!l._disc&&!l._appTrans&&!l._sid&&!l._missed&&!l._manual&&!l._dest;});
+  var enrouteRouteLegs=(fms.routeLegs||[]).filter(function(l){return !l._star&&!l._app&&!l._disc&&!l._appTrans&&!l._sid&&!l._missed&&!l._manual;});
   var lastEnrouteTo=enrouteRouteLegs.length?enrouteRouteLegs[enrouteRouteLegs.length-1].to:"";
 
   // Trim enroute waypoints to end at lastEnrouteTo (if it exists in enroute list)
@@ -17721,12 +17721,6 @@ function buildLegs(fms){
       legs.push({wpt:"-----",isDisc:true,discFrom:"",discTo:""});
     } else if(rl[ri]._manual&&!rl[ri]._disc&&rl[ri].to){
       legs.push({wpt:rl[ri].to,crs:"---°",dist:"---",spdAlt:"",pred:"",via:rl[ri].via||"DIRECT",inserted:true});
-    } else if(rl[ri]._dest&&rl[ri].to){
-      // Destination from updateRouteLegs — only add if not already last wpt
-      var lastW2=legs.length?legs[legs.length-1].wpt:"";
-      if(lastW2!==rl[ri].to){
-        legs.push({wpt:rl[ri].to,crs:"---°",dist:"---",spdAlt:"",pred:"",via:"DIRECT",isDest:true});
-      }
     }
   }
 
@@ -17786,7 +17780,7 @@ function buildLegs(fms){
 // ═══════ Update routeLegs for RTE page display ═══════
 function updateRouteLegs(fms){
   // 1) Strip existing SID/STAR/APP/APPR TRANS/DISC tags — enroute and manual DISC untouched
-  fms.routeLegs=fms.routeLegs.filter(function(l){return !l._star && !l._app && !(l._disc&&!l._manual) && !l._appTrans && !l._sid && !l._missed && !l._dest;});
+  fms.routeLegs=fms.routeLegs.filter(function(l){return !l._star && !l._app && !(l._disc&&!l._manual) && !l._appTrans && !l._sid && !l._missed;});
   // 2) SID: if routeLegs has enroute, update first leg VIA. If empty, add SID leg.
   var sid=NAV_DATA[fms.depSid];
   if(sid){
@@ -17794,14 +17788,6 @@ function updateRouteLegs(fms){
       fms.routeLegs[0]={via:fms.depSid,to:sid.exit};
     } else {
       fms.routeLegs.push({via:fms.depSid,to:sid.exit,_sid:true});
-    }
-  }
-  // 2.5) DIRECT to DEST — if last enroute TO is not the destination, add DIRECT/dest
-  if(fms.dest){
-    var lastEnr=fms.routeLegs[fms.routeLegs.length-1];
-    var lastEnrTo=lastEnr?lastEnr.to:"";
-    if(lastEnrTo&&lastEnrTo!==fms.dest){
-      fms.routeLegs.push({via:"DIRECT",to:fms.dest,_dest:true});
     }
   }
   // 3) STAR — VIA=STAR_NAME / TO=exit fix (last wpt). DISC check: routeLegs last TO vs STAR entry(first wpt)
@@ -18054,7 +18040,7 @@ function cduPageData(fms) {
       {dr:fms.phase==="ACTIVE"?"RTE COPY>":"",drc:C.cyan},
       {tl:fms.phase==="ACTIVE"?"ROUTE":"",
        dl:fms.rteUplinkPending?"<LOAD":(fms.phase==="ACTIVE"?"<PRINT":""),
-       dr:fms.phase==="ACTIVE"?"ALTN>":(fms.origin&&fms.dest?"ACTIVATE>":""),
+       dr:fms.phase==="ACTIVE"?"ALTN>":(fms.origin&&fms.dest&&!fms.execLight?"ACTIVATE>":""),
        dlc:fms.rteUplinkPending?C.cyan:C.cyan,drc:C.cyan},
       {dl:fms.execLight?"<ERASE":"<RTE 2",dr:"PERF INIT>",dlc:C.cyan,drc:C.cyan},
     ],sep:fms.phase==="ACTIVE"?4:5,helpMsg:fms.helpMsg},
@@ -18583,20 +18569,21 @@ function cduPageData(fms) {
         rows.push({dl:sids[3]||"",dlc:C.white});
         rows.push({tl:"EO SIDS",dl:fms.depEoSid||"NONE",dlc:C.white});
       } else {
-        // ═══ Both selected ═══
-        rows.push({tl:titleRow,
-          dl:selSid+sidTag(selSid),dlc:C.green,
-          dr:rwyTag(selRwy)+" "+selRwy,drc:C.green});
-        if(hasTrans){
-          rows.push({tl:"TRANS",tlc:C.dim,dl:(sidNav.trans[0]||"---"),dlc:C.white});
-        } else {
-          rows.push({});
+        // ═══ Both selected — show full list with ACT/SEL highlighted ═══
+        for(var bi=0;bi<4;bi++){
+          var bSid=sids[bi]||"";
+          var bRwy=rwys[bi]||"";
+          var bRow={
+            dl:bSid===selSid?selSid+sidTag(selSid):bSid,
+            dlc:bSid===selSid?C.green:C.white,
+            dr:bRwy===selRwy?rwyTag(selRwy)+" "+bRwy:bRwy,
+            drc:bRwy===selRwy?C.green:C.white};
+          if(bi===0)bRow.tl=titleRow;
+          rows.push(bRow);
         }
         rows.push({tl:"EO SIDS",dl:fms.depEoSid||"NONE",dlc:C.white});
-        rows.push({});
-        rows.push({});
       }
-      rows.push({dl:selSid||selRwy?"<ERASE":"<INDEX",dr:"ROUTE>",dlc:C.cyan,drc:C.cyan});
+      rows.push({dl:(selSid||selRwy)&&!isAct?"<ERASE":"<INDEX",dr:"ROUTE>",dlc:C.cyan,drc:C.cyan});
       return {title:`${fms.origin||"----"} DEPARTURES`,titleSub:"1/1",rows,sep:5};
     })(),
     RKSI_ARR:(()=>{
@@ -18665,7 +18652,22 @@ function cduPageData(fms) {
         }
         rows.push({});
       } else {
-        // Both selected — STAR on left, APP+TRANS list on right
+        // Both selected
+        if(starAct&&appAct){
+          // ACT state — show full list with highlighted ACT items
+          for(var ai=0;ai<5;ai++){
+            var aStar=stars[ai]||"";
+            var aApp=apps[ai]||"";
+            var aRow={
+              dl:aStar===selStar?selStar+lTag(selStar,starAct):aStar,
+              dlc:aStar===selStar?C.green:(aStar?C.white:C.dim),
+              dr:aApp.replace(/\s/g,"")===selApp?rTag(selApp,appAct)+aApp:aApp,
+              drc:aApp.replace(/\s/g,"")===selApp?C.green:(aApp?C.white:C.dim)};
+            if(ai===0)aRow.tl=titleRow;
+            rows.push(aRow);
+          }
+        } else {
+        // SEL state — STAR on left, APP+TRANS list on right
         var sNav=NAV_DATA[selStar];
         var sHasTrans=sNav&&sNav.trans&&sNav.trans.length>0;
         var aNav=NAV_DATA[(selApp||"").replace(/\s/g,"")];
@@ -18686,9 +18688,10 @@ function cduPageData(fms) {
         }
         rows.push({});
         rows.push({});
+        }
       }
 
-      rows.push({dl:selStar||selApp?"<ERASE":"<INDEX",dr:"ROUTE>",dlc:C.cyan,drc:C.cyan});
+      rows.push({dl:(selStar||selApp)&&!(starAct||appAct)?"<ERASE":"<INDEX",dr:"ROUTE>",dlc:C.cyan,drc:C.cyan});
       return {title:(fms.dest||"----")+" ARRIVALS",titleSub:"1/1",rows,sep:5};
     })(),
     FIX:(()=>{
@@ -19136,7 +19139,7 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
           if(idx<s.routeLegs.length&&!s.routeLegs[idx]._star&&!s.routeLegs[idx]._app&&!s.routeLegs[idx]._missed){
             s.routeLegs.splice(idx,1);
             s.routeLegs=s.routeLegs.filter(function(l){return l.via||l.to||l._star||l._app||l._disc||l._appTrans||l._sid||l._missed;});
-            s.scratchpad="";s.execLight=true;
+            s.scratchpad="";if(s.phase==="ACTIVE")s.execLight=true;
             updateRouteLegs(s);s.computedLegs=buildLegs(s);
           }
         }
@@ -19164,7 +19167,7 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
               }
             }
           }
-          s.scratchpad="";s.execLight=true;
+          s.scratchpad="";if(s.phase==="ACTIVE")s.execLight=true;
           updateRouteLegs(s);s.computedLegs=buildLegs(s);
         }
         // R1-R5: Enter TO (waypoint). FCOM 11.40.24: VIA defaults to DIRECT
@@ -19181,7 +19184,7 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
             } else {
               s.routeLegs[idx]={via:"DIRECT",to:inputTo,_manual:true};
             }
-            s.scratchpad="";s.execLight=true;
+            s.scratchpad="";if(s.phase==="ACTIVE")s.execLight=true;
             updateRouteLegs(s);s.computedLegs=buildLegs(s);
           }
           // Case B: New entry
@@ -19208,7 +19211,7 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
                 s.routeLegs[idx]={...s.routeLegs[idx],to:inputTo};
               }
             }
-            s.scratchpad="";s.execLight=true;
+            s.scratchpad="";if(s.phase==="ACTIVE")s.execLight=true;
             updateRouteLegs(s);s.computedLegs=buildLegs(s);
           }
         }
@@ -19236,7 +19239,7 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
             // Strip empty legs
             s.routeLegs=s.routeLegs.filter(function(l){return l.via||l.to;});
             s.computedLegs=buildLegs(s);
-            s.execLight=true;
+            if(s.phase==="ACTIVE")s.execLight=true;
             // Go back to page 1 if current page is now empty
             if(si>=s.routeLegs.length&&s.rtePage>2)s.rtePage=Math.max(2,Math.ceil(s.routeLegs.length/5)+1);
           }
@@ -19317,9 +19320,9 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
         if(side==="L"&&num===3&&sp){s.spdTrans=sp;s.scratchpad="";}  // SPD TRANS
         if(side==="L"&&num===3&&!sp&&s.scratchpad===""){/* DELETE SPD TRANS handled by DEL key */}
         if(side==="R"&&num===3&&sp){s.transAlt=sp;s.scratchpad="";}  // TRANS ALT
-        if(side==="L"&&num===4&&sp){s.clbSpdRestr=sp;s.scratchpad="";s.execLight=true;}  // SPD RESTR
+        if(side==="L"&&num===4&&sp){s.clbSpdRestr=sp;s.scratchpad="";if(s.phase==="ACTIVE")s.execLight=true;}  // SPD RESTR
         if(side==="R"&&num===4){/* MAX ANGLE → scratchpad */s.scratchpad="217";}
-        if(side==="L"&&num===5){s.clbSpdMode="ECON";s.clbSelSpd="";s.execLight=true;}  // <ECON
+        if(side==="L"&&num===5){s.clbSpdMode="ECON";s.clbSelSpd="";if(s.phase==="ACTIVE")s.execLight=true;}  // <ECON
         if(side==="R"&&num===5){/* ENG OUT */}
         if(side==="L"&&num===6){/* CLB FORECAST */}
       }
@@ -19331,10 +19334,10 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
         if(side==="L"&&num===5){s.page="PROGRESS";s.progPage=3;}  // <RTA PROGRESS
         if(side==="R"&&num===5){/* ENG OUT */}
         if(side==="L"&&num===6){  // <ECON or <RTA/ECON
-          if(s.crzSpdMode!=="ECON"){s.crzSpdMode="ECON";s.crzSelSpd="";s.execLight=true;}
-          else if(s.rtaFix){s.crzSpdMode="RTA";s.execLight=true;}
+          if(s.crzSpdMode!=="ECON"){s.crzSpdMode="ECON";s.crzSelSpd="";if(s.phase==="ACTIVE")s.execLight=true;}
+          else if(s.rtaFix){s.crzSpdMode="RTA";if(s.phase==="ACTIVE")s.execLight=true;}
         }
-        if(side==="R"&&num===6){s.crzSpdMode="LRC";s.execLight=true;}  // LRC>
+        if(side==="R"&&num===6){s.crzSpdMode="LRC";if(s.phase==="ACTIVE")s.execLight=true;}  // LRC>
       }
       else if(p==="DES"){
         // FCOM 11.43.2: DES page handlers
@@ -19346,7 +19349,7 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
         if(side==="L"&&num===6){/* OFFPATH DES */}
         if(side==="R"&&num===6){/* DES DIR or DES NOW */s.helpMsg="DESCENT INITIATED";}
         if(side==="L"&&num===5){  // <ECON (when visible)
-          if(s.desSpdMode!=="ECON"){s.desSpdMode="ECON";s.desSelSpd="";s.execLight=true;}
+          if(s.desSpdMode!=="ECON"){s.desSpdMode="ECON";s.desSelSpd="";if(s.phase==="ACTIVE")s.execLight=true;}
         }
       }
       else if(p==="LEGS"){
@@ -19382,13 +19385,13 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
                 // Wpt exists after DISC → remove DISC + all legs between DISC and that wpt
                 // This connects the route: before-DISC → inputWpt (no discontinuity)
                 legs.splice(idx,existsAfter-idx);
-                s.scratchpad="";s.execLight=true;s.helpMsg="";
+                s.scratchpad="";if(s.phase==="ACTIVE")s.execLight=true;s.helpMsg="";
               } else {
                 // Wpt does NOT exist in route → insert wpt at DISC position, move DISC one down
                 const newLeg={wpt:inputWpt,crs:"---°",dist:"---",spdAlt:"",pred:"",via:"DIRECT",inserted:true};
                 legs.splice(idx,0,newLeg);
                 // DISC stays at idx+1 (moved down by one)
-                s.scratchpad="";s.execLight=true;s.helpMsg="";
+                s.scratchpad="";if(s.phase==="ACTIVE")s.execLight=true;s.helpMsg="";
               }
             }
             // --- Target is a normal waypoint ---
@@ -19436,7 +19439,7 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
                   }
                 }
                 s.routeLegs=newRL;
-                s.scratchpad="";s.execLight=true;s.helpMsg="";s._legsRteSynced=true;
+                s.scratchpad="";if(s.phase==="ACTIVE")s.execLight=true;s.helpMsg="";s._legsRteSynced=true;
               } else {
                 // ── Add Waypoint (FCOM 11.42.2) ──
                 // Insert new waypoint at idx, followed by ROUTE DISCONTINUITY
@@ -19444,7 +19447,7 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
                 const newLeg={wpt:inputWpt,crs:"---°",dist:"---",spdAlt:"",pred:"",via:"DIRECT",inserted:true};
                 const disc={wpt:"□□□□□",crs:"",dist:"",spdAlt:"",pred:"",isDisc:true};
                 legs.splice(idx,0,newLeg,disc);
-                s.scratchpad="";s.execLight=true;s.helpMsg="";
+                s.scratchpad="";if(s.phase==="ACTIVE")s.execLight=true;s.helpMsg="";
               }
             }
           }
@@ -19454,7 +19457,7 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
             const disc={wpt:"□□□□□",crs:"",dist:"",spdAlt:"",pred:"",isDisc:true};
             legs.splice(legs.length,0,newLeg,disc);
             s.legsPage=Math.ceil(legs.length/5);
-            s.scratchpad="";s.execLight=true;s.helpMsg="";
+            s.scratchpad="";if(s.phase==="ACTIVE")s.execLight=true;s.helpMsg="";
           }
         }
 
@@ -19467,7 +19470,7 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
               // Replace waypoint with DISC (boxes) — data before/after does not change
               const disc={wpt:"□□□□□",crs:"",dist:"",spdAlt:"",pred:"",isDisc:true};
               legs.splice(idx,1,disc);
-              s.scratchpad="";s.execLight=true;
+              s.scratchpad="";if(s.phase==="ACTIVE")s.execLight=true;
             }
           }
         }
@@ -19477,9 +19480,9 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
           // Collect remaining waypoint names from computedLegs
           const remainingWpts=new Set();
           legs.forEach(function(l){if(l.wpt&&!l.isDisc&&!l.isRwy)remainingWpts.add(l.wpt);});
-          // Filter: keep tagged legs (_dest/_star/_app/etc) unconditionally, filter enroute by remaining
+          // Filter: keep tagged legs (_star/_app/etc) unconditionally, filter enroute by remaining
           let newRL=s.routeLegs.filter(function(l){
-            if(l._dest||l._star||l._app||l._disc||l._appTrans||l._sid||l._missed)return true;
+            if(l._star||l._app||l._disc||l._appTrans||l._sid||l._missed)return true;
             return remainingWpts.has(l.to);
           });
           // Check if first enroute waypoint changed (Direct To)
@@ -19558,7 +19561,7 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
             });
             s.windEntries=we;
             s.windReqPending=false;
-            s.execLight=true;
+            if(s.phase==="ACTIVE")s.execLight=true;
             s.helpMsg="WIND DATA LOADED";
           } else {
             go("LEGS");
@@ -19651,7 +19654,7 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
       else if(p==="RJFF_DEP"){
         const db=AIRPORT_DB[(s.origin||"").toUpperCase()];
         if(side==="L"&&num===6){
-          if(s.depSid||s.depRwy){s.depSid="";s.depRwy="";s.depTrans="";s.depSidAct=false;s.execLight=false;s.helpMsg="";
+          if((s.depSid||s.depRwy)&&!s.depSidAct){s.depSid="";s.depRwy="";s.depTrans="";s.depSidAct=false;s.execLight=false;s.helpMsg="";
             updateRouteLegs(s);s.computedLegs=buildLegs(s);}
           else go("DEP_ARR");
         }
@@ -19661,38 +19664,50 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
         if(!s.depSid&&!s.depRwy){
           // ═══ No selection: L1-L4=SID, R1-R4=RWY ═══
           if(side==="L"&&num>=1&&num<=4&&sids[num-1]){
-            s.depSid=sids[num-1]; s.depSidAct=false; s.execLight=true;s._skipCopy=true;
+            s.depSid=sids[num-1]; s.depSidAct=false; if(s.phase==="ACTIVE")s.execLight=true;s._skipCopy=true;
             updateRouteLegs(s);s.computedLegs=buildLegs(s);
           }
           if(side==="R"&&num>=1&&num<=4&&rwys[num-1]){
-            s.depRwy=rwys[num-1]; s.runway=rwys[num-1]; s.execLight=true;s._skipCopy=true;
+            s.depRwy=rwys[num-1]; s.runway=rwys[num-1]; if(s.phase==="ACTIVE")s.execLight=true;s._skipCopy=true;
           }
         } else if(s.depSid&&!s.depRwy){
           // ═══ SID selected: L1=deselect, R1-R4=RWY ═══
           if(side==="L"&&num===1){
-            s.depSid="";s.depTrans="";s.depSidAct=false;s.execLight=true;s._skipCopy=true;
+            s.depSid="";s.depTrans="";s.depSidAct=false;if(s.phase==="ACTIVE")s.execLight=true;s._skipCopy=true;
             updateRouteLegs(s);s.computedLegs=buildLegs(s);
           }
           if(side==="R"&&num>=1&&num<=4&&rwys[num-1]){
-            s.depRwy=rwys[num-1]; s.runway=rwys[num-1]; s.execLight=true;s._skipCopy=true;
+            s.depRwy=rwys[num-1]; s.runway=rwys[num-1]; if(s.phase==="ACTIVE")s.execLight=true;s._skipCopy=true;
           }
         } else if(!s.depSid&&s.depRwy){
           // ═══ RWY selected: L1-L4=SID, R1=deselect ═══
           if(side==="L"&&num>=1&&num<=4&&sids[num-1]){
-            s.depSid=sids[num-1]; s.depSidAct=false; s.execLight=true;s._skipCopy=true;
+            s.depSid=sids[num-1]; s.depSidAct=false; if(s.phase==="ACTIVE")s.execLight=true;s._skipCopy=true;
             updateRouteLegs(s);s.computedLegs=buildLegs(s);
           }
           if(side==="R"&&num===1){
-            s.depRwy=""; s.execLight=true;s._skipCopy=true;
+            s.depRwy=""; if(s.phase==="ACTIVE")s.execLight=true;s._skipCopy=true;
           }
         } else {
-          // ═══ Both selected: L1=deselect SID, R1=deselect RWY ═══
-          if(side==="L"&&num===1){
-            s.depSid="";s.depTrans="";s.depSidAct=false;s.execLight=true;s._skipCopy=true;
-            updateRouteLegs(s);s.computedLegs=buildLegs(s);
-          }
-          if(side==="R"&&num===1){
-            s.depRwy=""; s.execLight=true;s._skipCopy=true;
+          // ═══ Both selected ═══
+          if(s.depSidAct){
+            // ACT state — L1-L4=select new SID, R1-R4=select new RWY
+            if(side==="L"&&num>=1&&num<=4&&sids[num-1]){
+              s.depSid=sids[num-1]; s.depSidAct=false; if(s.phase==="ACTIVE")s.execLight=true;s._skipCopy=true;
+              updateRouteLegs(s);s.computedLegs=buildLegs(s);
+            }
+            if(side==="R"&&num>=1&&num<=4&&rwys[num-1]){
+              s.depRwy=rwys[num-1]; s.runway=rwys[num-1]; if(s.phase==="ACTIVE")s.execLight=true;s._skipCopy=true;
+            }
+          } else {
+            // SEL state — L1=deselect SID, R1=deselect RWY
+            if(side==="L"&&num===1){
+              s.depSid="";s.depTrans="";s.depSidAct=false;if(s.phase==="ACTIVE")s.execLight=true;s._skipCopy=true;
+              updateRouteLegs(s);s.computedLegs=buildLegs(s);
+            }
+            if(side==="R"&&num===1){
+              s.depRwy=""; if(s.phase==="ACTIVE")s.execLight=true;s._skipCopy=true;
+            }
           }
         }
       }
@@ -19702,7 +19717,7 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
         const apps=(db||{}).arrApps||[];
         // L6: ERASE or INDEX
         if(side==="L"&&num===6){
-          if(s.arrStar||s.arrApp){s.arrStar="";s.arrApp="";s.arrTrans="";
+          if((s.arrStar||s.arrApp)&&!(s.arrStarAct||s.arrAppAct)){s.arrStar="";s.arrApp="";s.arrTrans="";
             s.arrStarAct=false;s.arrAppAct=false;s.execLight=false;
             updateRouteLegs(s);s.computedLegs=buildLegs(s);}
           else go("DEP_ARR");
@@ -19716,60 +19731,73 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
           if(side==="L"&&num>=1&&num<=5){
             var starIdx=si+(num-1);
             if(stars[starIdx]){
-              s.arrStar=stars[starIdx];s.arrStarAct=false;s.execLight=true;s._skipCopy=true;
+              s.arrStar=stars[starIdx];s.arrStarAct=false;if(s.phase==="ACTIVE")s.execLight=true;s._skipCopy=true;
               updateRouteLegs(s);s.computedLegs=buildLegs(s);
             }
           }
           if(side==="R"&&num>=1&&num<=5){
             var appIdx=si+(num-1);
             if(apps[appIdx]){
-              s.arrApp=apps[appIdx].replace(/\s/g,"");s.arrAppAct=false;s.execLight=true;s._skipCopy=true;
+              s.arrApp=apps[appIdx].replace(/\s/g,"");s.arrAppAct=false;if(s.phase==="ACTIVE")s.execLight=true;s._skipCopy=true;
               updateRouteLegs(s);s.computedLegs=buildLegs(s);
             }
           }
         } else if(s.arrStar&&!s.arrApp){
           // ═══ STAR selected, no APP — R1-R4=APP list (apps[0]-apps[3]) ═══
           if(side==="L"&&num===1){
-            s.arrStar="";s.arrStarAct=false;s.execLight=true;s._skipCopy=true;
+            s.arrStar="";s.arrStarAct=false;if(s.phase==="ACTIVE")s.execLight=true;s._skipCopy=true;
             updateRouteLegs(s);s.computedLegs=buildLegs(s);
           }
           if(side==="R"&&num>=1&&num<=4&&apps[num-1]){
-            s.arrApp=apps[num-1].replace(/\s/g,"");s.arrAppAct=false;s.execLight=true;s._skipCopy=true;
+            s.arrApp=apps[num-1].replace(/\s/g,"");s.arrAppAct=false;if(s.phase==="ACTIVE")s.execLight=true;s._skipCopy=true;
             updateRouteLegs(s);s.computedLegs=buildLegs(s);
           }
         } else if(!s.arrStar&&s.arrApp){
           // ═══ APP selected, no STAR — L1-L4=STAR list (stars[0]-stars[3]), R2=APP TRANS ═══
           if(side==="R"&&num===1){
-            s.arrApp="";s.arrAppAct=false;s.arrTrans="";s.execLight=true;s._skipCopy=true;
+            s.arrApp="";s.arrAppAct=false;s.arrTrans="";if(s.phase==="ACTIVE")s.execLight=true;s._skipCopy=true;
             updateRouteLegs(s);s.computedLegs=buildLegs(s);
           }
           if(side==="L"&&num>=1&&num<=4&&stars[num-1]){
-            s.arrStar=stars[num-1];s.arrStarAct=false;s.execLight=true;s._skipCopy=true;
+            s.arrStar=stars[num-1];s.arrStarAct=false;if(s.phase==="ACTIVE")s.execLight=true;s._skipCopy=true;
             updateRouteLegs(s);s.computedLegs=buildLegs(s);
           }
           // R2-R4: APP TRANS selection from list
           if(side==="R"&&num>=2&&num<=4){
             var aN2=NAV_DATA[(s.arrApp||"").replace(/\s/g,"")];
             var tArr2=aN2&&aN2.trans?aN2.trans:[];
-            if(tArr2[num-2]){s.arrTrans=tArr2[num-2];s.execLight=true;s._skipCopy=true;
+            if(tArr2[num-2]){s.arrTrans=tArr2[num-2];if(s.phase==="ACTIVE")s.execLight=true;s._skipCopy=true;
               updateRouteLegs(s);s.computedLegs=buildLegs(s);}
           }
         } else {
           // ═══ Both selected ═══
-          if(side==="L"&&num===1){
-            s.arrStar="";s.arrStarAct=false;s.execLight=true;s._skipCopy=true;
-            updateRouteLegs(s);s.computedLegs=buildLegs(s);
-          }
-          if(side==="R"&&num===1){
-            s.arrApp="";s.arrAppAct=false;s.arrTrans="";s.execLight=true;s._skipCopy=true;
-            updateRouteLegs(s);s.computedLegs=buildLegs(s);
-          }
-          // R2-R4: APP TRANS selection from list
-          if(side==="R"&&num>=2&&num<=4){
-            var aN=NAV_DATA[(s.arrApp||"").replace(/\s/g,"")];
-            var tArr=aN&&aN.trans?aN.trans:[];
-            if(tArr[num-2]){s.arrTrans=tArr[num-2];s.execLight=true;s._skipCopy=true;
-              updateRouteLegs(s);s.computedLegs=buildLegs(s);}
+          if(s.arrStarAct&&s.arrAppAct){
+            // ACT state — L1-L5=select new STAR, R1-R5=select new APP
+            if(side==="L"&&num>=1&&num<=5&&stars[num-1]){
+              s.arrStar=stars[num-1];s.arrStarAct=false;if(s.phase==="ACTIVE")s.execLight=true;s._skipCopy=true;
+              updateRouteLegs(s);s.computedLegs=buildLegs(s);
+            }
+            if(side==="R"&&num>=1&&num<=5&&apps[num-1]){
+              s.arrApp=apps[num-1].replace(/\s/g,"");s.arrAppAct=false;s.arrTrans="";if(s.phase==="ACTIVE")s.execLight=true;s._skipCopy=true;
+              updateRouteLegs(s);s.computedLegs=buildLegs(s);
+            }
+          } else {
+            // SEL state — L1=deselect STAR, R1=deselect APP, R2-R4=TRANS
+            if(side==="L"&&num===1){
+              s.arrStar="";s.arrStarAct=false;if(s.phase==="ACTIVE")s.execLight=true;s._skipCopy=true;
+              updateRouteLegs(s);s.computedLegs=buildLegs(s);
+            }
+            if(side==="R"&&num===1){
+              s.arrApp="";s.arrAppAct=false;s.arrTrans="";if(s.phase==="ACTIVE")s.execLight=true;s._skipCopy=true;
+              updateRouteLegs(s);s.computedLegs=buildLegs(s);
+            }
+            // R2-R4: APP TRANS selection from list
+            if(side==="R"&&num>=2&&num<=4){
+              var aN=NAV_DATA[(s.arrApp||"").replace(/\s/g,"")];
+              var tArr=aN&&aN.trans?aN.trans:[];
+              if(tArr[num-2]){s.arrTrans=tArr[num-2];if(s.phase==="ACTIVE")s.execLight=true;s._skipCopy=true;
+                updateRouteLegs(s);s.computedLegs=buildLegs(s);}
+            }
           }
         }
       }
@@ -19787,9 +19815,9 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
       }
       else if(p==="OFFSET"){
         // FCOM 11.42.19: L1 offset dist entry (e.g. L10.5, R5.0)
-        if(side==="L"&&num===1&&sp){s.offsetDist=sp.toUpperCase();s.scratchpad="";s.execLight=true;}
-        if(side==="L"&&num===2&&sp){s.offsetStart=sp.toUpperCase();s.scratchpad="";s.execLight=true;}
-        if(side==="L"&&num===3&&sp){s.offsetEnd=sp.toUpperCase();s.scratchpad="";s.execLight=true;}
+        if(side==="L"&&num===1&&sp){s.offsetDist=sp.toUpperCase();s.scratchpad="";if(s.phase==="ACTIVE")s.execLight=true;}
+        if(side==="L"&&num===2&&sp){s.offsetStart=sp.toUpperCase();s.scratchpad="";if(s.phase==="ACTIVE")s.execLight=true;}
+        if(side==="L"&&num===3&&sp){s.offsetEnd=sp.toUpperCase();s.scratchpad="";if(s.phase==="ACTIVE")s.execLight=true;}
         if(side==="R"&&num===6)go("RTE_1");
       }
       else if(p==="FIX"){
@@ -19882,7 +19910,7 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
           // R6: DIVERT NOW (FCOM 11.43.27 #9)
           if(side==="R"&&num===6&&s.phase==="ACTIVE"){
             const ap=s.altnAirports[detIdx];
-            if(ap){s.dest=ap;s.execLight=true;s.helpMsg=`DIVERT ${ap}`;}
+            if(ap){s.dest=ap;if(s.phase==="ACTIVE")s.execLight=true;s.helpMsg=`DIVERT ${ap}`;}
           }
         }
         // ═══ ALTN LIST 2/2 handlers (FCOM 11.43.28) ═══
@@ -19919,7 +19947,7 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
           // R6: DIVERT NOW (FCOM 11.43.27 #9)
           if(side==="R"&&num===6&&s.phase==="ACTIVE"){
             const ap=s.altnAirports[s.altnSelected];
-            if(ap){s.dest=ap;s.execLight=true;s.helpMsg=`DIVERT ${ap}`;}
+            if(ap){s.dest=ap;if(s.phase==="ACTIVE")s.execLight=true;s.helpMsg=`DIVERT ${ap}`;}
           }
         }
       }
@@ -22596,20 +22624,20 @@ function B787Cockpit(){
         React.createElement('div', {style:{color:"#00cccc",fontSize:33,fontWeight:"bold",letterSpacing:4,marginBottom:4}}, "B787 DREAMLINER"),
         React.createElement('div', {style:{color:"#aaa",fontSize:14,letterSpacing:2}}, "COCKPIT PROCEDURE SIMULATOR"),
         React.createElement('div', {style:{color:"#777",fontSize:14,marginTop:4}}, "FOR TRAINING PURPOSE ONLY"),
-        React.createElement('div', {style:{color:"#00bb00",fontSize:11,marginTop:12,letterSpacing:1}}, "v2.8.37c \u00a0|\u00a0 by SHLee7872603")
+        React.createElement('div', {style:{color:"#00bb00",fontSize:11,marginTop:12,letterSpacing:1}}, "v2.8.37d \u00a0|\u00a0 by SHLee7872603")
       ),
       React.createElement('div', {style:{borderTop:"1px solid #333",borderBottom:"1px solid #333",padding:"14px 0",marginBottom:16}},
         React.createElement(ChkRow, {checked:ckIPad,onToggle:function(){setCkIPad(function(p){return!p;});}},
-          React.createElement('div', {style:{color:"#00cccc",fontSize:17,fontWeight:"bold",marginBottom:8,letterSpacing:1}}, "PATCH NOTES v2.8.37c"),
+          React.createElement('div', {style:{color:"#00cccc",fontSize:17,fontWeight:"bold",marginBottom:8,letterSpacing:1}}, "PATCH NOTES v2.8.37d"),
           React.createElement('div', {style:{color:"#aaa",fontSize:14,fontWeight:"bold",lineHeight:1.8}},
-            React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginBottom:2}}, "v2.8.37c"),
-            React.createElement('div', null, "\u2022 NAV DATA: RJFF STAR 4\uac1c \ucc28\ud2b8 \uae30\uc900 \uc218\uc815"),
-            React.createElement('div', null, "\u2022 SID \ucd94\uac00: OSPO2E\u00b7EGOB2E (RWY 33L/R)"),
-            React.createElement('div', null, "\u2022 RTE DIRECT/DEST \u00b7 LEGS modify \uc774\uc911\ub3d9\uae30\ud654 \uc218\uc815"),
-            React.createElement('div', null, "\u2022 APPR REF GW \uc0c1\ud0dc\ubcc4 \ud45c\uc2dc \u00b7 R1-R3 \ubcf5\uc0ac\uc804\uc6a9"),
-            React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginTop:8,marginBottom:2}}, "v2.8.37b"),
-            React.createElement('div', null, "\u2022 Phase \ubc84\ud2bc \u00b7 DELETE+LSK \u00b7 CHKL \uc790\ub3d9\uc804\ud658"),
-            React.createElement('div', null, "\u2022 EFB\u2192FMC EO ACCEL \u00b7 TRIM ACCEPT \ud6c4 \ud45c\uc2dc"),
+            React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginBottom:2}}, "v2.8.37d"),
+            React.createElement('div', null, "\u2022 EXEC: PREFLIGHT \uc218\uc815 \uc2dc \ube44\ud65c\uc131, ACTIVATE \ud6c4\uc5d0\ub9cc \ud65c\uc131"),
+            React.createElement('div', null, "\u2022 DEP/ARR ACT \uc0c1\ud0dc\uc5d0\uc11c \uc804\uccb4 \ubaa9\ub85d \ud45c\uc2dc+\uc120\ud0dd \uac00\ub2a5"),
+            React.createElement('div', null, "\u2022 ERASE\u2192INDEX: ACT \uc120\ud0dd\uc740 \ucee4\ubc0b\ub41c \uc0c1\ud0dc"),
+            React.createElement('div', null, "\u2022 SID OSPO2E\u00b7EGOB2E \uace0\ub3c4\uc81c\ud55c A suffix \uc218\uc815"),
+            React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginTop:8,marginBottom:2}}, "v2.8.37c"),
+            React.createElement('div', null, "\u2022 NAV DATA: RJFF STAR 4\uac1c \u00b7 SID 2\uac1c \ucd94\uac00 (RWY 33L/R)"),
+            React.createElement('div', null, "\u2022 APPR REF GW/R1-R3 \u00b7 LEGS \uc774\uc911\ub3d9\uae30\ud654 \uc218\uc815"),
 
           )
         )
