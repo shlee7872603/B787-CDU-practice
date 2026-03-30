@@ -9,7 +9,7 @@
 <meta name="theme-color" content="#050505">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>B787 CDU Practice v2.8.37b</title>
+<title>B787 CDU Practice v2.8.37c</title>
 <style>*{margin:0;padding:0;box-sizing:border-box;-webkit-user-select:none;user-select:none}body{background:#050505;overflow-x:hidden}</style>
 </head>
 <body>
@@ -17390,8 +17390,8 @@ const FLIGHT_DB = {
     ilsFreq:"", ilsCrs:"158", ilsIdent:"",
     arrRwyLen:{ft:9186,m:2800},
     // DEP/ARR options
-    depSids:["OSPO2C","EGOB2C"],
-    depRwys:["15R","15L"],
+    depSids:["OSPO2C","EGOB2C","OSPO2E","EGOB2E"],
+    depRwys:["15R","15L","33R","33L"],
     arrStars:["ISKUPE","HONOKE","ATSAGE","SARUPE"],
     arrApps:["RNP 16L","ILS 16L","RNAV 34R"],
     // Weather data for EFB (fixed)
@@ -17429,7 +17429,7 @@ const AIRPORT_DB = {
   RKSI:{
     pos:"N37°27.7 E126°26.6",
     gates:{A01:"N37°27.8 E126°26.4",A02:"N37°27.7 E126°26.5",B01:"N37°27.6 E126°26.7",B02:"N37°27.5 E126°26.8"},
-    depSids:["OSPO2C","EGOB2C"],depRwys:["15R","15L"],
+    depSids:["OSPO2C","EGOB2C","OSPO2E","EGOB2E"],depRwys:["15R","15L","33R","33L"],
     arrStars:["GUKD2E","KARB2E","OLME2E"],arrApps:["ILS 33R","ILS 15L","ILS 33L","RNAV 34L"]},
   RJFF:{
     pos:"N33°35.2 E130°27.1",
@@ -17492,6 +17492,25 @@ const NAV_DATA = {
     {wpt:"CK100",crs:"081°",dist:"6.3NM",spdAlt:"",pred:"280/11000"},
     {wpt:"CK099",crs:"044°",dist:"6NM",spdAlt:"10000B",pred:"280/10000B"},
     {wpt:"EGOBA",crs:"044°",dist:"10NM",spdAlt:"",pred:".780/FL230"}]},
+  // ═══ RKSI SIDs RWY 33L/R (Jeppesen 20-3E, EGOBA 2E / OSPOT 2E) ═══
+  OSPO2E:{type:"SID",rwy:"33R",exit:"OSPOT",wpts:[
+    {wpt:"RW33R",crs:"334°",dist:"",spdAlt:"",pred:"",isRwy:true},
+    {wpt:"EG020",crs:"334°",dist:"5.6NM",spdAlt:"",pred:"230/ 2000"},
+    {wpt:"EG040",crs:"079°",dist:"5.2NM",spdAlt:"230KT/4000B",pred:"230/ 4000B"},
+    {wpt:"ASIDI",crs:"119°",dist:"5.0NM",spdAlt:"5500",pred:"250/ 5500"},
+    {wpt:"EG070",crs:"147°",dist:"5.0NM",spdAlt:"7000",pred:"250/ 7000"},
+    {wpt:"EG140",crs:"152°",dist:"18NM",spdAlt:"14000",pred:"280/14000"},
+    {wpt:"EG160",crs:"152°",dist:"7.0NM",spdAlt:"FL160",pred:".780/FL160"},
+    {wpt:"OSPOT",crs:"180°",dist:"20NM",spdAlt:"FL210A",pred:".780/FL210A"}]},
+  EGOB2E:{type:"SID",rwy:"33R",exit:"EGOBA",wpts:[
+    {wpt:"RW33R",crs:"334°",dist:"",spdAlt:"",pred:"",isRwy:true},
+    {wpt:"EG020",crs:"334°",dist:"5.6NM",spdAlt:"",pred:"230/ 2000"},
+    {wpt:"EG040",crs:"079°",dist:"5.2NM",spdAlt:"230KT/4000B",pred:"230/ 4000B"},
+    {wpt:"ASIDI",crs:"119°",dist:"5.0NM",spdAlt:"5500",pred:"250/ 5500"},
+    {wpt:"EG070",crs:"147°",dist:"5.0NM",spdAlt:"7000",pred:"250/ 7000"},
+    {wpt:"EG140",crs:"152°",dist:"18NM",spdAlt:"14000",pred:"280/14000"},
+    {wpt:"SEL",  crs:"099°",dist:"5.8NM",spdAlt:"FL160",pred:".780/FL160"},
+    {wpt:"EGOBA",crs:"087°",dist:"22.0NM",spdAlt:"FL210A",pred:".780/FL210A"}]},
   // ═══ RKSI STARs (Jeppesen 20-2E, 26SEP25) ═══
   GUKD2E:{type:"STAR",entry:"GUKDO",wpts:[
     {wpt:"GUKDO",crs:"314°",dist:"",spdAlt:"",pred:".780/FL180"},
@@ -17549,9 +17568,10 @@ const NAV_DATA = {
     {wpt:"SAKOX",crs:"203°",dist:"8NM",spdAlt:"210/8000",pred:"210/ 3000"},
     {wpt:"ENTIX",crs:"153°",dist:"12NM",spdAlt:"2000",pred:"210/ 2000"}]},
   HONOKE:{type:"STAR",entry:"HONOK",wpts:[
-    {wpt:"HONOK",crs:"180°",dist:"25NM",spdAlt:"",pred:".780/FL200"},
-    {wpt:"FF680",crs:"160°",dist:"12NM",spdAlt:"8000",pred:"250/ 8000"},
-    {wpt:"UGROT",crs:"200°",dist:"10NM",spdAlt:"",pred:"250/ 7000"},
+    {wpt:"HONOK",crs:"333°",dist:"25NM",spdAlt:"",pred:".780/FL200"},
+    {wpt:"AMAOH",crs:"333°",dist:"9.9NM",spdAlt:"",pred:"250/FL140"},
+    {wpt:"KEYAH",crs:"343°",dist:"9.9NM",spdAlt:"",pred:"250/10000"},
+    {wpt:"UGROT",crs:"012°",dist:"6NM",spdAlt:"8000",pred:"250/ 8000"},
     {wpt:"FF670",crs:"012°",dist:"6NM",spdAlt:"210KT",pred:"210/ 7000"},
     {wpt:"FF671",crs:"343°",dist:"5NM",spdAlt:"",pred:"210/ 6000"},
     {wpt:"FF672",crs:"057°",dist:"7NM",spdAlt:"",pred:"210/ 5000"},
@@ -17559,20 +17579,23 @@ const NAV_DATA = {
     {wpt:"SAKOX",crs:"203°",dist:"8NM",spdAlt:"210/8000",pred:"210/ 3000"},
     {wpt:"ENTIX",crs:"153°",dist:"12NM",spdAlt:"2000",pred:"210/ 2000"}]},
   ATSAGE:{type:"STAR",entry:"ATSAG",wpts:[
-    {wpt:"ATSAG",crs:"210°",dist:"28NM",spdAlt:"",pred:".780/FL200"},
-    {wpt:"FF690",crs:"190°",dist:"15NM",spdAlt:"8000",pred:"250/ 8000"},
-    {wpt:"SAKOX",crs:"170°",dist:"12NM",spdAlt:"",pred:"210/ 3000"},
-    {wpt:"ENTIX",crs:"153°",dist:"12NM",spdAlt:"2000",pred:"210/ 2000"}]},
+    {wpt:"ATSAG",crs:"049°",dist:"28NM",spdAlt:"",pred:".780/FL200"},
+    {wpt:"IKOLO",crs:"049°",dist:"12.7NM",spdAlt:"7000",pred:"250/ 7000"},
+    {wpt:"FF674",crs:"049°",dist:"4.9NM",spdAlt:"210KT",pred:"210/ 7000"},
+    {wpt:"FF675",crs:"057°",dist:"7.0NM",spdAlt:"",pred:"210/ 7000"},
+    {wpt:"FF676",crs:"079°",dist:"6.9NM",spdAlt:"",pred:"210/ 7000"},
+    {wpt:"FF677",crs:"079°",dist:"7.5NM",spdAlt:"",pred:"210/ 7000"},
+    {wpt:"ELMIS",crs:"102°",dist:"6.9NM",spdAlt:"210/7000",pred:"210/ 7000"},
+    {wpt:"ENTIX",crs:"153°",dist:"15NM",spdAlt:"2000",pred:"210/ 2000"}]},
   SARUPE:{type:"STAR",entry:"SARUP",wpts:[
-    {wpt:"SARUP",crs:"156°",dist:"9NM",spdAlt:"",pred:".780/FL200"},
-    {wpt:"FF695",crs:"180°",dist:"18NM",spdAlt:"8000",pred:"250/ 8000"},
-    {wpt:"UGROT",crs:"200°",dist:"14NM",spdAlt:"",pred:"250/ 7000"},
-    {wpt:"FF670",crs:"012°",dist:"6NM",spdAlt:"210KT",pred:"210/ 7000"},
-    {wpt:"FF671",crs:"343°",dist:"5NM",spdAlt:"",pred:"210/ 6000"},
-    {wpt:"FF672",crs:"057°",dist:"7NM",spdAlt:"",pred:"210/ 5000"},
-    {wpt:"FF673",crs:"102°",dist:"7NM",spdAlt:"",pred:"210/ 4000"},
-    {wpt:"SAKOX",crs:"203°",dist:"8NM",spdAlt:"210/8000",pred:"210/ 3000"},
-    {wpt:"ENTIX",crs:"153°",dist:"12NM",spdAlt:"2000",pred:"210/ 2000"}]},
+    {wpt:"SARUP",crs:"103°",dist:"9NM",spdAlt:"",pred:".780/FL200"},
+    {wpt:"IKOLO",crs:"103°",dist:"7.9NM",spdAlt:"7000",pred:"250/ 7000"},
+    {wpt:"FF674",crs:"049°",dist:"4.9NM",spdAlt:"210KT",pred:"210/ 7000"},
+    {wpt:"FF675",crs:"057°",dist:"7.0NM",spdAlt:"",pred:"210/ 7000"},
+    {wpt:"FF676",crs:"079°",dist:"6.9NM",spdAlt:"",pred:"210/ 7000"},
+    {wpt:"FF677",crs:"079°",dist:"7.5NM",spdAlt:"",pred:"210/ 7000"},
+    {wpt:"ELMIS",crs:"102°",dist:"6.9NM",spdAlt:"210/7000",pred:"210/ 7000"},
+    {wpt:"ENTIX",crs:"153°",dist:"15NM",spdAlt:"2000",pred:"210/ 2000"}]},
   // ═══ RKSI Approaches ═══
   ILS33R:{type:"APP",trans:["ENPIL","PAMBI"],wpts:[
     {wpt:"GE019",crs:"334°",dist:"",spdAlt:"5000A",pred:"210/ 5000A"},
@@ -17666,7 +17689,7 @@ function buildLegs(fms){
   var legs=[];
 
   // Determine last enroute TO from routeLegs (user may have modified via RTE page)
-  var enrouteRouteLegs=(fms.routeLegs||[]).filter(function(l){return !l._star&&!l._app&&!l._disc&&!l._appTrans&&!l._sid&&!l._missed&&!l._manual;});
+  var enrouteRouteLegs=(fms.routeLegs||[]).filter(function(l){return !l._star&&!l._app&&!l._disc&&!l._appTrans&&!l._sid&&!l._missed&&!l._manual&&!l._dest;});
   var lastEnrouteTo=enrouteRouteLegs.length?enrouteRouteLegs[enrouteRouteLegs.length-1].to:"";
 
   // Trim enroute waypoints to end at lastEnrouteTo (if it exists in enroute list)
@@ -17691,32 +17714,30 @@ function buildLegs(fms){
   // Enroute — add as-is, full waypoints
   legs=legs.concat(enroute);
 
-  // User-added legs after enroute (e.g. DISC + DIRECT/RJFF from RTE page)
+  // User-added legs and destination from routeLegs
   var rl=fms.routeLegs||[];
   for(var ri=0;ri<rl.length;ri++){
     if(rl[ri]._manual&&rl[ri]._disc){
       legs.push({wpt:"-----",isDisc:true,discFrom:"",discTo:""});
     } else if(rl[ri]._manual&&!rl[ri]._disc&&rl[ri].to){
       legs.push({wpt:rl[ri].to,crs:"---°",dist:"---",spdAlt:"",pred:"",via:rl[ri].via||"DIRECT",inserted:true});
+    } else if(rl[ri]._dest&&rl[ri].to){
+      // Destination from updateRouteLegs — only add if not already last wpt
+      var lastW2=legs.length?legs[legs.length-1].wpt:"";
+      if(lastW2!==rl[ri].to){
+        legs.push({wpt:rl[ri].to,crs:"---°",dist:"---",spdAlt:"",pred:"",via:"DIRECT",isDest:true});
+      }
     }
   }
 
   // STAR — DISC check: last leg wpt vs STAR entry. Merge if same, DISC if different.
-  // Also check if STAR entry exists earlier in legs — if so, trim back and merge seamlessly.
   var star=NAV_DATA[fms.arrStar];
   if(star&&star.type==="STAR"){
     var starWpts=star.wpts.map(function(w){return Object.assign({},w,{via:fms.arrStar});});
     var lastWpt=legs.length?legs[legs.length-1].wpt:"";
     var starEntry=starWpts[0].wpt;
-    // Check if starEntry exists earlier in legs (before last wpt)
-    var starEntryIdx=-1;
-    for(var si=0;si<legs.length;si++){if(!legs[si].isDisc&&legs[si].wpt===starEntry){starEntryIdx=si;break;}}
-    if(starEntryIdx>=0){
-      // STAR entry found in enroute — trim legs to that point and merge
-      legs=legs.slice(0,starEntryIdx+1);
-      legs=legs.concat(starWpts.slice(1));
-    } else if(lastWpt&&starEntry&&lastWpt===starEntry){
-      // Auto-merge: skip STAR first wpt (already reached via enroute)
+    if(lastWpt&&starEntry&&lastWpt===starEntry){
+      // Auto-merge: last enroute/dest wpt == STAR entry → skip duplicate
       legs=legs.concat(starWpts.slice(1));
     } else if(lastWpt&&starEntry){
       // Different → ROUTE DISCONTINUITY then full STAR
@@ -17765,7 +17786,7 @@ function buildLegs(fms){
 // ═══════ Update routeLegs for RTE page display ═══════
 function updateRouteLegs(fms){
   // 1) Strip existing SID/STAR/APP/APPR TRANS/DISC tags — enroute and manual DISC untouched
-  fms.routeLegs=fms.routeLegs.filter(function(l){return !l._star && !l._app && !(l._disc&&!l._manual) && !l._appTrans && !l._sid && !l._missed;});
+  fms.routeLegs=fms.routeLegs.filter(function(l){return !l._star && !l._app && !(l._disc&&!l._manual) && !l._appTrans && !l._sid && !l._missed && !l._dest;});
   // 2) SID: if routeLegs has enroute, update first leg VIA. If empty, add SID leg.
   var sid=NAV_DATA[fms.depSid];
   if(sid){
@@ -17775,6 +17796,14 @@ function updateRouteLegs(fms){
       fms.routeLegs.push({via:fms.depSid,to:sid.exit,_sid:true});
     }
   }
+  // 2.5) DIRECT to DEST — if last enroute TO is not the destination, add DIRECT/dest
+  if(fms.dest){
+    var lastEnr=fms.routeLegs[fms.routeLegs.length-1];
+    var lastEnrTo=lastEnr?lastEnr.to:"";
+    if(lastEnrTo&&lastEnrTo!==fms.dest){
+      fms.routeLegs.push({via:"DIRECT",to:fms.dest,_dest:true});
+    }
+  }
   // 3) STAR — VIA=STAR_NAME / TO=exit fix (last wpt). DISC check: routeLegs last TO vs STAR entry(first wpt)
   var star=NAV_DATA[fms.arrStar];
   if(star&&star.type==="STAR"){
@@ -17782,12 +17811,7 @@ function updateRouteLegs(fms){
     var lastTo=lastLeg?lastLeg.to:"";
     var starEntry=star.wpts[0].wpt;
     var starExit=star.wpts[star.wpts.length-1].wpt;
-    // Check if starEntry exists in enroute (route passes through it — no DISC needed)
-    var fltKey2=(fms.fltNo||"").toUpperCase();
-    var enr2=ENROUTE_LEGS[fltKey2]||[];
-    var starInEnroute=false;
-    for(var ei2=0;ei2<enr2.length;ei2++){if(enr2[ei2].wpt===starEntry){starInEnroute=true;break;}}
-    if(lastTo&&starEntry&&lastTo!==starEntry&&!starInEnroute&&!(lastLeg&&lastLeg._disc)){
+    if(lastTo&&starEntry&&lastTo!==starEntry&&!(lastLeg&&lastLeg._disc)){
       fms.routeLegs.push({via:"DISCONTINUITY",to:"",_disc:true});
     }
     fms.routeLegs.push({via:fms.arrStar,to:starExit,_star:true});
@@ -17841,7 +17865,7 @@ const initFMS = () => ({
   flaps:"",v1:"---",vr:"---",v2:"---",cg:"",trim:"",
   wind:"---°/--KT",accelHt:"3000FT",eoAccelHt:"1500FT",
   thrReduction:"1500FT",landFlaps:"30",vref:"---",
-  appLandRef:"QNH",appGsOn:true,appWindCorr:"5",appFlapSpd:"",
+  appLandRef:"QNH",appGsOn:true,appWindCorr:"",appFlapSpd:"",appGwEntered:false,
   rwyWind:"---",slopeCond:"---",toN1:"---",togw:"",
   // DEP/ARR selection state (FCOM 11.40.28)
   depSid:"",depRwy:"",depTrans:"",depEoSid:"NONE",
@@ -18485,7 +18509,7 @@ function cduPageData(fms) {
           return;
         }
         // Waypoint name: active=magenta with parens, inserted=shaded white
-        const wptName=isActive?`(${leg.wpt})`:leg.wpt;
+        const wptName=leg.wpt;
         const wptColor=isActive?C.magenta:leg.inserted?"#aaaaaa":C.white;
         const spdAltDisplay=leg.spdAlt||leg.pred||"";
         const spdAltColor=leg.spdAlt?C.magenta:C.white;
@@ -18808,6 +18832,7 @@ function cduPageData(fms) {
       const db=FLIGHT_DB[(fms.fltNo||"").toUpperCase()];
       const gw=parseFloat(fms.grWt||0);
       const hasGw=gw>100;
+      const gwDisplay=hasGw?fms.grWt:"\u25af\u25af\u25af.\u25af";
       const vref30=hasGw?Math.round(115+gw*0.065):"---";
       const vref25=hasGw?(vref30+3):"---";
       const vref20=hasGw?(vref30+6):"---";
@@ -18816,9 +18841,9 @@ function cduPageData(fms) {
       const selFlap=fms.appFlapSpd;
       return {title:"APPROACH REF",rows:[
       {tl:"GROSS WT",tr:"FLAPS       VREF",
-       dl:hasGw?String(gw):"\u25af\u25af\u25af.\u25af",
+       dl:gwDisplay,
        dr:"20      "+vref20+"KT",
-       dlc:hasGw?C.green:C.cyan,dlBg:true,drc:selFlap==="20"?C.green:C.white},
+       dlc:fms.appGwEntered?C.green:(hasGw?C.cyan:C.cyan),dlBg:true,drc:selFlap==="20"?C.green:C.white},
       {dr:"25      "+vref25+"KT",
        drc:selFlap==="25"?C.green:C.white},
       {tl:"LANDING REF",
@@ -19231,11 +19256,11 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
       }
       else if(p==="THRUST_LIM"){if(side==="L"&&num===2)s.thrustMode="TO";if(side==="L"&&num===3)s.thrustMode="TO 1";if(side==="L"&&num===4)s.thrustMode="TO 2";if(side==="L"&&num===1)set("selOat");if(side==="L"&&num===6)go("INIT_REF");if(side==="R"&&num===6)go("TOREF1");}
       else if(p==="APPROACH_REF"){
-        if(side==="L"&&num===1&&sp){if(sp==="DELETE"){s.grWt="";s.scratchpad="";}else{s.grWt=sp;s.scratchpad="";}}
-        if(side==="R"&&num===1){if(sp){var _p1=sp.split("/");s.appFlapSpd=_p1[0];s.landFlaps=_p1[0];if(_p1[1])s.vref=_p1[1];s.scratchpad="";}else{var _gw2=parseFloat(s.grWt||0);if(_gw2>100){s.scratchpad="20/"+String(Math.round(115+_gw2*0.065)+6);}}}
-        if(side==="R"&&num===2){if(sp){var _p2=sp.split("/");s.appFlapSpd=_p2[0];s.landFlaps=_p2[0];if(_p2[1])s.vref=_p2[1];s.scratchpad="";}else{var _gw3=parseFloat(s.grWt||0);if(_gw3>100){s.scratchpad="25/"+String(Math.round(115+_gw3*0.065)+3);}}}
+        if(side==="L"&&num===1&&sp){if(sp==="DELETE"){s.grWt="";s.appGwEntered=false;s.scratchpad="";}else{s.grWt=sp;s.appGwEntered=true;s.scratchpad="";}}
+        if(side==="R"&&num===1&&!sp){var _gw2=parseFloat(s.grWt||0);if(_gw2>100){s.scratchpad="20/"+String(Math.round(115+_gw2*0.065)+6);}}
+        if(side==="R"&&num===2&&!sp){var _gw3=parseFloat(s.grWt||0);if(_gw3>100){s.scratchpad="25/"+String(Math.round(115+_gw3*0.065)+3);}}
         if(side==="L"&&num===3)s.appLandRef=s.appLandRef==="QFE"?"QNH":"QFE";
-        if(side==="R"&&num===3){if(sp){var _p3=sp.split("/");s.appFlapSpd=_p3[0];s.landFlaps=_p3[0];if(_p3[1])s.vref=_p3[1];s.scratchpad="";}else{var _gw4=parseFloat(s.grWt||0);if(_gw4>100){s.scratchpad="30/"+String(Math.round(115+_gw4*0.065));}}}
+        if(side==="R"&&num===3&&!sp){var _gw4=parseFloat(s.grWt||0);if(_gw4>100){s.scratchpad="30/"+String(Math.round(115+_gw4*0.065));}}
         if(side==="R"&&num===4&&sp){if(sp==="DELETE"){s.appFlapSpd="";s.landFlaps="";s.vref="";s.scratchpad="";}else{var _parts=sp.split("/");s.appFlapSpd=_parts[0];s.landFlaps=_parts[0];if(_parts[1])s.vref=_parts[1];s.scratchpad="";}}
         if(side==="L"&&num===5)s.appGsOn=!s.appGsOn;
         if(side==="R"&&num===5&&sp){if(sp==="DELETE"){s.appWindCorr="";s.scratchpad="";}else{s.appWindCorr=sp;s.scratchpad="";}}
@@ -19411,7 +19436,7 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
                   }
                 }
                 s.routeLegs=newRL;
-                s.scratchpad="";s.execLight=true;s.helpMsg="";
+                s.scratchpad="";s.execLight=true;s.helpMsg="";s._legsRteSynced=true;
               } else {
                 // ── Add Waypoint (FCOM 11.42.2) ──
                 // Insert new waypoint at idx, followed by ROUTE DISCONTINUITY
@@ -19448,17 +19473,19 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
         }
 
         // ═══ Sync routeLegs from modified computedLegs (LEGS → RTE page) ═══
-        if(s.execLight){
-          // Collect remaining waypoint names
+        if(s.execLight&&!s._legsRteSynced){
+          // Collect remaining waypoint names from computedLegs
           const remainingWpts=new Set();
           legs.forEach(function(l){if(l.wpt&&!l.isDisc&&!l.isRwy)remainingWpts.add(l.wpt);});
-          // Remove routeLegs whose endpoint is no longer in computedLegs
-          let newRL=s.routeLegs.filter(function(l){return remainingWpts.has(l.to);});
-          // Check if first waypoint changed (Direct To)
+          // Filter: keep tagged legs (_dest/_star/_app/etc) unconditionally, filter enroute by remaining
+          let newRL=s.routeLegs.filter(function(l){
+            if(l._dest||l._star||l._app||l._disc||l._appTrans||l._sid||l._missed)return true;
+            return remainingWpts.has(l.to);
+          });
+          // Check if first enroute waypoint changed (Direct To)
           let newFirstWpt=null;
           for(let i=0;i<legs.length;i++){if(!legs[i].isRwy&&!legs[i].isDisc&&legs[i].wpt){newFirstWpt=legs[i].wpt;break;}}
           if(newFirstWpt&&newFirstWpt!==origFirstWpt){
-            // First waypoint changed — need DIRECT/newFirstWpt
             if(newRL.length>0&&newRL[0].to===newFirstWpt){
               newRL[0]={via:"DIRECT",to:newFirstWpt};
             } else {
@@ -19467,6 +19494,7 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
           }
           s.routeLegs=newRL;
         }
+        if(s._legsRteSynced)delete s._legsRteSynced;
 
         // ═══ L6: ERASE or <RTE 2 LEGS ═══
         if(side==="L"&&num===6){
@@ -20101,7 +20129,7 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
                   updateRouteLegs(p2);p2.computedLegs=buildLegs(p2);setFms(p2);setMfdMode("CDU");
                 } else {
                   var d3=FLIGHT_DB["KAL781"]||{};var cgVal3=23;var trimVal3=(cgVal3*0.22-0.06).toFixed(2);
-                  var p3=Object.assign({},initFMS(),{fltNo:"KAL781",origin:"RKSI",dest:"RJFF",runway:"15R",depRwy:"15R",routeLegs:rteLegs,depSid:"OSPO2C",depSidAct:true,phase:"ACTIVE",grWt:"391.0",fuel:"36.0",zfw:"355.0",reserves:"9.0",crzAlt:"FL310",costIndex:"50",flaps:d3.perfFlap||"5",v1:d3.perfV1||"166",vr:d3.perfVR||"171",v2:d3.perfV2||"175",cg:"23",trim:trimVal3,thrustMode:"D-TO",selOat:d3.perfSelTemp||"42",togw:"391.0",toN1:(d3.perfDTO||"91.3")+"%",eoAccelHt:(d3.perfAccelHt||"860")+"FT",wind:d3.wind?d3.wind.replace("/","°/")+"KT":"240°/05KT",arrStar:"ISKUPE",arrStarAct:true,arrApp:"ILS16L",arrAppAct:true,arrTrans:"ENTIX",efbInit:true,page:"CRZ",chkl:{tab:"NORMAL",clIdx:5,cur:0,ck:mkCk(5),ovrd:{},menuMode:false},efbPerf:{aprt:"RKSI / ICN",rwy:"15R",intx:"FULL 15R",cond:"DRY",wind:d3.wind||"240/05",oat:d3.oat||"15",qnh:d3.qnh||"1013",rtg:"OPTIMUM",ic:"NO",atm:"MAX",flap:"OPTIMUM",aiEng:"ENG AUTO",icing:"NO",rtl:"20/30",tow:"391000",zfw:"355000",cg:"23",calcDone:true,sentToFmc:true,calcV1:d3.perfV1||"166",calcVR:d3.perfVR||"171",calcV2:d3.perfV2||"175",calcFlap:d3.perfFlap||"5",calcThrust:d3.perfThrust||"42°C D-TO",calcAccelHt:d3.perfAccelHt||"860",calcDTO:d3.perfDTO||"91.3",calcSelTemp:d3.perfSelTemp||"42",calcVref30:d3.perfVref30||"150",calcRwyIntx:"FULL 15R",calcTOGW:"391000"}});
+                  var p3=Object.assign({},initFMS(),{fltNo:"KAL781",origin:"RKSI",dest:"RJFF",runway:"15R",depRwy:"15R",routeLegs:rteLegs,depSid:"OSPO2C",depSidAct:true,phase:"ACTIVE",grWt:"391.0",fuel:"36.0",zfw:"355.0",reserves:"9.0",crzAlt:"FL310",costIndex:"50",flaps:d3.perfFlap||"5",v1:d3.perfV1||"166",vr:d3.perfVR||"171",v2:d3.perfV2||"175",cg:"23",trim:trimVal3,thrustMode:"D-TO",selOat:d3.perfSelTemp||"42",togw:"391.0",toN1:(d3.perfDTO||"91.3")+"%",eoAccelHt:(d3.perfAccelHt||"860")+"FT",wind:d3.wind?d3.wind.replace("/","°/")+"KT":"240°/05KT",efbInit:true,page:"CRZ",chkl:{tab:"NORMAL",clIdx:5,cur:0,ck:mkCk(5),ovrd:{},menuMode:false},efbPerf:{aprt:"RKSI / ICN",rwy:"15R",intx:"FULL 15R",cond:"DRY",wind:d3.wind||"240/05",oat:d3.oat||"15",qnh:d3.qnh||"1013",rtg:"OPTIMUM",ic:"NO",atm:"MAX",flap:"OPTIMUM",aiEng:"ENG AUTO",icing:"NO",rtl:"20/30",tow:"391000",zfw:"355000",cg:"23",calcDone:true,sentToFmc:true,calcV1:d3.perfV1||"166",calcVR:d3.perfVR||"171",calcV2:d3.perfV2||"175",calcFlap:d3.perfFlap||"5",calcThrust:d3.perfThrust||"42°C D-TO",calcAccelHt:d3.perfAccelHt||"860",calcDTO:d3.perfDTO||"91.3",calcSelTemp:d3.perfSelTemp||"42",calcVref30:d3.perfVref30||"150",calcRwyIntx:"FULL 15R",calcTOGW:"391000"}});
                   updateRouteLegs(p3);p3.computedLegs=buildLegs(p3);setFms(p3);setMfdMode("CDU");
                 }
               }, style: {flex:1,padding:"8px 2px",background:phaseColors[pi],color:"#ccc",border:"1px solid #555",borderRadius:3,fontSize:19,fontWeight:"bold",cursor:"pointer",fontFamily:M,lineHeight:1.2,textAlign:"center",whiteSpace:"pre-line"},}, ph);
@@ -21283,7 +21311,7 @@ function ChecklistView({fms,setFms}){
           ));
         })
         , allDone&&React.createElement('div', { style: {textAlign:"center",padding:"10px",color:C.green,fontSize:"19px",fontWeight:"bold"},}
-          , cl.name, " CHECKLIST COMPLETE"
+          , "CHECKLIST COMPLETE"
         )
       )
       /* Bottom command keys (FCOM 10.50.1) */
@@ -22568,20 +22596,20 @@ function B787Cockpit(){
         React.createElement('div', {style:{color:"#00cccc",fontSize:33,fontWeight:"bold",letterSpacing:4,marginBottom:4}}, "B787 DREAMLINER"),
         React.createElement('div', {style:{color:"#aaa",fontSize:14,letterSpacing:2}}, "COCKPIT PROCEDURE SIMULATOR"),
         React.createElement('div', {style:{color:"#777",fontSize:14,marginTop:4}}, "FOR TRAINING PURPOSE ONLY"),
-        React.createElement('div', {style:{color:"#00bb00",fontSize:11,marginTop:12,letterSpacing:1}}, "v2.8.37b \u00a0|\u00a0 by SHLee7872603")
+        React.createElement('div', {style:{color:"#00bb00",fontSize:11,marginTop:12,letterSpacing:1}}, "v2.8.37c \u00a0|\u00a0 by SHLee7872603")
       ),
       React.createElement('div', {style:{borderTop:"1px solid #333",borderBottom:"1px solid #333",padding:"14px 0",marginBottom:16}},
         React.createElement(ChkRow, {checked:ckIPad,onToggle:function(){setCkIPad(function(p){return!p;});}},
-          React.createElement('div', {style:{color:"#00cccc",fontSize:17,fontWeight:"bold",marginBottom:8,letterSpacing:1}}, "PATCH NOTES v2.8.37b"),
+          React.createElement('div', {style:{color:"#00cccc",fontSize:17,fontWeight:"bold",marginBottom:8,letterSpacing:1}}, "PATCH NOTES v2.8.37c"),
           React.createElement('div', {style:{color:"#aaa",fontSize:14,fontWeight:"bold",lineHeight:1.8}},
-            React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginBottom:2}}, "v2.8.37b"),
-            React.createElement('div', null, "\u2022 Phase \ubc84\ud2bc (INITIAL/CDU SETUP/BFR T\u002FO/CRUISE)"),
-            React.createElement('div', null, "\u2022 DELETE+LSK \u00b7 LEGS \ubcd1\ud569 \u00b7 DEP/ARR SP\ubc29\uc9c0"),
-            React.createElement('div', null, "\u2022 CHKL \uc790\ub3d9\uc804\ud658 \u00b7 SYS \ucee4\uc11c \u00b7 \uc785\ub825\ud544\ub4dc \ud68c\uc0c9\ubc30\uacbd"),
+            React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginBottom:2}}, "v2.8.37c"),
+            React.createElement('div', null, "\u2022 NAV DATA: RJFF STAR 4\uac1c \ucc28\ud2b8 \uae30\uc900 \uc218\uc815"),
+            React.createElement('div', null, "\u2022 SID \ucd94\uac00: OSPO2E\u00b7EGOB2E (RWY 33L/R)"),
+            React.createElement('div', null, "\u2022 RTE DIRECT/DEST \u00b7 LEGS modify \uc774\uc911\ub3d9\uae30\ud654 \uc218\uc815"),
+            React.createElement('div', null, "\u2022 APPR REF GW \uc0c1\ud0dc\ubcc4 \ud45c\uc2dc \u00b7 R1-R3 \ubcf5\uc0ac\uc804\uc6a9"),
+            React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginTop:8,marginBottom:2}}, "v2.8.37b"),
+            React.createElement('div', null, "\u2022 Phase \ubc84\ud2bc \u00b7 DELETE+LSK \u00b7 CHKL \uc790\ub3d9\uc804\ud658"),
             React.createElement('div', null, "\u2022 EFB\u2192FMC EO ACCEL \u00b7 TRIM ACCEPT \ud6c4 \ud45c\uc2dc"),
-            React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginTop:8,marginBottom:2}}, "v2.8.37a"),
-            React.createElement('div', null, "\u2022 AUX \uba54\uc2dc\uc9c0 \ud050 (FIFO) \u00b7 DCL ACPT/CANC/RJCT \uc5f0\ub3d9"),
-            React.createElement('div', null, "\u2022 Small/Large \uae00\uc790 \u00b7 POS INIT 1/4~4/4 \u00b7 wind corr \uc218\uc815"),
 
           )
         )
