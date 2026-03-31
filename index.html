@@ -10,7 +10,7 @@
 <meta name="theme-color" content="#050505">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>B787 CDU Practice v2.8.39</title>
+<title>B787 CDU Practice v2.8.40</title>
 <style>*{margin:0;padding:0;box-sizing:border-box;-webkit-user-select:none;user-select:none}body{background:#050505;overflow-x:hidden}</style>
 </head>
 <body>
@@ -21124,6 +21124,8 @@ function EFBPanel({fms,setFms,onClose}) {
 
 // ═══════ Sub-views for CHKL/COMM/INFO/ND/SYS ═══════
 function ChecklistView({fms,setFms}){
+  // Checklist uses original FCOM colors (not CDU white)
+  const CK_GREEN="#00e800",CK_CYAN="#00cccc",CK_WHITE="#d8d8d8";
   const cs=fms.chkl||{tab:"NORMAL",clIdx:0,cur:0,ck:{},ovrd:{},menuMode:false};
   const tab=cs.tab,clIdx=cs.clIdx,cur=cs.cur,ck=cs.ck,ovrd=cs.ovrd,menuMode=cs.menuMode;
   const setCS=(fn)=>setFms(p=>{const c={...(p.chkl||cs)};fn(c);return{...p,chkl:c};});
@@ -21138,7 +21140,7 @@ function ChecklistView({fms,setFms}){
   // type: "open" = □ open loop (crew confirms), "closed" = auto-sensed (green)
   const CHECKLISTS = [
     {name:"PREFLIGHT", items:[
-      {t:"open",  item:"SECURITY INSPECTION",      resp:"COMPLETED ALL"},
+      {t:"open",  item:"SECURITY SEARCH",      resp:"COMPLETED ALL"},
       {t:"closed",item:"SEAT BELTS",               resp:"ON F/O"},
       {t:"open",  item:"GEAR PINS",                resp:"ON BOARD ALL"},
       {t:"open",  item:"OXYGEN",                   resp:"TESTED, 100% ALL"},
@@ -21165,12 +21167,12 @@ function ChecklistView({fms,setFms}){
       {t:"open",  item:"RECALL",                   resp:"CHECKED F/O"},
       {t:"closed",item:"FLAPS",                    resp:"____ ALL"},
       {t:"open",  item:"FLIGHT CONTROLS",          resp:"CHECKED CAP"},
-      {t:"open",  item:"GROUND EQUIPMENT",         resp:"CLEAR ALL"},
+      {t:"open",  item:"GROUND PERSONNEL AND EQUIPMENT",         resp:"CLEAR ALL"},
     ]},
     {name:"BEFORE TAKEOFF", items:[
       {t:"closed",item:"FLAPS",                    resp:"____ ALL"},
       {t:"closed",item:"TRANSPONDER",              resp:"TA/RA F/O"},
-      {t:"open",  item:"CABIN REPORT AND TAKEOFF SIGNAL",resp:"RECEIVED F/O"},
+      {t:"open",  item:"CABIN REPORT AND TAKEOFF SIGNAL",resp:"COMPLETE F/O"},
       {t:"closed",item:"STROBE LIGHT",             resp:"ON F/O"},
       {t:"closed",item:"WX RADAR",                 resp:"ON ALL"},
     ]},
@@ -21357,8 +21359,8 @@ function ChecklistView({fms,setFms}){
         , CHECKLISTS.map((c,i)=>{const done=clComplete(i);
           return(React.createElement('button', { key: i, 'data-chkl-menu': String(i), onClick: ()=>{setClIdx(i);setCur(0);setMenuMode(false);}, style: {
             display:"block",width:"100%",padding:"8px 10px",marginBottom:"3px",
-            background:done?"#001a00":"#1a1a1a",border:`1px solid ${done?C.green:"#444"}`,
-            borderRadius:"2px",color:done?C.green:C.white,fontSize:"18px",fontFamily:M,
+            background:done?"#001a00":"#1a1a1a",border:`1px solid ${done?CK_GREEN:"#444"}`,
+            borderRadius:"2px",color:done?CK_GREEN:CK_WHITE,fontSize:"18px",fontFamily:M,
             cursor:"pointer",textAlign:"left",fontWeight:"bold"
           },}, done?"✓ ":"  ", c.name));
         })
@@ -21392,9 +21394,9 @@ function ChecklistView({fms,setFms}){
           const isOpen=it.t==="open";
           // FCOM 10.50.1: colors
           // complete=green, overridden=cyan, open+incomplete=white, closed+current=green
-          let color=C.green;
-          if(isOv)color=C.cyan;
-          else if(isOpen&&!done)color=C.white;
+          let color=CK_GREEN;
+          if(isOv)color=CK_CYAN;
+          else if(isOpen&&!done)color=CK_WHITE;
           const respLines=it.resp.split("\n");
           return(React.createElement('div', { key: ii, 'data-chkl-item': String(ii), onClick: ()=>clickItem(ii), style: {
             padding:"3px 4px",cursor:"pointer",marginBottom:"1px",
@@ -21405,19 +21407,21 @@ function ChecklistView({fms,setFms}){
               /* FCOM 10.50.1 #2/#3: open loop □ or complete ■ */
               , isOpen&&React.createElement('span', { 'data-chkl-cb': String(ii), style: {
                 display:"inline-block",width:"14px",height:"14px",marginTop:"1px",flexShrink:0,
-                border:`2px solid ${done?C.green:(isCur||(fms.cursorIdx===100+ii))?"#ff00ff":"#888"}`,borderRadius:"2px",
-                background:done?C.green:"transparent",
+                border:`2px solid ${done?CK_GREEN:(isCur||(fms.cursorIdx===100+ii))?"#ff00ff":"#888"}`,borderRadius:"2px",
+                background:done?CK_GREEN:"transparent",
                 textAlign:"center",lineHeight:"12px",fontSize:"18px",color:"#0a0a0a"
               },}, done?"✓":"")
-              , !isOpen&&React.createElement('span', { 'data-chkl-cb': String(ii), style: {width:"14px",height:"14px",marginTop:"1px",flexShrink:0,border:`2px solid ${done?C.green:(isCur||(fms.cursorIdx===100+ii))?"#ff00ff":"#888"}`,borderRadius:"2px",background:done?C.green:"transparent",textAlign:"center",lineHeight:"12px",fontSize:"18px",color:"#0a0a0a"},}, done?"✓":"")
-              , React.createElement('span', { style: {color,fontSize:"19px",fontFamily:M,flex:1,whiteSpace:"pre-wrap",lineHeight:1.4,fontWeight:"bold"},}
-                , it.item, dots(it.item,respLines[0]), respLines[0]
+              , !isOpen&&React.createElement('span', { 'data-chkl-cb': String(ii), style: {width:"14px",height:"14px",marginTop:"1px",flexShrink:0,border:`2px solid ${done?CK_GREEN:(isCur||(fms.cursorIdx===100+ii))?"#ff00ff":"#888"}`,borderRadius:"2px",background:done?CK_GREEN:"transparent",textAlign:"center",lineHeight:"12px",fontSize:"18px",color:"#0a0a0a"},}, done?"✓":"")
+              , React.createElement('div', { style: {color,fontSize:"19px",fontFamily:M,flex:1,display:"flex",lineHeight:1.4,fontWeight:"bold"},}
+                , React.createElement('span', {style:{whiteSpace:"nowrap"}}, it.item)
+                , React.createElement('span', {style:{flex:1,overflow:"hidden",whiteSpace:"nowrap",textAlign:"center"}}, dots(it.item,respLines[0]))
+                , React.createElement('span', {style:{whiteSpace:"nowrap",textAlign:"right"}}, respLines[0])
               )
             )
-            , respLines.length>1&&React.createElement('div', { style: {color,fontSize:"19px",fontFamily:M,paddingLeft:"22px",whiteSpace:"pre-wrap",fontWeight:"bold"},}, respLines.slice(1).join("\n"))
+            , respLines.length>1&&React.createElement('div', { style: {color,fontSize:"19px",fontFamily:M,paddingLeft:"22px",whiteSpace:"pre-wrap",fontWeight:"bold",textAlign:"right"},}, respLines.slice(1).join("\n"))
           ));
         })
-        , allDone&&React.createElement('div', { style: {textAlign:"center",padding:"10px",color:C.green,fontSize:"19px",fontWeight:"bold"},}
+        , allDone&&React.createElement('div', { style: {textAlign:"center",padding:"10px",color:CK_GREEN,fontSize:"19px",fontWeight:"bold"},}
           , "CHECKLIST COMPLETE"
         )
       )
@@ -21454,8 +21458,8 @@ function ChecklistView({fms,setFms}){
         , React.createElement('div', { style: {textAlign:"center",color:C.white,fontSize:"22px",fontWeight:"bold",marginBottom:14},}, "RESETS")
         /* #2/#4: Airline databases */
         , React.createElement('div', { style: {display:"flex",justifyContent:"space-between",padding:"5px 8px",marginBottom:2},}
-          , React.createElement('div', null, React.createElement('div', { style: {color:C.dim,fontSize:14,marginBottom:2},}, "AIRLINE DATABASE" ), React.createElement('div', { style: {color:C.green,fontSize:18,fontWeight:"bold"},}, "BF10-0000-00A1"))
-          , React.createElement('div', { style: {textAlign:"right"},}, React.createElement('div', { style: {color:C.dim,fontSize:14,marginBottom:2},}, "REVISION"), React.createElement('div', { style: {color:C.green,fontSize:18,fontWeight:"bold"},}, "13 FEB 09"  ))
+          , React.createElement('div', null, React.createElement('div', { style: {color:C.dim,fontSize:14,marginBottom:2},}, "AIRLINE DATABASE" ), React.createElement('div', { style: {color:CK_GREEN,fontSize:18,fontWeight:"bold"},}, "BF10-0000-00A1"))
+          , React.createElement('div', { style: {textAlign:"right"},}, React.createElement('div', { style: {color:C.dim,fontSize:14,marginBottom:2},}, "REVISION"), React.createElement('div', { style: {color:CK_GREEN,fontSize:18,fontWeight:"bold"},}, "13 FEB 09"  ))
         )
         , React.createElement('div', { style: {display:"flex",justifyContent:"space-between",padding:"5px 8px",marginBottom:16},}
           , React.createElement('div', null, React.createElement('div', { style: {color:C.dim,fontSize:14,marginBottom:2},}, "AIRLINE DATABASE" ), React.createElement('div', { style: {color:"#666",fontSize:18,fontWeight:"bold"},}, "BF12-0000-00A3"))
@@ -22130,7 +22134,7 @@ function InfoView(){
     , React.createElement('div', { style: {flex:1},})
   ));
 }
-function NDView({fms}){const ref=useRef(null);const [rng,setRng]=useState(80);useEffect(()=>{const cv=ref.current;if(!cv)return;const ctx=cv.getContext("2d");const W=340,H=300;cv.width=W;cv.height=H;const cx=W/2,cy=H*.72,r=210;ctx.fillStyle=C.screen;ctx.fillRect(0,0,W,H);ctx.strokeStyle="#444";ctx.lineWidth=1;ctx.beginPath();ctx.arc(cx,cy,r,0,2*Math.PI);ctx.stroke();[.25,.5,.75].forEach(f=>{ctx.beginPath();ctx.arc(cx,cy,r*f,0,2*Math.PI);ctx.stroke();});for(let i=0;i<360;i+=10){const a=((i-270+360)%360-180)*Math.PI/180,inner=r-(i%30===0?12:6);ctx.strokeStyle="#999";ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(cx+Math.sin(a)*inner,cy-Math.cos(a)*inner);ctx.lineTo(cx+Math.sin(a)*r,cy-Math.cos(a)*r);ctx.stroke();if(i%30===0){ctx.fillStyle="#ccc";ctx.font="10px "+M;ctx.textAlign="center";ctx.fillText((i/10).toString().padStart(2,"0"),cx+Math.sin(a)*(r+11),cy-Math.cos(a)*(r+11)+3);}}ctx.fillStyle="#fff";ctx.beginPath();ctx.moveTo(cx,cy-10);ctx.lineTo(cx-8,cy+4);ctx.lineTo(cx,cy);ctx.lineTo(cx+8,cy+4);ctx.closePath();ctx.fill();ctx.strokeStyle=C.magenta;ctx.setLineDash([4,4]);ctx.beginPath();ctx.moveTo(cx,cy-14);ctx.lineTo(cx,cy-r);ctx.stroke();ctx.setLineDash([]);if(fms.dest){ctx.strokeStyle=C.magenta;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx,cy-r*.7);ctx.stroke();ctx.fillStyle=C.magenta;ctx.font="11px "+M;ctx.textAlign="center";ctx.fillText(fms.dest,cx,cy-r*.7-5);}ctx.fillStyle=C.green;ctx.font="10px "+M;ctx.textAlign="left";ctx.fillText(rng+" NM",5,15);ctx.textAlign="right";ctx.fillText("GPS",W-5,15);ctx.textAlign="center";ctx.font="bold 13px "+M;ctx.fillText("270°",cx,14);},[fms.dest,rng]);return(React.createElement('div', { style: {padding:4,textAlign:"center"},}, React.createElement('canvas', { ref: ref, style: {borderRadius:3,maxWidth:"100%"},}), React.createElement('div', { style: {display:"flex",gap:3,justifyContent:"center",marginTop:4},}, [10,20,40,80,160,320].map(r=>(React.createElement('button', { key: r, onClick: ()=>setRng(r), style: {background:rng===r?"#002200":"#1a1a1a",color:rng===r?C.green:C.dim,border:`1px solid ${rng===r?C.green:"#444"}`,borderRadius:2,padding:"2px 5px",cursor:"pointer",fontSize:8,fontFamily:M},}, r))))));}
+function NDView({fms}){const ref=useRef(null);const [rng,setRng]=useState(80);useEffect(()=>{const cv=ref.current;if(!cv)return;const ctx=cv.getContext("2d");const W=340,H=300;cv.width=W;cv.height=H;const cx=W/2,cy=H*.72,r=210;ctx.fillStyle=C.screen;ctx.fillRect(0,0,W,H);ctx.strokeStyle="#444";ctx.lineWidth=1;ctx.beginPath();ctx.arc(cx,cy,r,0,2*Math.PI);ctx.stroke();[.25,.5,.75].forEach(f=>{ctx.beginPath();ctx.arc(cx,cy,r*f,0,2*Math.PI);ctx.stroke();});for(let i=0;i<360;i+=10){const a=((i-270+360)%360-180)*Math.PI/180,inner=r-(i%30===0?12:6);ctx.strokeStyle="#999";ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(cx+Math.sin(a)*inner,cy-Math.cos(a)*inner);ctx.lineTo(cx+Math.sin(a)*r,cy-Math.cos(a)*r);ctx.stroke();if(i%30===0){ctx.fillStyle="#ccc";ctx.font="10px "+M;ctx.textAlign="center";ctx.fillText((i/10).toString().padStart(2,"0"),cx+Math.sin(a)*(r+11),cy-Math.cos(a)*(r+11)+3);}}ctx.fillStyle="#fff";ctx.beginPath();ctx.moveTo(cx,cy-10);ctx.lineTo(cx-8,cy+4);ctx.lineTo(cx,cy);ctx.lineTo(cx+8,cy+4);ctx.closePath();ctx.fill();ctx.strokeStyle=C.magenta;ctx.setLineDash([4,4]);ctx.beginPath();ctx.moveTo(cx,cy-14);ctx.lineTo(cx,cy-r);ctx.stroke();ctx.setLineDash([]);if(fms.dest){ctx.strokeStyle=C.magenta;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx,cy-r*.7);ctx.stroke();ctx.fillStyle=C.magenta;ctx.font="11px "+M;ctx.textAlign="center";ctx.fillText(fms.dest,cx,cy-r*.7-5);}ctx.fillStyle=C.green;ctx.font="10px "+M;ctx.textAlign="left";ctx.fillText(rng+" NM",5,15);ctx.textAlign="right";ctx.fillText("GPS",W-5,15);ctx.textAlign="center";ctx.font="bold 13px "+M;ctx.fillText("270°",cx,14);},[fms.dest,rng]);return(React.createElement('div', { style: {padding:4,textAlign:"center"},}, React.createElement('canvas', { ref: ref, width: 340, height: 300, style: {borderRadius:3,maxWidth:"100%",display:"block",margin:"0 auto"},}), React.createElement('div', { style: {display:"flex",gap:3,justifyContent:"center",marginTop:4},}, [10,20,40,80,160,320].map(r=>(React.createElement('button', { key: r, onClick: ()=>setRng(r), style: {background:rng===r?"#002200":"#1a1a1a",color:rng===r?C.green:C.dim,border:`1px solid ${rng===r?C.green:"#444"}`,borderRadius:2,padding:"2px 5px",cursor:"pointer",fontSize:8,fontFamily:M},}, r))))));}
 function SysView(){
   const [tab,setTab]=useState("STAT");
   const tabs1=["STAT","ELEC","HYD","FUEL","AIR","DOOR"];
@@ -22504,7 +22508,7 @@ function ForwardPanelView({fms,setFms,fwdState,setFwdState}){
     else setMfdR(prev => prev===fmt ? null : fmt);
   };
 
-  const MFDContent = ({fmt}) => {
+  const mfdContent = (fmt) => {
     if(!fmt) return (
       React.createElement('div', { style: {display:"flex",alignItems:"center",justifyContent:"center",height:"100%",color:"#222",fontFamily:M},}
         , React.createElement('div', { style: {textAlign:"center"},}
@@ -22531,7 +22535,7 @@ function ForwardPanelView({fms,setFms,fwdState,setFwdState}){
         border:"4px solid #1a1a1a",overflow:"hidden",
         boxShadow:"0 2px 16px rgba(0,0,0,0.9),inset 0 0 40px rgba(0,0,0,0.6)"},}
         /* Two MFD windows */
-        , React.createElement('div', { style: {display:"flex",minHeight:560},}
+        , React.createElement('div', { style: {display:"flex",height:560},}
           /* L window */
           , React.createElement('div', { style: {flex:1,borderRight:"3px solid #111",position:"relative",overflow:"auto",
             background:mfdL?"#0a0a0a":"#060606"},}
@@ -22542,7 +22546,7 @@ function ForwardPanelView({fms,setFms,fwdState,setFwdState}){
               , React.createElement('span', { style: {color:dspSide==="L"?C.green:"#333",fontSize:7,fontFamily:M,fontWeight:"bold"},}, "L")
               , mfdL && React.createElement('span', { style: {color:C.green,fontSize:7,fontFamily:M},}, mfdL)
             )
-            , React.createElement('div', { style: {paddingTop:14,height:"100%"},}, React.createElement(MFDContent, { fmt: mfdL,}))
+            , React.createElement('div', { style: {paddingTop:14,height:"100%"},}, mfdContent(mfdL))
           )
           /* R window */
           , React.createElement('div', { style: {flex:1,position:"relative",overflow:"auto",
@@ -22554,7 +22558,7 @@ function ForwardPanelView({fms,setFms,fwdState,setFwdState}){
               , React.createElement('span', { style: {color:dspSide==="R"?C.green:"#333",fontSize:7,fontFamily:M,fontWeight:"bold"},}, "R")
               , mfdR && React.createElement('span', { style: {color:C.green,fontSize:7,fontFamily:M},}, mfdR)
             )
-            , React.createElement('div', { style: {paddingTop:14,height:"100%"},}, React.createElement(MFDContent, { fmt: mfdR,}))
+            , React.createElement('div', { style: {paddingTop:14,height:"100%"},}, mfdContent(mfdR))
           )
         )
       )
@@ -22703,19 +22707,18 @@ function B787Cockpit(){
         React.createElement('div', {style:{color:"#00cccc",fontSize:33,fontWeight:"bold",letterSpacing:4,marginBottom:4}}, "B787 DREAMLINER"),
         React.createElement('div', {style:{color:"#aaa",fontSize:14,letterSpacing:2}}, "COCKPIT PROCEDURE SIMULATOR"),
         React.createElement('div', {style:{color:"#777",fontSize:14,marginTop:4}}, "FOR TRAINING PURPOSE ONLY"),
-        React.createElement('div', {style:{color:"#00bb00",fontSize:11,marginTop:12,letterSpacing:1}}, "v2.8.39 \u00a0|\u00a0 by SHLee7872603")
+        React.createElement('div', {style:{color:"#00bb00",fontSize:11,marginTop:12,letterSpacing:1}}, "v2.8.40 \u00a0|\u00a0 by SHLee7872603")
       ),
       React.createElement('div', {style:{borderTop:"1px solid #333",borderBottom:"1px solid #333",padding:"14px 0",marginBottom:16}},
         React.createElement(ChkRow, {checked:ckIPad,onToggle:function(){setCkIPad(function(p){return!p;});}},
-          React.createElement('div', {style:{color:"#00cccc",fontSize:17,fontWeight:"bold",marginBottom:8,letterSpacing:1}}, "PATCH NOTES v2.8.39"),
+          React.createElement('div', {style:{color:"#00cccc",fontSize:17,fontWeight:"bold",marginBottom:8,letterSpacing:1}}, "PATCH NOTES v2.8.40"),
           React.createElement('div', {style:{color:"#aaa",fontSize:14,fontWeight:"bold",lineHeight:1.8}},
-            React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginBottom:2}}, "v2.8.39"),
+            React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginBottom:2}}, "v2.8.40"),
+            React.createElement('div', null, "\u2022 CHKL \uc0c9\uc0c1 \ubcf5\uc6d0(FCOM) \u00b7 \ud56d\ubaa9\uba85 \uc218\uc815 \u00b7 \uc88c\uc6b0 \uc815\ub82c"),
+            React.createElement('div', null, "\u2022 FWD Panel ND \ud2c0 \ud604\uc0c1 \uc218\uc815"),
+            React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginTop:8,marginBottom:2}}, "v2.8.39"),
             React.createElement('div', null, "\u2022 B612 cockpit font \u00b7 CDU \uae00\uc790\uc0c9 \ud1b5\uc77c(white)"),
             React.createElement('div', null, "\u2022 EICAS \ucee8\ud2b8\ub864 \uac1c\ud3b8 \u00b7 \uba54\uc2dc\uc9c0\ubcc4 CANC/RCL"),
-            React.createElement('div', null, "\u2022 Advisory indent \u00b7 S9 AUTOBRAKE \u00b7 \ube48 \ud544\ub4dc \ubcf5\uc0ac \ubc29\uc9c0"),
-            React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginTop:8,marginBottom:2}}, "v2.8.38"),
-            React.createElement('div', null, "\u2022 EICAS \uba54\uc2dc\uc9c0 \ud45c\uc2dc (14\uac1c \uc2dc\ub098\ub9ac\uc624, CDU \uc870\uc791 \uc5f0\ub3d9)"),
-            React.createElement('div', null, "\u2022 S1~S8 \uccb4\ud06c\ub9ac\uc2a4\ud2b8 \uc790\ub3d9\uc804\ud658 \u00b7 Phase \ubc84\ud2bc EICAS \uc5f0\ub3d9"),
 
           )
         )
