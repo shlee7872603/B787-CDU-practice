@@ -10,7 +10,7 @@
 <meta name="theme-color" content="#050505">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>B787 CDU Practice v2.8.40</title>
+<title>B787 CDU Practice v2.9.3</title>
 <style>*{margin:0;padding:0;box-sizing:border-box;-webkit-user-select:none;user-select:none}body{background:#050505;overflow-x:hidden}</style>
 </head>
 <body>
@@ -17171,7 +17171,49 @@ const C = {
 };
 const M = "'B612','Courier New',Consolas,monospace";
 
-// ═══════ AIRWAY DATABASE (waypoints in order on each airway) ═══════
+/*
+╔══════════════════════════════════════════════════════════════╗
+║  B787 CDU Practice — CODE MAP (search by section tag)       ║
+╠══════════════════════════════════════════════════════════════╣
+║  [CONST]     C, M, S                — Colors, Font, Styles ║
+║  [DATA]      AIRWAY_DB              — Airway waypoints      ║
+║  [DATA]      FLIGHT_DB              — Flight plans           ║
+║  [DATA]      AIRPORT_DB             — DEP/ARR per airport    ║
+║  [DATA]      NAV_DATA               — SID/STAR/APP wpts      ║
+║  [DATA]      ENROUTE_LEGS           — Enroute waypoints      ║
+║  [DATA]      EICAS_SCENARIOS        — 14 EICAS states        ║
+║  [DATA]      CHECKLISTS             — 10 NOR checklists      ║
+║  [FUNC]      buildLegs(s)           — LEGS page builder      ║
+║  [FUNC]      updateRouteLegs(s)     — RTE page builder       ║
+║  [COMP]      CDURow                 — Single CDU row          ║
+║  [PAGE]      cduPageData(fms)       — All CDU page defs      ║
+║  [COMP]      CDUPanel               — CDU screen + handlers  ║
+║  [COMP]      MFKKeypad              — MFK buttons             ║
+║  [COMP]      EFBPanel               — EFB T/O perf            ║
+║  [COMP]      ChecklistView          — CHKL display            ║
+║  [COMP]      CommView               — COMM pages              ║
+║  [COMP]      InfoView               — INFO display            ║
+║  [COMP]      NDView                 — ND compass              ║
+║  [COMP]      SysView                — SYS synoptics           ║
+║  [COMP]      PFDPanel / EICASPanel  — PFD/EICAS popups        ║
+║  [COMP]      ForwardPanelView       — FWD dual-MFD            ║
+║  [COMP]      CDUMiniView            — CDU in MFD window       ║
+║  [MAIN]      B787Cockpit            — App root + splash       ║
+╚══════════════════════════════════════════════════════════════╝
+*/
+
+// [CONST] Checklist colors (FCOM originals, not CDU white)
+const CK={green:"#00e800",cyan:"#00cccc",white:"#d8d8d8"};
+
+// [CONST] Common reusable styles
+const S={
+  titleFont:{fontSize:"18px",fontFamily:M,fontWeight:"normal",whiteSpace:"pre",padding:"0 4px"},
+  dataFont:{fontFamily:M,fontWeight:"bold",whiteSpace:"pre",padding:"0 4px",letterSpacing:"1.5px"},
+  lskBtn:{width:"11px",height:"24px",background:C.lskDash,border:"none",cursor:"pointer",borderRadius:"1px",flexShrink:0,alignSelf:"center",margin:"0 2px"},
+  chklItem:{fontSize:"19px",fontFamily:M,fontWeight:"bold",lineHeight:1.4},
+  eicasMsg:{fontFamily:"'B612',sans-serif",fontWeight:"bold",lineHeight:1.4,whiteSpace:"nowrap",transform:"scaleX(1.2)",transformOrigin:"left"},
+};
+// ═══════ [DATA] AIRWAY_DB (waypoints in order on each airway) ═══════
 const AIRWAY_DB = {
   // KAL788 FUK→ICN direction (south→north)
   G339: ["DGC","BEETL"],
@@ -17228,7 +17270,7 @@ function autoCompleteTO(routeLegs, idx) {
   return si >= 0 ? wpts[wpts.length - 1] : null;
 }
 
-// ═══════ FLIGHT DATABASE (FUK-ICN fltplan-0788-20260316) ═══════
+// ═══════ [DATA] FLIGHT_DB (FUK-ICN fltplan-0788-20260316) ═══════
 const FLIGHT_DB = {
   // ═══ KAL788: FUK → ICN (was KAL782) ═══
   KAL788: {
@@ -17425,7 +17467,7 @@ const FLIGHT_DB = {
 FLIGHT_DB.KAL781=FLIGHT_DB.KAL787;
 FLIGHT_DB.KAL782=FLIGHT_DB.KAL788;
 
-// ═══════ Airport-based DEP/ARR data (keyed by ICAO) ═══════
+// ═══════ [DATA] AIRPORT_DB data (keyed by ICAO) ═══════
 const AIRPORT_DB = {
   RKSI:{
     pos:"N37°27.7 E126°26.6",
@@ -17439,7 +17481,7 @@ const AIRPORT_DB = {
     arrStars:["ISKUPE","HONOKE","ATSAGE","SARUPE"],arrApps:["RNP 16L","ILS 16L","RNAV 34R"]},
 };
 
-// ═══════ ATIS DATABASE ═══════
+// ═══════ [DATA] ATIS_DB ═══════
 var ATIS_DB = {
   RKSI:{
     DEP:"RKSI DEP ATIS A xxxxZ\nDEP RWY 15R FOR ROUTE Y697 EAST AND G597 EAST AND Y782\nDEP RWY 16L FOR ROUTE Y697 WEST AND Y711 AND A593\nWIND 240/5KT CAVOK\nT 15 DP 5\nQNH 1023\nCAUTION BIRD ACTIVITY\nRWY 15R EXPECT SID EGOBA2C OSPOT2C RWY\n16L EXPECT SID BOPTA3H BINIL3H\nDEP FREQ 125.15\nGPS SIGNAL UNRELIABLE DUE TO GPS INTERFERENCE IN SEOUL APCH AREA",
@@ -17451,13 +17493,13 @@ var ATIS_DB = {
   }
 };
 
-// ═══════ GATE DATABASE ═══════
+// ═══════ [DATA] GATE_DB ═══════
 var GATE_DB = {
   RKSI:{gate:"257",msg:function(flt,eta){return "GATE ASSIGNMENT\n"+flt+" ARR RKSI\nETA "+eta+"\nASSIGNED GATE 257\nTERMINAL 2 CONCOURSE A\nGROUND POWER AVAILABLE\nPAX BRIDGE 2L 3L\nBAGGAGE BELT 7\nREMARK: FOLLOW MARSHALLER";}},
   RJFF:{gate:"54",msg:function(flt,eta){return "GATE ASSIGNMENT\n"+flt+" ARR RJFF\nETA "+eta+"\nASSIGNED GATE 54\nINTERNATIONAL TERMINAL\nGROUND POWER AVAILABLE\nPAX BRIDGE 1L\nBAGGAGE BELT 3\nREMARK: EXPECT SPOT 54 NOSE IN";}}
 };
 
-// ═══════ NAV DATA — SID/STAR/APP waypoints (FCOM 11.40.28) ═══════
+// ═══════ [DATA] NAV_DATA — SID/STAR/APP waypoints (FCOM 11.40.28) ═══════
 const NAV_DATA = {
   // ═══ RJFF SIDs ═══
   HAKAT5:{type:"SID",rwy:"34R",exit:"DGC",wpts:[
@@ -17647,7 +17689,7 @@ const NAV_DATA = {
     {wpt:"RW34R",crs:"338°",dist:"4NM",spdAlt:"",pred:"Vref+5",isDest:true}]},
 };
 
-// ═══════ Enroute legs for each flight (between SID exit and STAR entry) ═══════
+// ═══════ [DATA] ENROUTE_LEGS for each flight (between SID exit and STAR entry) ═══════
 const ENROUTE_LEGS = {
   KAL788:[
     {wpt:"DGC",  crs:"338°",dist:"12NM",spdAlt:"",pred:"250/ 5000",via:"DIRECT"},
@@ -17682,7 +17724,7 @@ const ENROUTE_LEGS = {
 ENROUTE_LEGS.KAL781=ENROUTE_LEGS.KAL787;
 ENROUTE_LEGS.KAL782=ENROUTE_LEGS.KAL788;
 
-// ═══════ Build LEGS dynamically from SID + Enroute + STAR + APP ═══════
+// ═══════ [FUNC] buildLegs dynamically from SID + Enroute + STAR + APP ═══════
 function buildLegs(fms){
   var fltKey=(fms.fltNo||"").toUpperCase();
   var enroute=(ENROUTE_LEGS[fltKey]||[]).map(function(w){return Object.assign({},w);});
@@ -17778,7 +17820,7 @@ function buildLegs(fms){
   return legs;
 }
 
-// ═══════ Update routeLegs for RTE page display ═══════
+// ═══════ [FUNC] updateRouteLegs for RTE page display ═══════
 function updateRouteLegs(fms){
   // 1) Strip existing SID/STAR/APP/APPR TRANS/DISC tags — enroute and manual DISC untouched
   fms.routeLegs=fms.routeLegs.filter(function(l){return !l._star && !l._app && !(l._disc&&!l._manual) && !l._appTrans && !l._sid && !l._missed;});
@@ -17837,7 +17879,7 @@ function updateRouteLegs(fms){
 }
 function updateRouteForSid(fms){updateRouteLegs(fms);}
 
-// ═══════ EICAS MESSAGE SCENARIOS ═══════
+// ═══════ [DATA] EICAS_SCENARIOS SCENARIOS ═══════
 var EICAS_SCENARIOS = [
   {id:1,phase:"ARRIVAL",title:"Gate Arrival",
     caution:["ENG SHUTDOWN","HYD PRESS SYS L+C+R"],advisory:["DOORS","FUEL PRESS ENG L+R","TCAS OFF"],
@@ -17875,6 +17917,99 @@ var EICAS_SCENARIOS = [
     caution:["ENG SHUTDOWN","HYD PRESS SYS L+C+R"],advisory:["FUEL PRESS ENG L+R","TCAS OFF"],memo:["APU RUNNING","DOORS AUTO","PARKING BRAKE SET"]},
   {id:14,phase:"ARRIVAL",title:"All Door Manual",
     caution:["ENG SHUTDOWN","HYD PRESS SYS L+C+R"],advisory:["FUEL PRESS ENG L+R","TCAS OFF"],memo:["APU RUNNING","DOORS MANUAL","PARKING BRAKE SET"]}
+];
+
+// ═══════ [DATA] CHECKLISTS — Korean Air B787 NOR Checklist ═══════
+const CHECKLISTS = [
+  {name:"PREFLIGHT", items:[
+    {t:"open",  item:"SECURITY SEARCH",      resp:"COMPLETED ALL"},
+    {t:"closed",item:"SEAT BELTS",               resp:"ON F/O"},
+    {t:"open",  item:"GEAR PINS",                resp:"ON BOARD ALL"},
+    {t:"open",  item:"OXYGEN",                   resp:"TESTED, 100% ALL"},
+    {t:"open",  item:"FLT INST & ALTIMETER",     resp:"SET ALL"},
+    {t:"open",  item:"FUEL QUANTITY",             resp:"___ +/- ___LBS ALL"},
+    {t:"closed",item:"AUTOBRAKE",                resp:"RTO F/O"},
+    {t:"closed",item:"PARKING BRAKE",            resp:"SET CAP"},
+    {t:"closed",item:"FUEL CTRL SWS",            resp:"CUTOFF CAP"},
+    {t:"open",  item:"TAKEOFF BRIEFING",         resp:"COMPLETED PF"},
+  ]},
+  {name:"BEFORE START", items:[
+    {t:"closed",item:"DOORS",                    resp:"CLOSED AND AUTO ALL"},
+    {t:"closed",item:"HYDRAULIC PANEL",          resp:"AUTO F/O"},
+    {t:"closed",item:"FUEL PUMPS",               resp:"ON F/O"},
+    {t:"closed",item:"BEACON LIGHT",             resp:"ON F/O"},
+    {t:"open",  item:"MCP",                      resp:"SET CAP"},
+    {t:"open",  item:"CDU",                      resp:"SET F/O"},
+    {t:"closed",item:"TRIM",                     resp:"____, ZERO CAP"},
+    {t:"open",  item:"TRANSPONDER",              resp:"XPDR F/O"},
+  ]},
+  {name:"AFTER START", items:[
+    {t:"closed",item:"APU",                      resp:"OFF F/O"},
+    {t:"open",  item:"ENGINE ANTI ICE",          resp:"AS REQUIRED F/O"},
+    {t:"open",  item:"RECALL",                   resp:"CHECKED F/O"},
+    {t:"closed",item:"FLAPS",                    resp:"____ ALL"},
+    {t:"open",  item:"FLIGHT CONTROLS",          resp:"CHECKED CAP"},
+    {t:"open",  item:"GROUND PERSONNEL AND EQUIPMENT", resp:"CLEAR ALL"},
+  ]},
+  {name:"BEFORE TAKEOFF", items:[
+    {t:"closed",item:"FLAPS",                    resp:"____ ALL"},
+    {t:"closed",item:"TRANSPONDER",              resp:"TA/RA F/O"},
+    {t:"open",  item:"CABIN REPORT AND TAKEOFF SIGNAL",resp:"COMPLETE F/O"},
+    {t:"closed",item:"STROBE LIGHT",             resp:"ON F/O"},
+    {t:"closed",item:"WX RADAR",                 resp:"ON ALL"},
+  ]},
+  {name:"AFTER TAKEOFF", items:[
+    {t:"closed",item:"LANDING GEAR",             resp:"UP PM"},
+    {t:"closed",item:"FLAPS",                    resp:"UP PM"},
+    {t:"closed",item:"ENGINE ANTI-ICE",          resp:"AUTO PM"},
+  ]},
+  {name:"DESCENT", items:[
+    {t:"open",  item:"RECALL",                   resp:"CHECKED PM"},
+    {t:"open",  item:"NOTES",                    resp:"CHECKED PM"},
+    {t:"open",  item:"AUTOBRAKE",                resp:"___ PM"},
+    {t:"open",  item:"LANDING DATA",             resp:"VREF___, MINIMUMS ___ ALL"},
+    {t:"open",  item:"LANDING BRIEFING",         resp:"COMPLETED PF"},
+    {t:"open",  item:"CABIN CREW",               resp:"ADVISED CAP"},
+  ]},
+  {name:"APPROACH", items:[
+    {t:"closed",item:"LANDING LIGHTS",           resp:"ON PM"},
+    {t:"closed",item:"RW TURNOFF LIGHTS",        resp:"ON PM"},
+    {t:"closed",item:"TAXI LIGHT",               resp:"ON PM"},
+    {t:"closed",item:"SEAT BELT SIGNS",          resp:"ON PM"},
+    {t:"open",  item:"ALTIMETERS",               resp:"___ InHg/hPa SET &\n                X-CHECKED ALL"},
+  ]},
+  {name:"BEFORE LANDING", items:[
+    {t:"closed",item:"LANDING GEAR",             resp:"DOWN ALL"},
+    {t:"closed",item:"SPEEDBRAKE",               resp:"ARMED PF"},
+    {t:"closed",item:"FLAPS",                    resp:"____ ALL"},
+  ]},
+  {name:"AFTER LANDING", items:[
+    {t:"closed",item:"STROBE LIGHT",             resp:"OFF F/O"},
+    {t:"closed",item:"LANDING LIGHT",            resp:"OFF F/O"},
+    {t:"closed",item:"FLIGHT DIRECTORS",         resp:"OFF ALL"},
+    {t:"closed",item:"WX RADAR",                 resp:"OFF ALL"},
+    {t:"closed",item:"AUTOBRAKE",                resp:"OFF F/O"},
+    {t:"closed",item:"SPEEDBRAKE",               resp:"DOWN CAP"},
+    {t:"closed",item:"FLAPS",                    resp:"UP F/O"},
+    {t:"open",  item:"TRANSPONDER",              resp:"XPDR F/O"},
+    {t:"closed",item:"APU",                      resp:"START F/O"},
+  ]},
+  {name:"SHUTDOWN", items:[
+    {t:"closed",item:"PARKING BRAKE",            resp:"SET CAP"},
+    {t:"closed",item:"FUEL CTRL SWS",            resp:"CUTOFF CAP"},
+    {t:"closed",item:"SEAT BELT SIGNS",          resp:"OFF F/O"},
+    {t:"closed",item:"HYDRAULIC PANEL",          resp:"OFF F/O"},
+    {t:"closed",item:"FUEL PUMPS",               resp:"OFF F/O"},
+    {t:"closed",item:"BEACON LIGHT",             resp:"OFF F/O"},
+    {t:"closed",item:"TRANSPONDER",              resp:"STBY F/O"},
+    {t:"open",  item:"STATUS",                   resp:"CHECKED F/O"},
+  ]},
+  {name:"SECURE", items:[
+    {t:"closed",item:"IRS",                      resp:"OFF F/O"},
+    {t:"closed",item:"BATTERY",                  resp:"OFF F/O"},
+    {t:"closed",item:"EMERGENCY LIGHTS",         resp:"OFF F/O"},
+    {t:"closed",item:"PACKS",                    resp:"OFF F/O"},
+  ]},
 ];
 
 var CUR={}; // shared cursor controller
@@ -17953,7 +18088,7 @@ const initFMS = () => ({
   },
 });
 
-// ═══════ UNIFIED CDU ROW: [LSK_L] [title+data] [LSK_R] ═══════
+// ═══════ [COMP] CDURow: [LSK_L] [title+data] [LSK_R] ═══════
 // Each LSK position = title line (small) + data line (large), dash aligned to data
 function CDURow({n, tl="",tr="",dl="",dr="",dc="",tlc=C.white,trc=C.white,dlc=C.white,drc=C.white,dcc=C.white,onL,onR,sep=false,tlFull,tlFullBg,tlFullColor,tlBg,cursorSide,discLine,dlBg,drBg}) {
   // FCOM: cyan=prompt/default(Small), magenta=FMC calc(Small), green/white=pilot entry(Large)
@@ -18016,7 +18151,7 @@ function CDURow({n, tl="",tr="",dl="",dr="",dc="",tlc=C.white,trc=C.white,dlc=C.
   );
 }
 
-// ═══════ CDU PAGE DEFINITIONS (FCOM Ch.11 Sec.40-43) ═══════
+// ═══════ [PAGE] cduPageData (FCOM Ch.11 Sec.40-43) ═══════
 function cduPageData(fms) {
   const p = fms.page;
   // Each page returns: { title, titleSub, rows: [{tl,tr,dl,dr,tlc,trc,dlc,drc}], hasSep }
@@ -18074,25 +18209,26 @@ function cduPageData(fms) {
         {dl:"<INDEX",dr:"ROUTE>",dlc:C.cyan,drc:C.cyan},
       ],sep:5};
     })(),
-    RTE_1: {title:fms.execLight&&fms.phase==="ACTIVE"?"MOD RTE 1":(fms.phase==="ACTIVE"?"ACT RTE 1":"RTE 1"),titleSub:`1/${Math.max(2,Math.ceil(fms.routeLegs.length/5)+1)}`, rows:[
+    RTE_1: {title:fms.execLight&&fms.phase==="ACTIVE"?"MOD RTE 1":(fms.phase==="ACTIVE"?"ACT RTE 1":"RTE 1"),titleSub:`1/${Math.max(2,Math.floor(fms.routeLegs.length/5)+2)}`, rows:[
       {tl:"ORIGIN",tr:"DEST",dl:fms.origin||"▯▯▯▯",dr:fms.dest||"▯▯▯▯",dlc:fms.origin?C.green:C.cyan,drc:fms.dest?C.green:C.cyan,dlBg:true,drBg:true},
       {tl:"RUNWAY",tr:"FLT NO",dl:fms.runway||"-----",dr:fms.fltNo||"----------",dlc:fms.runway?C.green:C.cyan,drc:fms.fltNo?C.green:C.cyan,dlBg:true,drBg:true},
       {tl:"ROUTE",tr:"CO ROUTE",dl:fms.phase==="ACTIVE"?"<REPORT":"<REQUEST",dr:fms.coRoute||"----------",dlc:C.cyan,drc:C.cyan,drBg:true},
       {dr:fms.phase==="ACTIVE"?"RTE COPY>":"",drc:C.cyan},
       {tl:fms.phase==="ACTIVE"?"ROUTE":"",
        dl:fms.rteUplinkPending?"<LOAD":(fms.phase==="ACTIVE"?"<PRINT":""),
-       dr:fms.phase==="ACTIVE"?"ALTN>":(fms.origin&&fms.dest&&!fms.execLight?"ACTIVATE>":""),
+       dr:fms.phase==="ACTIVE"?"ALTN>":"",
        dlc:fms.rteUplinkPending?C.cyan:C.cyan,drc:C.cyan},
-      {dl:fms.execLight?"<ERASE":"<RTE 2",dr:"PERF INIT>",dlc:C.cyan,drc:C.cyan},
+      {dl:fms.execLight?"<ERASE":"<RTE 2",dr:fms.phase==="ACTIVE"?"PERF INIT>":(fms.origin&&fms.dest&&!fms.execLight?"ACTIVATE>":"PERF INIT>"),dlc:C.cyan,drc:C.cyan},
     ],sep:fms.phase==="ACTIVE"?4:5,helpMsg:fms.helpMsg},
     RTE_1_2: (()=>{
       const startIdx = (fms.rtePage - 2) * 5;
-      const totalPages = Math.max(2, Math.ceil(fms.routeLegs.length / 5) + 1);
+      const totalPages = Math.max(2, Math.floor(fms.routeLegs.length / 5) + 2);
       const legsSlice = fms.routeLegs.slice(startIdx, startIdx + 5);
       const rows = [];
       for(let i=0; i<5; i++) {
         const leg = legsSlice[i];
-        if(leg&&leg._disc) rows.push({tl:i===0?"VIA   ROUTE DISCONTINUITY":"------  ROUTE  DISCONTINUITY  ------",tr:i===0?"TO":"",
+        if(leg&&leg._disc) rows.push({tl:i===0?"VIA":"",tr:i===0?"TO":"",
+          tlFull:i===0?null:"ROUTE  DISCONTINUITY",tlFullBg:"transparent",tlFullColor:C.white,
           dl:"□□□□□",dr:"-----",dlc:C.white,drc:C.white,dlBg:true,drBg:true,tlc:C.white,trc:C.dim});
         else if(leg) rows.push({tl:i===0?"VIA":"",tr:i===0?"TO":"",
           dl:leg.via||"DIRECT",dr:leg.to||(leg.via?"-----":""),dlBg:true,drBg:true,
@@ -18101,7 +18237,7 @@ function cduPageData(fms) {
         else rows.push({tl:i===0&&!legsSlice.length?"VIA":"",tr:i===0&&!legsSlice.length?"TO":"",
           dl:"-----",dr:"▯▯▯▯▯",dlc:C.cyan,drc:C.cyan,dlBg:true,drBg:true,tlc:C.dim,trc:C.dim});
       }
-      rows.push({dl:(fms.routeLegs.length||fms.execLight)?"<ERASE":"<RTE 2",dr:"PERF INIT>",dlc:C.cyan,drc:C.cyan});
+      rows.push({dl:(fms.routeLegs.length||fms.execLight)?"<ERASE":"<RTE 2",dr:fms.phase==="ACTIVE"?"PERF INIT>":(fms.origin&&fms.dest&&!fms.execLight?"ACTIVATE>":"PERF INIT>"),dlc:C.cyan,drc:C.cyan});
       return {title:fms.execLight&&fms.phase==="ACTIVE"?"MOD RTE 1":(fms.phase==="ACTIVE"?"ACT RTE 1":"RTE 1"),titleSub:`${fms.rtePage}/${totalPages}`,rows,sep:5};
     })(),
     PERF_INIT: {title:"PERF INIT", rows:[
@@ -18521,7 +18657,7 @@ function cduPageData(fms) {
         const isActive=startIdx+i===0 && fms.phase==="ACTIVE" && !fms.execLight;
         // FCOM 11.42.2: Discontinuity — ROUTE DISCONTINUITY in title, □□□□□ in data
         if(leg.isDisc){
-          rows.push({tl:"------  ROUTE  DISCONTINUITY  ------",dl:"□□□□□",dlc:C.white,tlc:C.white,dlBg:true});
+          rows.push({tlFull:"ROUTE  DISCONTINUITY",tlFullBg:"transparent",tlFullColor:C.white,dl:"□□□□□",dlc:C.white,dlBg:true});
           return;
         }
         // FCOM 11.42.14: Holding pattern display
@@ -18609,8 +18745,8 @@ function cduPageData(fms) {
         rows.push({dl:sids[2]||"",dlc:C.white});
         rows.push({dl:sids[3]||"",dlc:C.white});
         rows.push({tl:"EO SIDS",dl:fms.depEoSid||"NONE",dlc:C.white});
-      } else {
-        // ═══ Both selected — show full list with ACT/SEL highlighted ═══
+      } else if(isAct) {
+        // ═══ Both selected ACT — full list for re-selection ═══
         for(var bi=0;bi<4;bi++){
           var bSid=sids[bi]||"";
           var bRwy=rwys[bi]||"";
@@ -18622,6 +18758,21 @@ function cduPageData(fms) {
           if(bi===0)bRow.tl=titleRow;
           rows.push(bRow);
         }
+        rows.push({tl:"EO SIDS",dl:fms.depEoSid||"NONE",dlc:C.white});
+      } else {
+        // ═══ Both selected SEL — show only selected on L1/R1 ═══
+        var sNavB=selSid?NAV_DATA[selSid]:null;
+        var hasTransB=sNavB&&sNavB.trans&&sNavB.trans.length>0;
+        rows.push({tl:titleRow,
+          dl:selSid+sidTag(selSid),dlc:C.green,
+          dr:rwyTag(selRwy)+" "+selRwy,drc:C.green});
+        if(hasTransB){
+          rows.push({tl:"TRANS",tlc:C.dim,dl:(sNavB.trans[0]||"---"),dlc:C.white});
+        } else {
+          rows.push({});
+        }
+        rows.push({});
+        rows.push({});
         rows.push({tl:"EO SIDS",dl:fms.depEoSid||"NONE",dlc:C.white});
       }
       rows.push({dl:(selSid||selRwy)&&!isAct?"<ERASE":"<INDEX",dr:"ROUTE>",dlc:C.cyan,drc:C.cyan});
@@ -18692,44 +18843,45 @@ function cduPageData(fms) {
           rows.push(rowObj1);
         }
         rows.push({});
+      } else if(starAct&&appAct) {
+        // ═══ Both selected ACT — full list for re-selection ═══
+        var aNavA=NAV_DATA[(selApp||"").replace(/\s/g,"")];
+        var aTransArrA=aNavA&&aNavA.trans?aNavA.trans:[];
+        for(var ai=0;ai<5;ai++){
+          var aStar=stars[ai]||"";
+          var aApp=apps[ai]||"";
+          var aRow={
+            dl:aStar===selStar?selStar+lTag(selStar,starAct):aStar,
+            dlc:aStar===selStar?C.green:(aStar?C.white:C.dim),
+            dr:aApp.replace(/\s/g,"")===selApp?rTag(selApp,appAct)+aApp:aApp,
+            drc:aApp.replace(/\s/g,"")===selApp?C.green:(aApp?C.white:C.dim)};
+          if(ai===0)aRow.tl=titleRow;
+          if(ai===1&&aTransArrA.length>0){aRow.tr=" TRANS";aRow.trc=C.dim;}
+          rows.push(aRow);
+        }
+        rows.push({});
       } else {
-        // Both selected
-        if(starAct&&appAct){
-          // ACT state — show full list with highlighted ACT items
-          for(var ai=0;ai<5;ai++){
-            var aStar=stars[ai]||"";
-            var aApp=apps[ai]||"";
-            var aRow={
-              dl:aStar===selStar?selStar+lTag(selStar,starAct):aStar,
-              dlc:aStar===selStar?C.green:(aStar?C.white:C.dim),
-              dr:aApp.replace(/\s/g,"")===selApp?rTag(selApp,appAct)+aApp:aApp,
-              drc:aApp.replace(/\s/g,"")===selApp?C.green:(aApp?C.white:C.dim)};
-            if(ai===0)aRow.tl=titleRow;
-            rows.push(aRow);
-          }
-        } else {
-        // SEL state — STAR on left, APP+TRANS list on right
-        var sNav=NAV_DATA[selStar];
-        var sHasTrans=sNav&&sNav.trans&&sNav.trans.length>0;
-        var aNav=NAV_DATA[(selApp||"").replace(/\s/g,"")];
-        var aTransArr=aNav&&aNav.trans?aNav.trans:[];
+        // ═══ Both selected SEL — show only selected on L1/R1 + TRANS ═══
+        var aNavB=NAV_DATA[(selApp||"").replace(/\s/g,"")];
+        var aTransArrB=aNavB&&aNavB.trans?aNavB.trans:[];
         rows.push({tl:titleRow,
           dl:selStar+lTag(selStar,starAct),dlc:C.green,
           dr:rTag(selApp,appAct)+selApp,drc:C.green});
-        for(var ti2=0;ti2<3;ti2++){
-          var tv2=aTransArr[ti2]||"";
-          var tvTag2=tv2&&fms.arrTrans===tv2?lTag(tv2,appAct):"";
-          var tvClr2=tv2&&fms.arrTrans===tv2?C.green:(tv2?C.white:C.dim);
-          var rowObj2={dr:tv2+(tvTag2?" "+tvTag2:""),drc:tvClr2};
-          if(ti2===0){
-            rowObj2.tr=" TRANS";rowObj2.trc=C.dim;
-            if(sHasTrans){rowObj2.tl=" TRANS";rowObj2.tlc=C.dim;rowObj2.dl=sNav.trans[0]||"---";rowObj2.dlc=C.white;}
+        if(fms.arrTrans){
+          rows.push({tr:" TRANS",trc:C.dim,dr:fms.arrTrans+(appAct?" <ACT>":" <SEL>"),drc:C.green});
+          rows.push({});
+          rows.push({});
+        } else if(aTransArrB.length>0){
+          for(var tiB=0;tiB<3;tiB++){
+            var tvB=aTransArrB[tiB]||"";
+            var rowObjB={dr:tvB,drc:tvB?C.white:C.dim};
+            if(tiB===0){rowObjB.tr=" TRANS";rowObjB.trc=C.dim;}
+            rows.push(rowObjB);
           }
-          rows.push(rowObj2);
+        } else {
+          rows.push({});rows.push({});rows.push({});
         }
         rows.push({});
-        rows.push({});
-        }
       }
 
       rows.push({dl:(selStar||selApp)&&!(starAct||appAct)?"<ERASE":"<INDEX",dr:"ROUTE>",dlc:C.cyan,drc:C.cyan});
@@ -19076,7 +19228,7 @@ function cduPageData(fms) {
   return pages[p] || pages.IDENT;
 }
 
-// ═══════ CDU PANEL (Image 2 style) ═══════
+// ═══════ [COMP] CDUPanel (Image 2 style) ═══════
 function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
   // Handle return from checklist
   if(fms.returnFromChkl){
@@ -19124,7 +19276,8 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
         // FCOM 11.40.8: R6 = ROUTE>
         if(side==="R"&&num===6)go("RTE_1");
       }
-      else if(p==="RTE_1"){
+      else // [HDL] RTE_1
+      if(p==="RTE_1"){
         if(side==="L"&&num===1)set("origin");
         if(side==="R"&&num===1)set("dest");
         if(side==="L"&&num===2)set("runway");
@@ -19150,12 +19303,8 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
             s.helpMsg="ROUTE LOADED";
           }
         }
-        // R5: ACTIVATE → arm for execution (FCOM 11.40.21: origin+dest required)
-        if(side==="R"&&num===5&&s.origin&&s.dest&&s.phase!=="ACTIVE"){
-          s.execLight=true;
-        }
-        // R6: PERF INIT (item 5)
-        if(side==="R"&&num===6)go("PERF_INIT");
+        // R6: ACTIVATE (inactive) or PERF INIT (active)
+        if(side==="R"&&num===6){if(s.phase!=="ACTIVE"&&s.origin&&s.dest&&!s.execLight){s.execLight=true;}else{go("PERF_INIT");}}
         if(side==="L"&&num===6){
           if(s.execLight){
             // ERASE — restore to last EXEC snapshot
@@ -19172,6 +19321,7 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
           } else go("INIT_REF");
         }
       }
+      // [HDL] RTE_1_2
       else if(p==="RTE_1_2"){
         const startIdx=(s.rtePage-2)*5;
         // DELETE on L1-L5 or R1-R5: remove the routeLeg at that position
@@ -19234,29 +19384,18 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
             if(s.routeLegs[idx]&&s.routeLegs[idx].via&&s.routeLegs[idx].via!=="DIRECT"&&s.routeLegs[idx].via!==""){
               s.routeLegs[idx]={...s.routeLegs[idx],to:inputTo};
             }
-            // Otherwise check if DISC needed
+            // Otherwise: DIRECT entry (no DISC for manual waypoints)
             else {
-              let lastFilledIdx=-1;
-              for(let k=idx-1;k>=0;k--){if(s.routeLegs[k]&&(s.routeLegs[k].to||s.routeLegs[k]._disc)){lastFilledIdx=k;break;}}
-              const prevLeg=lastFilledIdx>=0?s.routeLegs[lastFilledIdx]:null;
-              if(prevLeg && prevLeg.to && prevLeg.to!==inputTo && !prevLeg._disc){
-                const removeFrom=lastFilledIdx+1;
-                const removeCount=idx-removeFrom+1;
-                if(removeCount>0)s.routeLegs.splice(removeFrom,removeCount);
-                s.routeLegs.splice(removeFrom,0,
-                  {via:"DISCONTINUITY",to:"",_disc:true,_manual:true},
-                  {via:"DIRECT",to:inputTo,_manual:true}
-                );
-              } else {
-                if(!s.routeLegs[idx].via)s.routeLegs[idx].via="DIRECT";
-                s.routeLegs[idx]={...s.routeLegs[idx],to:inputTo};
-              }
+              if(!s.routeLegs[idx].via)s.routeLegs[idx].via="DIRECT";
+              s.routeLegs[idx]={...s.routeLegs[idx],to:inputTo};
             }
             s.scratchpad="";if(s.phase==="ACTIVE")s.execLight=true;
             updateRouteLegs(s);s.computedLegs=buildLegs(s);
           }
         }
-        if(side==="R"&&num===6)go("PERF_INIT");
+        // [Issue2] Auto-advance to next page when last row (num===5) filled
+        if(num===5&&sp&&sp!=="DELETE"){var _li5=startIdx+4;if(s.routeLegs[_li5]&&(s.routeLegs[_li5].via||s.routeLegs[_li5].to))s.rtePage=s.rtePage+1;}
+        if(side==="R"&&num===6){if(s.phase!=="ACTIVE"&&s.origin&&s.dest&&!s.execLight){s.execLight=true;}else{go("PERF_INIT");}}
         if(side==="L"&&num===6){
           if(s.execLight){
             // ERASE — restore to last EXEC snapshot
@@ -19282,10 +19421,11 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
             s.computedLegs=buildLegs(s);
             if(s.phase==="ACTIVE")s.execLight=true;
             // Go back to page 1 if current page is now empty
-            if(si>=s.routeLegs.length&&s.rtePage>2)s.rtePage=Math.max(2,Math.ceil(s.routeLegs.length/5)+1);
+            if(si>=s.routeLegs.length&&s.rtePage>2)s.rtePage=Math.max(2,Math.floor(s.routeLegs.length/5)+2);
           }
         }
       }
+      // [HDL] PERF_INIT
       else if(p==="PERF_INIT"){
         // Auto-advance cursor: ZFW(L3) → RESERVE(L4) → CRZ ALT(R1) → COST INDEX(R2) → THRUST LIM(R6)
         if(side==="L"&&num===3&&sp){if(sp==="DELETE"){s.zfw="";s.grWt="";s.scratchpad="";}else{s.zfw=sp;s.scratchpad="";s.grWt=(parseFloat(sp)+parseFloat(s.fuel||0)).toFixed(1);s.helpMsg="RESERVES";s._perfNext={side:"L",num:4};}}
@@ -19298,7 +19438,9 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
         if(side==="L"&&num===6)go("INIT_REF");
         if(side==="R"&&num===6)go("THRUST_LIM");
       }
+      // [HDL] THRUST_LIM
       else if(p==="THRUST_LIM"){if(side==="L"&&num===2)s.thrustMode="TO";if(side==="L"&&num===3)s.thrustMode="TO 1";if(side==="L"&&num===4)s.thrustMode="TO 2";if(side==="L"&&num===1)set("selOat");if(side==="L"&&num===6)go("INIT_REF");if(side==="R"&&num===6)go("TOREF1");}
+      // [HDL] APPROACH_REF
       else if(p==="APPROACH_REF"){
         if(side==="L"&&num===1&&sp){if(sp==="DELETE"){s.grWt="";s.appGwEntered=false;s.scratchpad="";}else{s.grWt=sp;s.appGwEntered=true;s.scratchpad="";}}
         if(side==="R"&&num===1&&!sp){var _gw2=parseFloat(s.grWt||0);if(_gw2>100){s.scratchpad="20/"+String(Math.round(115+_gw2*0.065)+6);}}
@@ -19354,6 +19496,7 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
         if(side==="R"&&num===5&&sp){s.oat=sp;s.scratchpad="";}        // REF OAT
         if(side==="L"&&num===6)go("INIT_REF");
       }
+      // [HDL] CLB
       else if(p==="CLB"){
         // FCOM 11.41.3: CLB page handlers
         if(side==="L"&&num===1&&sp){s.crzAlt=sp;s.scratchpad="";s.execLight=true;}  // CRZ ALT
@@ -19367,6 +19510,7 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
         if(side==="R"&&num===5){/* ENG OUT */}
         if(side==="L"&&num===6){/* CLB FORECAST */}
       }
+      // [HDL] CRZ
       else if(p==="CRZ"){
         // FCOM 11.42.22: CRZ page handlers
         if(side==="L"&&num===1&&sp){s.crzAlt=sp;s.scratchpad="";s.execLight=true;}  // CRZ ALT
@@ -19380,6 +19524,7 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
         }
         if(side==="R"&&num===6){s.crzSpdMode="LRC";if(s.phase==="ACTIVE")s.execLight=true;}  // LRC>
       }
+      // [HDL] DES
       else if(p==="DES"){
         // FCOM 11.43.2: DES page handlers
         if(side==="L"&&num===2&&sp){s.desSelSpd=sp;s.desSpdMode="SEL";s.scratchpad="";s.execLight=true;}  // SEL SPD
@@ -19393,6 +19538,7 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
           if(s.desSpdMode!=="ECON"){s.desSpdMode="ECON";s.desSelSpd="";if(s.phase==="ACTIVE")s.execLight=true;}
         }
       }
+      // [HDL] LEGS
       else if(p==="LEGS"){
         const db=FLIGHT_DB[(s.fltNo||"").toUpperCase()];
         const legs=s.computedLegs||[];
@@ -19621,6 +19767,7 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
           s.helpMsg="WIND DATA REQUESTED";
         }
       }
+      // [HDL] WIND_PAGE
       else if(p==="WIND_PAGE"){
         const wpt=s.windPage||"";
         if(!wpt){return s;}
@@ -19685,6 +19832,7 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
           if(side==="R"&&num===2&&sp){/* VERT RNP manual */}
         }
       }
+      // [HDL] DEP_ARR
       else if(p==="DEP_ARR"){
         if(side==="L"&&num===1&&s.origin)go("RJFF_DEP"); // <DEP RTE1 origin
         if(side==="R"&&num===1)go("RKSI_ARR"); // origin ARR> (turn-back)
@@ -19692,6 +19840,7 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
         if(side==="L"&&num===5&&s.origin)go("RJFF_DEP"); // <origin other DEP
         if(side==="R"&&num===5&&s.dest)go("RKSI_ARR"); // dest> other ARR
       }
+      // [HDL] RJFF_DEP
       else if(p==="RJFF_DEP"){
         const db=AIRPORT_DB[(s.origin||"").toUpperCase()];
         if(side==="L"&&num===6){
@@ -19752,6 +19901,7 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
           }
         }
       }
+      // [HDL] RKSI_ARR
       else if(p==="RKSI_ARR"){
         const db=AIRPORT_DB[(s.dest||"").toUpperCase()];
         const stars=(db||{}).arrStars||[];
@@ -19861,6 +20011,7 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
         if(side==="L"&&num===3&&sp){s.offsetEnd=sp.toUpperCase();s.scratchpad="";if(s.phase==="ACTIVE")s.execLight=true;}
         if(side==="R"&&num===6)go("RTE_1");
       }
+      // [HDL] FIX
       else if(p==="FIX"){
         const fi=s.fixPage||0;
         const fd={...s.fixData[fi]};
@@ -19919,6 +20070,7 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
           s.fixData[fi]={fix:"",brg:["","",""],dis:["","",""],abeam:"",pred:""};
         }
       }
+      // [HDL] ALTN
       else if(p==="ALTN"){
         const db=FLIGHT_DB[(s.fltNo||"").toUpperCase()];
         const altnList=(db||{}).altnList||[];
@@ -20040,7 +20192,7 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
 
   const handlePrev = ()=>setFms(p=>{
     if(p.page==="TOREF2")return{...p,page:"TOREF1"};
-    if(p.page==="RTE_1"){const mx=Math.max(2,Math.ceil(p.routeLegs.length/5)+1);return{...p,page:"RTE_1_2",rtePage:mx};}
+    if(p.page==="RTE_1"){const mx=Math.max(2,Math.floor(p.routeLegs.length/5)+2);return{...p,page:"RTE_1_2",rtePage:mx};}
     if(p.page==="RTE_1_2"&&p.rtePage<=2)return{...p,page:"RTE_1",rtePage:1};
     if(p.page==="RTE_1_2"&&p.rtePage>2)return{...p,rtePage:p.rtePage-1};
     if(p.page==="LEGS"){var cl=p.computedLegs||[];var mx=Math.max(1,Math.ceil((cl.length||(p.routeLegs.length+2))/5));if(p.legsPage>1)return{...p,legsPage:p.legsPage-1};return{...p,legsPage:mx};}
@@ -20065,7 +20217,7 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
     if(p.page==="POS_REF_3")return{...p,page:"POS_REF_4"};
     if(p.page==="POS_REF_4")return{...p,page:"POS_INIT"};
     if(p.page==="RTE_1")return{...p,page:"RTE_1_2",rtePage:2};
-    if(p.page==="RTE_1_2"){const mx=Math.ceil(p.routeLegs.length/5)+1;if(p.rtePage<mx)return{...p,rtePage:p.rtePage+1};}
+    if(p.page==="RTE_1_2"){const mx=Math.floor(p.routeLegs.length/5)+2;if(p.rtePage<mx)return{...p,rtePage:p.rtePage+1};}
     if(p.page==="LEGS"){var cl=p.computedLegs||[];var mx=Math.max(1,Math.ceil((cl.length||(p.routeLegs.length+2))/5));if(p.legsPage<mx)return{...p,legsPage:p.legsPage+1};return{...p,legsPage:1};}
     if(p.page==="RTE_DATA"){var cl2=p.computedLegs||[];var rl=cl2.filter(function(l){return !l.isRwy;});var mx2=Math.max(1,Math.ceil(rl.length/5));if(p.legsPage<mx2)return{...p,legsPage:p.legsPage+1};}
     if(p.page==="PROGRESS")return{...p,progPage:p.progPage<4?p.progPage+1:1};
@@ -20136,13 +20288,13 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
         , React.createElement('div',{style:{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:1,overflow:"hidden"},}
           /* Row 1: PREV | CANC/RCL (1:2 ratio) */
           , React.createElement('div',{style:{display:"flex",gap:2,width:"100%"},}
-            , React.createElement('button',{onClick:function(){setFms(function(p){var s=EICAS_SCENARIOS[(p.eicasScenario||1)-1];return{...p,eicasScenario:Math.max(1,(p.eicasScenario||1)-1),eicasCxd:(s.caution||[]).concat(s.advisory||[])};});},style:{flex:1,padding:0,height:"28px",background:"#333",color:C.white,border:"1px solid #555",borderRadius:2,fontSize:"15px",fontFamily:M,fontWeight:"bold",cursor:"pointer",lineHeight:0.9}},"PREV")
+            , React.createElement('button',{onClick:function(){setFms(function(p){return{...p,eicasScenario:Math.max(1,(p.eicasScenario||1)-1)};});},style:{flex:1,padding:0,height:"28px",background:"#333",color:C.white,border:"1px solid #555",borderRadius:2,fontSize:"15px",fontFamily:M,fontWeight:"bold",cursor:"pointer",lineHeight:0.9}},"PREV")
             , React.createElement('button',{onClick:function(){setFms(function(p){var s=EICAS_SCENARIOS[(p.eicasScenario||1)-1];var allM=(s.caution||[]).concat(s.advisory||[]);var cxd=p.eicasCxd||[];var vis=allM.filter(function(m){return cxd.indexOf(m)<0;});if(vis.length>0){return{...p,eicasCxd:cxd.concat(vis)};}else{return{...p,eicasCxd:cxd.filter(function(m){return allM.indexOf(m)<0;})};}});},style:{flex:2,padding:0,height:"28px",background:"#333",color:C.white,border:"1px solid #555",borderRadius:2,fontSize:"15px",fontFamily:M,fontWeight:"bold",cursor:"pointer",lineHeight:0.9}},"CANC/RCL")
           )
           /* Row 2: Current state description (expanded) */
           , React.createElement('div',{style:{fontSize:"15px",fontFamily:M,color:"#0f0",textAlign:"center",lineHeight:1.3,letterSpacing:"-0.7px",whiteSpace:"pre-line",padding:"2px 0",flex:1,display:"flex",alignItems:"center",justifyContent:"center"}},eicasCur)
           /* Row 3: NEXT + next action (vertical 2-line) */
-          , React.createElement('button',{onClick:function(){setFms(function(p){var s=EICAS_SCENARIOS[(p.eicasScenario||1)-1];return{...p,eicasScenario:Math.min(14,(p.eicasScenario||1)+1),eicasCxd:(s.caution||[]).concat(s.advisory||[])};});},style:{padding:"0 6px",height:"38px",background:"#333",color:C.white,border:"1px solid #555",borderRadius:2,fontSize:"14px",fontFamily:M,fontWeight:"bold",cursor:"pointer",width:"100%",lineHeight:1,textAlign:"left",display:"flex",flexDirection:"column",alignItems:"flex-start",justifyContent:"center",gap:"2px"}},
+          , React.createElement('button',{onClick:function(){setFms(function(p){return{...p,eicasScenario:Math.min(14,(p.eicasScenario||1)+1)};});},style:{padding:"0 6px",height:"38px",background:"#333",color:C.white,border:"1px solid #555",borderRadius:2,fontSize:"14px",fontFamily:M,fontWeight:"bold",cursor:"pointer",width:"100%",lineHeight:1,textAlign:"left",display:"flex",flexDirection:"column",alignItems:"flex-start",justifyContent:"center",gap:"2px"}},
             React.createElement('div',null,"NEXT"),
             React.createElement('div',{style:{fontSize:"13px",color:"#4FC3F7",fontWeight:"bold",minHeight:"13px",whiteSpace:"nowrap",overflow:"hidden"}},eicasNxt||"")
           )
@@ -20274,11 +20426,11 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
   );
 }
 
-// ═══════ MFK KEYPAD (Image 3 style) ═══════
+// ═══════ [COMP] MFKKeypad (Image 3 style) ═══════
 function MFKKeypad({fms,setFms,mfdMode,setMfdMode}) {
   const handlePrev=()=>setFms(p=>{
     if(p.page==="TOREF2")return{...p,page:"TOREF1"};
-    if(p.page==="RTE_1"){const mx=Math.max(2,Math.ceil(p.routeLegs.length/5)+1);return{...p,page:"RTE_1_2",rtePage:mx};}
+    if(p.page==="RTE_1"){const mx=Math.max(2,Math.floor(p.routeLegs.length/5)+2);return{...p,page:"RTE_1_2",rtePage:mx};}
     if(p.page==="RTE_1_2"&&p.rtePage<=2)return{...p,page:"RTE_1",rtePage:1};
     if(p.page==="RTE_1_2"&&p.rtePage>2)return{...p,rtePage:p.rtePage-1};
     if(p.page==="LEGS"){var cl=p.computedLegs||[];var mx=Math.max(1,Math.ceil((cl.length||(p.routeLegs.length+2))/5));if(p.legsPage>1)return{...p,legsPage:p.legsPage-1};return{...p,legsPage:mx};}
@@ -20295,7 +20447,7 @@ function MFKKeypad({fms,setFms,mfdMode,setMfdMode}) {
   const handleNext=()=>setFms(p=>{
     if(p.page==="TOREF1")return{...p,page:"TOREF2"};
     if(p.page==="RTE_1")return{...p,page:"RTE_1_2",rtePage:2};
-    if(p.page==="RTE_1_2"){const mx=Math.ceil(p.routeLegs.length/5)+1;if(p.rtePage<mx)return{...p,rtePage:p.rtePage+1};}
+    if(p.page==="RTE_1_2"){const mx=Math.floor(p.routeLegs.length/5)+2;if(p.rtePage<mx)return{...p,rtePage:p.rtePage+1};}
     if(p.page==="LEGS"){var cl=p.computedLegs||[];var mx=Math.max(1,Math.ceil((cl.length||(p.routeLegs.length+2))/5));if(p.legsPage<mx)return{...p,legsPage:p.legsPage+1};return{...p,legsPage:1};}
     if(p.page==="RTE_DATA"){var cl2=p.computedLegs||[];var rl=cl2.filter(function(l){return !l.isRwy;});var mx2=Math.max(1,Math.ceil(rl.length/5));if(p.legsPage<mx2)return{...p,legsPage:p.legsPage+1};}
     if(p.page==="PROGRESS")return{...p,progPage:p.progPage<4?p.progPage+1:1};
@@ -20336,7 +20488,7 @@ function MFKKeypad({fms,setFms,mfdMode,setMfdMode}) {
     }
     return React.createElement('button', { onClick: ()=>hk(l), style: {width:"43px",height:"41px",borderRadius:"3px",background:hi?"#3a3a3a":"linear-gradient(180deg,#3a3a3a 0%,#2a2a2a 100%)",color:C.white,border:hi?"2px solid #88cccc":"1px solid #555",fontSize:"14px",fontWeight:"bold",cursor:"pointer",fontFamily:M,boxShadow:"0 1px 3px rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,255,255,0.1)"},}, l);
   };
-  const MBtn=({l,a})=>(React.createElement('button', { onClick: ()=>{if(l==="CHKL"){setFms(function(p){var c=Object.assign({},p.chkl||{tab:"NORMAL",clIdx:0,cur:0,ck:{},ovrd:{},menuMode:false});var CL=CUR.CHECKLISTS||[];if(CL.length>0&&CL[c.clIdx]){var _allDone=CL[c.clIdx].items.every(function(_it,ii){if(c.ovrd[c.clIdx+"-"+ii])return true;if(_it.t==="closed")return true;return!!c.ck[c.clIdx+"-"+ii];});if(_allDone){var _found=false;for(var _i=0;_i<CL.length;_i++){var _done=CL[_i].items.every(function(_it2,ii2){if(c.ovrd[_i+"-"+ii2])return true;if(_it2.t==="closed")return true;return!!c.ck[_i+"-"+ii2];});if(!_done){c.clIdx=_i;c.cur=0;c.menuMode=false;_found=true;break;}}if(!_found)c.menuMode=true;}}return Object.assign({},p,{cursorIdx:null,prevMfdMode:mfdMode,prevPage:p.page,chkl:c});});setMfdMode(l);}else{setMfdMode(l);if(l==="COMM")setFms(function(p){return Object.assign({},p,{cursorIdx:null});});}}, style: {width:"55px",height:"28px",borderRadius:"3px",position:"relative",background:a?"#2a2a2a":"#3a3a3a",color:C.white,border:a?"2px solid #fff":"1px solid #555",fontSize:"16px",fontWeight:"bold",cursor:"pointer",fontFamily:M,boxShadow:a?"0 0 4px rgba(255,255,255,0.3)":"0 1px 3px rgba(0,0,0,0.4)"},}
+  const MBtn=({l,a})=>(React.createElement('button', { onClick: ()=>{if(l==="CHKL"){/* Issue2: if already in CHKL and all complete, return */if(mfdMode==="CHKL"){var CL2=CUR.CHECKLISTS||[];var _allCL=CL2.length>0&&CL2.every(function(cl2,ci2){return cl2.items.every(function(_it3,ii3){var _ck=(fms.chkl||{}).ck||{};var _ov=(fms.chkl||{}).ovrd||{};if(_ov[ci2+"-"+ii3])return true;if(_it3.t==="closed")return true;return!!_ck[ci2+"-"+ii3];});});if(_allCL){setFms(function(p){return{...p,returnFromChkl:true};});return;}}setFms(function(p){var c=Object.assign({},p.chkl||{tab:"NORMAL",clIdx:0,cur:0,ck:{},ovrd:{},menuMode:false});var CL=CUR.CHECKLISTS||[];if(CL.length>0&&CL[c.clIdx]){var _allDone=CL[c.clIdx].items.every(function(_it,ii){if(c.ovrd[c.clIdx+"-"+ii])return true;if(_it.t==="closed")return true;return!!c.ck[c.clIdx+"-"+ii];});if(_allDone){var _found=false;for(var _i=0;_i<CL.length;_i++){var _done=CL[_i].items.every(function(_it2,ii2){if(c.ovrd[_i+"-"+ii2])return true;if(_it2.t==="closed")return true;return!!c.ck[_i+"-"+ii2];});if(!_done){c.clIdx=_i;c.cur=0;c.menuMode=false;_found=true;break;}}if(!_found)c.menuMode=true;}}return Object.assign({},p,{cursorIdx:null,prevMfdMode:mfdMode,prevPage:p.page,chkl:c});});setMfdMode(l);}else{setMfdMode(l);if(l==="COMM")setFms(function(p){return Object.assign({},p,{cursorIdx:null});});}}, style: {width:"55px",height:"28px",borderRadius:"3px",position:"relative",background:a?"#2a2a2a":"#3a3a3a",color:C.white,border:a?"2px solid #fff":"1px solid #555",fontSize:"16px",fontWeight:"bold",cursor:"pointer",fontFamily:M,boxShadow:a?"0 0 4px rgba(255,255,255,0.3)":"0 1px 3px rgba(0,0,0,0.4)"},}
     , l));
   // Move DOM cursor to LSK position AND set cursorIdx
   function jumpCursor(idx){if(CUR.hoverEl)CUR.hoverEl.style.outline="none";CUR.hoverKey=null;CUR.hoverEl=null;CUR.set(function(p){var n=Object.assign({},p,{cursorIdx:idx});if(idx>=100&&idx<200)n.chkl=Object.assign({},p.chkl,{cur:idx-100});return n;});setTimeout(function(){positionCursorAt(idx);},120);}
@@ -20551,7 +20703,7 @@ function MFKKeypad({fms,setFms,mfdMode,setMfdMode}) {
   );
 }
 
-// ═══════ EFB (Image 1 style) — LSK aligned with menu rows ═══════
+// ═══════ [COMP] EFBPanel (Image 1 style) — LSK aligned with menu rows ═══════
 function EFBPanel({fms,setFms,onClose}) {
   const [page,setPage]=useState("MAIN");
   const Screw=()=>(React.createElement('div', { style: {width:12,height:12,borderRadius:"50%",background:"radial-gradient(circle,#777 30%,#444 70%)",border:"1px solid #555",flexShrink:0},}));
@@ -21122,10 +21274,10 @@ function EFBPanel({fms,setFms,onClose}) {
   return renderEfb();
 }
 
-// ═══════ Sub-views for CHKL/COMM/INFO/ND/SYS ═══════
+// ═══════ [COMP] SubViews for CHKL/COMM/INFO/ND/SYS ═══════
 function ChecklistView({fms,setFms}){
   // Checklist uses original FCOM colors (not CDU white)
-  const CK_GREEN="#00e800",CK_CYAN="#00cccc",CK_WHITE="#d8d8d8";
+  // CK colors defined at module level
   const cs=fms.chkl||{tab:"NORMAL",clIdx:0,cur:0,ck:{},ovrd:{},menuMode:false};
   const tab=cs.tab,clIdx=cs.clIdx,cur=cs.cur,ck=cs.ck,ovrd=cs.ovrd,menuMode=cs.menuMode;
   const setCS=(fn)=>setFms(p=>{const c={...(p.chkl||cs)};fn(c);return{...p,chkl:c};});
@@ -21136,99 +21288,7 @@ function ChecklistView({fms,setFms}){
   const setOvrd=(fn)=>setCS(c=>{c.ovrd=typeof fn==="function"?fn(c.ovrd):{...c.ovrd,...fn};});
   const setMenuMode=(v)=>setCS(c=>{c.menuMode=v;});
 
-  // ═══ CHECKLIST DATA from Korean Air B787 NOR Checklist PDF ═══
-  // type: "open" = □ open loop (crew confirms), "closed" = auto-sensed (green)
-  const CHECKLISTS = [
-    {name:"PREFLIGHT", items:[
-      {t:"open",  item:"SECURITY SEARCH",      resp:"COMPLETED ALL"},
-      {t:"closed",item:"SEAT BELTS",               resp:"ON F/O"},
-      {t:"open",  item:"GEAR PINS",                resp:"ON BOARD ALL"},
-      {t:"open",  item:"OXYGEN",                   resp:"TESTED, 100% ALL"},
-      {t:"open",  item:"FLT INST & ALTIMETER",     resp:"SET ALL"},
-      {t:"open",  item:"FUEL QUANTITY",             resp:"___ +/- ___LBS ALL"},
-      {t:"closed",item:"AUTOBRAKE",                resp:"RTO F/O"},
-      {t:"closed",item:"PARKING BRAKE",            resp:"SET CAP"},
-      {t:"closed",item:"FUEL CTRL SWS",            resp:"CUTOFF CAP"},
-      {t:"open",  item:"TAKEOFF BRIEFING",         resp:"COMPLETED PF"},
-    ]},
-    {name:"BEFORE START", items:[
-      {t:"closed",item:"DOORS",                    resp:"CLOSED AND AUTO ALL"},
-      {t:"closed",item:"HYDRAULIC PANEL",          resp:"AUTO F/O"},
-      {t:"closed",item:"FUEL PUMPS",               resp:"ON F/O"},
-      {t:"closed",item:"BEACON LIGHT",             resp:"ON F/O"},
-      {t:"open",  item:"MCP",                      resp:"SET CAP"},
-      {t:"open",  item:"CDU",                      resp:"SET F/O"},
-      {t:"closed",item:"TRIM",                     resp:"____, ZERO CAP"},
-      {t:"open",  item:"TRANSPONDER",              resp:"XPDR F/O"},
-    ]},
-    {name:"AFTER START", items:[
-      {t:"closed",item:"APU",                      resp:"OFF F/O"},
-      {t:"open",  item:"ENGINE ANTI ICE",          resp:"AS REQUIRED F/O"},
-      {t:"open",  item:"RECALL",                   resp:"CHECKED F/O"},
-      {t:"closed",item:"FLAPS",                    resp:"____ ALL"},
-      {t:"open",  item:"FLIGHT CONTROLS",          resp:"CHECKED CAP"},
-      {t:"open",  item:"GROUND PERSONNEL AND EQUIPMENT",         resp:"CLEAR ALL"},
-    ]},
-    {name:"BEFORE TAKEOFF", items:[
-      {t:"closed",item:"FLAPS",                    resp:"____ ALL"},
-      {t:"closed",item:"TRANSPONDER",              resp:"TA/RA F/O"},
-      {t:"open",  item:"CABIN REPORT AND TAKEOFF SIGNAL",resp:"COMPLETE F/O"},
-      {t:"closed",item:"STROBE LIGHT",             resp:"ON F/O"},
-      {t:"closed",item:"WX RADAR",                 resp:"ON ALL"},
-    ]},
-    {name:"AFTER TAKEOFF", items:[
-      {t:"closed",item:"LANDING GEAR",             resp:"UP PM"},
-      {t:"closed",item:"FLAPS",                    resp:"UP PM"},
-      {t:"closed",item:"ENGINE ANTI-ICE",          resp:"AUTO PM"},
-    ]},
-    {name:"DESCENT", items:[
-      {t:"open",  item:"RECALL",                   resp:"CHECKED PM"},
-      {t:"open",  item:"NOTES",                    resp:"CHECKED PM"},
-      {t:"open",  item:"AUTOBRAKE",                resp:"___ PM"},
-      {t:"open",  item:"LANDING DATA",             resp:"VREF___, MINIMUMS ___ ALL"},
-      {t:"open",  item:"LANDING BRIEFING",         resp:"COMPLETED PF"},
-      {t:"open",  item:"CABIN CREW",               resp:"ADVISED CAP"},
-    ]},
-    {name:"APPROACH", items:[
-      {t:"closed",item:"LANDING LIGHTS",           resp:"ON PM"},
-      {t:"closed",item:"RW TURNOFF LIGHTS",        resp:"ON PM"},
-      {t:"closed",item:"TAXI LIGHT",               resp:"ON PM"},
-      {t:"closed",item:"SEAT BELT SIGNS",          resp:"ON PM"},
-      {t:"open",  item:"ALTIMETERS",               resp:"___ InHg/hPa SET &\n                X-CHECKED ALL"},
-    ]},
-    {name:"BEFORE LANDING", items:[
-      {t:"closed",item:"LANDING GEAR",             resp:"DOWN ALL"},
-      {t:"closed",item:"SPEEDBRAKE",               resp:"ARMED PF"},
-      {t:"closed",item:"FLAPS",                    resp:"____ ALL"},
-    ]},
-    {name:"AFTER LANDING", items:[
-      {t:"closed",item:"STROBE LIGHT",             resp:"OFF F/O"},
-      {t:"closed",item:"LANDING LIGHT",            resp:"OFF F/O"},
-      {t:"closed",item:"FLIGHT DIRECTORS",         resp:"OFF ALL"},
-      {t:"closed",item:"WX RADAR",                 resp:"OFF ALL"},
-      {t:"closed",item:"AUTOBRAKE",                resp:"OFF F/O"},
-      {t:"closed",item:"SPEEDBRAKE",               resp:"DOWN CAP"},
-      {t:"closed",item:"FLAPS",                    resp:"UP F/O"},
-      {t:"open",  item:"TRANSPONDER",              resp:"XPDR F/O"},
-      {t:"closed",item:"APU",                      resp:"START F/O"},
-    ]},
-    {name:"SHUTDOWN", items:[
-      {t:"closed",item:"PARKING BRAKE",            resp:"SET CAP"},
-      {t:"closed",item:"FUEL CTRL SWS",            resp:"CUTOFF CAP"},
-      {t:"closed",item:"SEAT BELT SIGNS",          resp:"OFF F/O"},
-      {t:"closed",item:"HYDRAULIC PANEL",          resp:"OFF F/O"},
-      {t:"closed",item:"FUEL PUMPS",               resp:"OFF F/O"},
-      {t:"closed",item:"BEACON LIGHT",             resp:"OFF F/O"},
-      {t:"open",  item:"TRANSPONDER",              resp:"STBY F/O"},
-      {t:"open",  item:"STATUS",                   resp:"CHECKED F/O"},
-    ]},
-    {name:"SECURE", items:[
-      {t:"closed",item:"IRS",                      resp:"OFF F/O"},
-      {t:"closed",item:"BATTERY",                  resp:"OFF F/O"},
-      {t:"closed",item:"EMERGENCY LIGHTS",         resp:"OFF F/O"},
-      {t:"closed",item:"PACKS",                    resp:"OFF F/O"},
-    ]},
-  ];
+  // CHECKLISTS defined at module level — search [DATA] CHECKLISTS
   CUR.CHECKLISTS=CHECKLISTS;
 
   const cl=CHECKLISTS[clIdx]||CHECKLISTS[0];
@@ -21328,7 +21388,7 @@ function ChecklistView({fms,setFms}){
   const chklReset=()=>{
     const newCk={...ck};const newOvrd={...ovrd};
     items.forEach((_,ii)=>{delete newCk[`${clIdx}-${ii}`];delete newOvrd[`${clIdx}-${ii}`];});
-    setCk(newCk);setOvrd(newOvrd);setCur(0);
+    setCk(()=>newCk);setOvrd(()=>newOvrd);setCur(0);
   };
 
   // Tab button (FCOM style: green=active, gray=inactive)
@@ -21359,8 +21419,8 @@ function ChecklistView({fms,setFms}){
         , CHECKLISTS.map((c,i)=>{const done=clComplete(i);
           return(React.createElement('button', { key: i, 'data-chkl-menu': String(i), onClick: ()=>{setClIdx(i);setCur(0);setMenuMode(false);}, style: {
             display:"block",width:"100%",padding:"8px 10px",marginBottom:"3px",
-            background:done?"#001a00":"#1a1a1a",border:`1px solid ${done?CK_GREEN:"#444"}`,
-            borderRadius:"2px",color:done?CK_GREEN:CK_WHITE,fontSize:"18px",fontFamily:M,
+            background:done?"#001a00":"#1a1a1a",border:`1px solid ${done?CK.green:"#444"}`,
+            borderRadius:"2px",color:done?CK.green:CK.white,fontSize:"18px",fontFamily:M,
             cursor:"pointer",textAlign:"left",fontWeight:"bold"
           },}, done?"✓ ":"  ", c.name));
         })
@@ -21394,9 +21454,9 @@ function ChecklistView({fms,setFms}){
           const isOpen=it.t==="open";
           // FCOM 10.50.1: colors
           // complete=green, overridden=cyan, open+incomplete=white, closed+current=green
-          let color=CK_GREEN;
-          if(isOv)color=CK_CYAN;
-          else if(isOpen&&!done)color=CK_WHITE;
+          let color=CK.green;
+          if(isOv)color=CK.cyan;
+          else if(isOpen&&!done)color=CK.white;
           const respLines=it.resp.split("\n");
           return(React.createElement('div', { key: ii, 'data-chkl-item': String(ii), onClick: ()=>clickItem(ii), style: {
             padding:"3px 4px",cursor:"pointer",marginBottom:"1px",
@@ -21407,11 +21467,11 @@ function ChecklistView({fms,setFms}){
               /* FCOM 10.50.1 #2/#3: open loop □ or complete ■ */
               , isOpen&&React.createElement('span', { 'data-chkl-cb': String(ii), style: {
                 display:"inline-block",width:"14px",height:"14px",marginTop:"1px",flexShrink:0,
-                border:`2px solid ${done?CK_GREEN:(isCur||(fms.cursorIdx===100+ii))?"#ff00ff":"#888"}`,borderRadius:"2px",
-                background:done?CK_GREEN:"transparent",
+                border:`2px solid ${done?CK.green:(isCur||(fms.cursorIdx===100+ii))?"#ff00ff":"#888"}`,borderRadius:"2px",
+                background:done?CK.green:"transparent",
                 textAlign:"center",lineHeight:"12px",fontSize:"18px",color:"#0a0a0a"
               },}, done?"✓":"")
-              , !isOpen&&React.createElement('span', { 'data-chkl-cb': String(ii), style: {width:"14px",height:"14px",marginTop:"1px",flexShrink:0,border:`2px solid ${done?CK_GREEN:(isCur||(fms.cursorIdx===100+ii))?"#ff00ff":"#888"}`,borderRadius:"2px",background:done?CK_GREEN:"transparent",textAlign:"center",lineHeight:"12px",fontSize:"18px",color:"#0a0a0a"},}, done?"✓":"")
+              , !isOpen&&React.createElement('span', { 'data-chkl-cb': String(ii), style: {width:"14px",height:"14px",marginTop:"1px",flexShrink:0,border:`2px solid ${done?CK.green:(isCur||(fms.cursorIdx===100+ii))?"#ff00ff":"#888"}`,borderRadius:"2px",background:done?CK.green:"transparent",textAlign:"center",lineHeight:"12px",fontSize:"18px",color:"#0a0a0a"},}, done?"✓":"")
               , React.createElement('div', { style: {color,fontSize:"19px",fontFamily:M,flex:1,display:"flex",lineHeight:1.4,fontWeight:"bold"},}
                 , React.createElement('span', {style:{whiteSpace:"nowrap"}}, it.item)
                 , React.createElement('span', {style:{flex:1,overflow:"hidden",whiteSpace:"nowrap",textAlign:"center"}}, dots(it.item,respLines[0]))
@@ -21421,7 +21481,7 @@ function ChecklistView({fms,setFms}){
             , respLines.length>1&&React.createElement('div', { style: {color,fontSize:"19px",fontFamily:M,paddingLeft:"22px",whiteSpace:"pre-wrap",fontWeight:"bold",textAlign:"right"},}, respLines.slice(1).join("\n"))
           ));
         })
-        , allDone&&React.createElement('div', { style: {textAlign:"center",padding:"10px",color:CK_GREEN,fontSize:"19px",fontWeight:"bold"},}
+        , allDone&&React.createElement('div', { style: {textAlign:"center",padding:"10px",color:CK.green,fontSize:"19px",fontWeight:"bold"},}
           , "CHECKLIST COMPLETE"
         )
       )
@@ -21439,9 +21499,9 @@ function ChecklistView({fms,setFms}){
 
   // ═══ RESETS — FCOM 10.50.17 ═══
   if(tab==="RESETS"){
-    const resetNormal=()=>{const nCk={...ck};const nOv={...ovrd};CHECKLISTS.forEach((c,i)=>{c.items.forEach((_,ii)=>{delete nCk[i+"-"+ii];delete nOv[i+"-"+ii];});});setCk(nCk);setOvrd(nOv);setCur(0);};
-    const resetBT=()=>{const nCk={...ck};const nOv={...ovrd};[0,1,2].forEach(i=>{if(CHECKLISTS[i])CHECKLISTS[i].items.forEach((_,ii)=>{delete nCk[i+"-"+ii];delete nOv[i+"-"+ii];});});setCk(nCk);setOvrd(nOv);setCur(0);};
-    const resetAll=()=>{setCk({});setOvrd({});setCur(0);};
+    const resetNormal=()=>{const nCk={...ck};const nOv={...ovrd};CHECKLISTS.forEach((c,i)=>{c.items.forEach((_,ii)=>{delete nCk[i+"-"+ii];delete nOv[i+"-"+ii];});});setCk(()=>nCk);setOvrd(()=>nOv);setCur(0);};
+    const resetBT=()=>{const nCk={...ck};const nOv={...ovrd};[0,1,2].forEach(i=>{if(CHECKLISTS[i])CHECKLISTS[i].items.forEach((_,ii)=>{delete nCk[i+"-"+ii];delete nOv[i+"-"+ii];});});setCk(()=>nCk);setOvrd(()=>nOv);setCur(0);};
+    const resetAll=()=>{setCk(()=>({}));setOvrd(()=>({}));setCur(0);};
     const RstBtn=({l,onClick,half,rst})=>(React.createElement('button', { 'data-chkl-rst': rst, onClick: onClick, style: {
       padding:"8px 10px",background:"linear-gradient(180deg,#555 0%,#333 100%)",
       border:"1px solid #777",borderRadius:2,color:C.white,fontSize:"18px",
@@ -21458,8 +21518,8 @@ function ChecklistView({fms,setFms}){
         , React.createElement('div', { style: {textAlign:"center",color:C.white,fontSize:"22px",fontWeight:"bold",marginBottom:14},}, "RESETS")
         /* #2/#4: Airline databases */
         , React.createElement('div', { style: {display:"flex",justifyContent:"space-between",padding:"5px 8px",marginBottom:2},}
-          , React.createElement('div', null, React.createElement('div', { style: {color:C.dim,fontSize:14,marginBottom:2},}, "AIRLINE DATABASE" ), React.createElement('div', { style: {color:CK_GREEN,fontSize:18,fontWeight:"bold"},}, "BF10-0000-00A1"))
-          , React.createElement('div', { style: {textAlign:"right"},}, React.createElement('div', { style: {color:C.dim,fontSize:14,marginBottom:2},}, "REVISION"), React.createElement('div', { style: {color:CK_GREEN,fontSize:18,fontWeight:"bold"},}, "13 FEB 09"  ))
+          , React.createElement('div', null, React.createElement('div', { style: {color:C.dim,fontSize:14,marginBottom:2},}, "AIRLINE DATABASE" ), React.createElement('div', { style: {color:CK.green,fontSize:18,fontWeight:"bold"},}, "BF10-0000-00A1"))
+          , React.createElement('div', { style: {textAlign:"right"},}, React.createElement('div', { style: {color:C.dim,fontSize:14,marginBottom:2},}, "REVISION"), React.createElement('div', { style: {color:CK.green,fontSize:18,fontWeight:"bold"},}, "13 FEB 09"  ))
         )
         , React.createElement('div', { style: {display:"flex",justifyContent:"space-between",padding:"5px 8px",marginBottom:16},}
           , React.createElement('div', null, React.createElement('div', { style: {color:C.dim,fontSize:14,marginBottom:2},}, "AIRLINE DATABASE" ), React.createElement('div', { style: {color:"#666",fontSize:18,fontWeight:"bold"},}, "BF12-0000-00A3"))
@@ -22300,13 +22360,13 @@ function SysView(){
   ));
 }
 
-// ═══════ PFD ═══════
+// ═══════ [COMP] PFDPanel ═══════
 function PFDPanel({onClose}){const [ias,sI]=useState(0);const [alt,sA]=useState(370);const [hdg,sH]=useState(270);const [pitch,sP]=useState(2.5);const [roll,sR]=useState(0);const ref=useRef(null);
   useEffect(()=>{const cv=ref.current;if(!cv)return;const ctx=cv.getContext("2d");const W=340,H=360;cv.width=W;cv.height=H;const cx=W/2,cy=H/2-20;ctx.fillStyle="#000";ctx.fillRect(0,0,W,H);ctx.save();ctx.beginPath();ctx.rect(70,25,200,235);ctx.clip();ctx.translate(cx,cy);ctx.rotate(-roll*Math.PI/180);const pp=pitch*4;ctx.fillStyle=C.sky;ctx.fillRect(-200,-300+pp,400,300);ctx.fillStyle=C.ground;ctx.fillRect(-200,pp,400,300);ctx.strokeStyle="#fff";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-200,pp);ctx.lineTo(200,pp);ctx.stroke();for(let p=-20;p<=20;p+=5){if(!p)continue;const y=pp-p*4,w=p%10===0?30:15;ctx.strokeStyle="#fff";ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(-w,y);ctx.lineTo(w,y);ctx.stroke();}ctx.restore();ctx.strokeStyle="#ff0";ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(cx-40,cy);ctx.lineTo(cx-12,cy);ctx.stroke();ctx.beginPath();ctx.moveTo(cx+12,cy);ctx.lineTo(cx+40,cy);ctx.stroke();ctx.fillStyle="#ff0";ctx.fillRect(cx-2,cy-2,4,4);ctx.fillStyle="#111";ctx.fillRect(0,25,66,235);ctx.fillStyle="#fff";ctx.font="bold 14px "+M;ctx.textAlign="right";ctx.fillText(ias+"",58,cy+5);ctx.strokeStyle="#fff";ctx.lineWidth=2;ctx.strokeRect(18,cy-10,46,20);ctx.fillStyle="#111";ctx.fillRect(274,25,66,235);ctx.fillStyle="#fff";ctx.font="bold 12px "+M;ctx.textAlign="left";ctx.fillText(alt+"00",280,cy+4);ctx.strokeRect(274,cy-10,62,20);ctx.fillStyle="#111";ctx.fillRect(70,270,200,35);ctx.fillStyle="#fff";ctx.font="bold 12px "+M;ctx.textAlign="center";ctx.fillText(hdg.toString().padStart(3,"0")+"°",cx,295);ctx.fillStyle="#111";ctx.fillRect(70,0,200,24);ctx.font="9px "+M;ctx.textAlign="center";ctx.fillStyle=C.green;ctx.fillText("A/T ARM",115,12);ctx.fillText("LNAV",170,12);ctx.fillText("VNAV SPD",235,12);ctx.fillStyle=C.green;ctx.font="bold 14px "+M;ctx.textAlign="center";ctx.fillText("2500",cx,345);},[ias,alt,hdg,pitch,roll]);
   const K=({l,v,set,mn,mx,st})=>(React.createElement('div', { style: {textAlign:"center"},}, React.createElement('div', { style: {color:C.dim,fontSize:13,fontFamily:M},}, l), React.createElement('div', { style: {display:"flex",gap:1,alignItems:"center"},}, React.createElement('button', { onClick: ()=>set(x=>Math.max(mn,x-st)), style: {background:"#333",color:"#fff",border:"1px solid #555",width:16,height:16,borderRadius:2,cursor:"pointer",fontSize:12},}, "-"), React.createElement('span', { style: {color:C.green,fontSize:20,minWidth:28,textAlign:"center",fontFamily:M},}, v), React.createElement('button', { onClick: ()=>set(x=>Math.min(mx,x+st)), style: {background:"#333",color:"#fff",border:"1px solid #555",width:16,height:16,borderRadius:2,cursor:"pointer",fontSize:12},}, "+"))));
   return(React.createElement('div', { style: {background:"#0a0a0a",borderRadius:6,padding:6,border:"2px solid #333"},}, React.createElement('div', { style: {display:"flex",justifyContent:"space-between",marginBottom:2},}, React.createElement('span', { style: {color:C.cyan,fontSize:13,fontWeight:"bold",fontFamily:M},}, "PRIMARY FLIGHT DISPLAY"  ), React.createElement('button', { onClick: onClose, style: {background:"#333",color:"#fff",border:"none",borderRadius:3,padding:"2px 6px",cursor:"pointer",fontSize:10},}, "✕")), React.createElement('canvas', { ref: ref, style: {borderRadius:3},}), React.createElement('div', { style: {display:"flex",gap:2,marginTop:3,flexWrap:"wrap",justifyContent:"center"},}, React.createElement(K, { l: "IAS", v: ias, set: sI, mn: 0, mx: 350, st: 10,}), React.createElement(K, { l: "ALTx100", v: alt, set: sA, mn: 0, mx: 450, st: 10,}), React.createElement(K, { l: "HDG", v: hdg, set: sH, mn: 0, mx: 360, st: 5,}), React.createElement(K, { l: "PITCH", v: pitch, set: sP, mn: -15, mx: 15, st: 1,}), React.createElement(K, { l: "ROLL", v: roll, set: sR, mn: -45, mx: 45, st: 5,}))));}
 
-// ═══════ EICAS ═══════
+// ═══════ [COMP] EICASPanel ═══════
 function EICASPanel({onClose}){return(React.createElement('div', { style: {width:320,background:"#0a0a0a",borderRadius:6,padding:8,border:"2px solid #333",fontFamily:M},}, React.createElement('div', { style: {display:"flex",justifyContent:"space-between",marginBottom:6},}, React.createElement('span', { style: {color:C.amber,fontSize:19,fontWeight:"bold"},}, "EICAS"), React.createElement('button', { onClick: onClose, style: {background:"#333",color:"#fff",border:"none",borderRadius:3,padding:"2px 6px",cursor:"pointer",fontSize:10},}, "✕")), React.createElement('div', { style: {display:"flex",gap:20,justifyContent:"center",marginBottom:8},}, ["1","2"].map(n=>(React.createElement('div', { key: n, style: {textAlign:"center"},}, React.createElement('div', { style: {color:C.white,fontSize:10},}, "ENG " , n), React.createElement('div', { style: {width:65,height:65,borderRadius:"50%",border:`2px solid ${C.green}`,display:"flex",alignItems:"center",justifyContent:"center",background:"#111"},}, React.createElement('div', null, React.createElement('div', { style: {color:C.green,fontSize:20,fontWeight:"bold"},}, "0.0"), React.createElement('div', { style: {color:C.dim,fontSize:10},}, "N1 %" ))), React.createElement('div', { style: {fontSize:19,color:C.dim,marginTop:2},}, "EGT"), React.createElement('div', { style: {fontSize:13,color:C.green},}, "---°C"))))), React.createElement('div', { style: {borderTop:"1px solid #333",paddingTop:4},}, React.createElement('div', { style: {display:"flex",justifyContent:"space-around"},}, [["L","28.5"],["CTR","28.0"],["R","28.5"]].map(([t,v])=>(React.createElement('div', { key: t, style: {textAlign:"center"},}, React.createElement('div', { style: {color:C.dim,fontSize:10},}, t), React.createElement('div', { style: {color:C.green,fontSize:11},}, v))))))));}
 
 
@@ -22489,7 +22549,7 @@ function NDFullCanvas({style,mcp,fms}){
   return React.createElement('canvas', { ref: ref, width: 320, height: 340, style: {...style,display:"block"},});
 }
 
-// ═══════ FORWARD PANEL VIEW (FCOM 10.10.51–10.10.52) ═══════
+// ═══════ [COMP] ForwardPanelView (FCOM 10.10.51–10.10.52) ═══════
 function ForwardPanelView({fms,setFms,fwdState,setFwdState}){
   const dspSide=fwdState.dspSide||"L";
   const mfdL=fwdState.mfdL||null;
@@ -22528,10 +22588,10 @@ function ForwardPanelView({fms,setFms,fwdState,setFwdState}){
   const activeFmt = dspSide==="L" ? mfdL : mfdR;
 
   return (
-    React.createElement('div', { style: {display:"flex",gap:10,alignItems:"flex-start",width:"100%",maxWidth:900,justifyContent:"center"},}
+    React.createElement('div', { style: {display:"flex",gap:10,alignItems:"flex-start",width:"100%",justifyContent:"center"},}
 
-      /* ═══ INBOARD DISPLAY UNIT (large, ~78% width) ═══ */
-      , React.createElement('div', { style: {flex:"1 1 840px",maxWidth:840,background:"#000",borderRadius:4,
+      /* ═══ INBOARD DISPLAY UNIT (fills remaining width) ═══ */
+      , React.createElement('div', { style: {flex:1,minWidth:0,background:"#000",borderRadius:4,
         border:"4px solid #1a1a1a",overflow:"hidden",
         boxShadow:"0 2px 16px rgba(0,0,0,0.9),inset 0 0 40px rgba(0,0,0,0.6)"},}
         /* Two MFD windows */
@@ -22643,7 +22703,7 @@ function DSPKey({label,active,onClick,w,disabled}){
   );
 }
 
-// ═══════ CDU Mini View (for MFD window embedding) ═══════
+// ═══════ [COMP] CDUMiniView (for MFD window embedding) ═══════
 function CDUMiniView({fms,setFms}){
   const pd = cduPageData(fms);
   const page = pd[fms.page] || pd["IDENT"];
@@ -22673,7 +22733,7 @@ function CDUMiniView({fms,setFms}){
   );
 }
 
-// ═══════ MAIN COMPONENT ═══════
+// ═══════ [MAIN] B787Cockpit ═══════
 function B787Cockpit(){
   const [fms,setFms]=useState(initFMS);
   const [mfdMode,setMfdMode]=useState("CDU");
@@ -22707,18 +22767,17 @@ function B787Cockpit(){
         React.createElement('div', {style:{color:"#00cccc",fontSize:33,fontWeight:"bold",letterSpacing:4,marginBottom:4}}, "B787 DREAMLINER"),
         React.createElement('div', {style:{color:"#aaa",fontSize:14,letterSpacing:2}}, "COCKPIT PROCEDURE SIMULATOR"),
         React.createElement('div', {style:{color:"#777",fontSize:14,marginTop:4}}, "FOR TRAINING PURPOSE ONLY"),
-        React.createElement('div', {style:{color:"#00bb00",fontSize:11,marginTop:12,letterSpacing:1}}, "v2.8.40 \u00a0|\u00a0 by SHLee7872603")
+        React.createElement('div', {style:{color:"#00bb00",fontSize:11,marginTop:12,letterSpacing:1}}, "v2.9.3 \u00a0|\u00a0 by SHLee7872603")
       ),
       React.createElement('div', {style:{borderTop:"1px solid #333",borderBottom:"1px solid #333",padding:"14px 0",marginBottom:16}},
         React.createElement(ChkRow, {checked:ckIPad,onToggle:function(){setCkIPad(function(p){return!p;});}},
-          React.createElement('div', {style:{color:"#00cccc",fontSize:17,fontWeight:"bold",marginBottom:8,letterSpacing:1}}, "PATCH NOTES v2.8.40"),
+          React.createElement('div', {style:{color:"#00cccc",fontSize:17,fontWeight:"bold",marginBottom:8,letterSpacing:1}}, "PATCH NOTES v2.9.3"),
           React.createElement('div', {style:{color:"#aaa",fontSize:14,fontWeight:"bold",lineHeight:1.8}},
-            React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginBottom:2}}, "v2.8.40"),
-            React.createElement('div', null, "\u2022 CHKL \uc0c9\uc0c1 \ubcf5\uc6d0(FCOM) \u00b7 \ud56d\ubaa9\uba85 \uc218\uc815 \u00b7 \uc88c\uc6b0 \uc815\ub82c"),
-            React.createElement('div', null, "\u2022 FWD Panel ND \ud2c0 \ud604\uc0c1 \uc218\uc815"),
-            React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginTop:8,marginBottom:2}}, "v2.8.39"),
-            React.createElement('div', null, "\u2022 B612 cockpit font \u00b7 CDU \uae00\uc790\uc0c9 \ud1b5\uc77c(white)"),
-            React.createElement('div', null, "\u2022 EICAS \ucee8\ud2b8\ub864 \uac1c\ud3b8 \u00b7 \uba54\uc2dc\uc9c0\ubcc4 CANC/RCL"),
+            React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginBottom:2}}, "v2.9.3"),
+            React.createElement('div', null, "\u2022 FWD Panel iPad 11\" \uac00\ub85c \uaf3d\ucc44\uc6c0 \u00b7 DEP/ARR ACT \ubaa9\ub85d\ud45c\uc2dc"),
+            React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginTop:8,marginBottom:2}}, "v2.9.2"),
+            React.createElement('div', null, "\u2022 EICAS 14\uac1c \uc2dc\ub098\ub9ac\uc624 \u00b7 CANC/RCL \uba54\uc2dc\uc9c0\ubcc4 \uc81c\uc5b4"),
+            React.createElement('div', null, "\u2022 B612 font \u00b7 CHKL \uc0c9\uc0c1\ubcf5\uc6d0 \u00b7 DEP/ARR \ud45c\uc2dc\uac1c\uc120"),
 
           )
         )
