@@ -6,10 +6,11 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-title" content="B787 CDU">
+<link href="https://fonts.googleapis.com/css2?family=B612:wght@400;700&display=swap" rel="stylesheet">
 <meta name="theme-color" content="#050505">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>B787 CDU Practice v2.8.37d</title>
+<title>B787 CDU Practice v2.8.39</title>
 <style>*{margin:0;padding:0;box-sizing:border-box;-webkit-user-select:none;user-select:none}body{background:#050505;overflow-x:hidden}</style>
 </head>
 <body>
@@ -17162,13 +17163,13 @@ const { useState, useCallback, useEffect, useRef } = React;
 
 const C = {
   bg:"#0c0c0c",screen:"#0a0a0a",bezel:"#3a3a3a",bezelDark:"#2a2a2a",
-  green:"#00e800",dGreen:"#00aa00",magenta:"#ff44ff",cyan:"#00cccc",
-  white:"#d8d8d8",dim:"#666",amber:"#ffaa00",red:"#ff2222",
+  green:"#d8d8d8",dGreen:"#d8d8d8",magenta:"#d8d8d8",cyan:"#d8d8d8",
+  white:"#d8d8d8",dim:"#666",amber:"#d8d8d8",red:"#d8d8d8",
   sky:"#004488",ground:"#442200",execGr:"#00bb00",
   lskDash:"#888",mfkPanel:"#606860",
   efbBezel:"#2e2e2e",efbScreen:"#080808",efbBtn:"#484848",
 };
-const M = "'Courier New',Consolas,monospace";
+const M = "'B612','Courier New',Consolas,monospace";
 
 // ═══════ AIRWAY DATABASE (waypoints in order on each airway) ═══════
 const AIRWAY_DB = {
@@ -17836,9 +17837,49 @@ function updateRouteLegs(fms){
 }
 function updateRouteForSid(fms){updateRouteLegs(fms);}
 
+// ═══════ EICAS MESSAGE SCENARIOS ═══════
+var EICAS_SCENARIOS = [
+  {id:1,phase:"ARRIVAL",title:"Gate Arrival",
+    caution:["ENG SHUTDOWN","HYD PRESS SYS L+C+R"],advisory:["DOORS","FUEL PRESS ENG L+R","TCAS OFF"],
+    memo:["APU RUNNING","SEATBELTS ON","DOORS MANUAL","AUTOBRAKE RTO","PARKING BRAKE SET","STEERING LOCKED OUT"]},
+  {id:2,phase:"ARRIVAL",title:"L2 Door Closed",
+    caution:["ENG SHUTDOWN","HYD PRESS SYS L+C+R"],advisory:["DOOR ENTRY L1","FUEL PRESS ENG L+R","TCAS OFF"],
+    memo:["APU RUNNING","SEATBELTS ON","DOORS MANUAL","AUTOBRAKE RTO","PARKING BRAKE SET","STEERING LOCKED OUT"]},
+  {id:3,phase:"ARRIVAL",title:"All Doors Closed / Armed",
+    caution:["ENG SHUTDOWN","HYD PRESS SYS L+C+R"],advisory:["FUEL PRESS ENG L+R","TCAS OFF"],
+    memo:["APU RUNNING","SEATBELTS ON","DOORS AUTO","AUTOBRAKE RTO","PARKING BRAKE SET","STEERING LOCKED OUT"]},
+  {id:4,phase:"ARRIVAL",title:"Parking BRK Released / TCAS XPDR / Cabin Ready",
+    caution:["ENG SHUTDOWN","HYD PRESS SYS L+C+R"],advisory:["FUEL PRESS ENG L+R","TCAS OFF"],
+    memo:["APU RUNNING","SEATBELTS ON","DOORS AUTO","AUTOBRAKE RTO","STEERING LOCKED OUT","\u2022CABIN READY"]},
+  {id:5,phase:"DEPARTURE",title:"ENG Started / APU OFF",
+    caution:[],advisory:["TCAS OFF"],
+    memo:["SEATBELTS ON","DOORS AUTO","AUTOBRAKE RTO","STEERING LOCKED OUT"]},
+  {id:6,phase:"DEPARTURE",title:"Steering Lockout Pin Removed",
+    caution:[],advisory:["TCAS OFF"],
+    memo:["SEATBELTS ON","DOORS AUTO","AUTOBRAKE RTO"]},
+  {id:7,phase:"DEPARTURE",title:"Before Takeoff / TCAS TA-RA / Cabin Ready",
+    caution:[],advisory:[],
+    memo:["SEATBELTS ON","DOORS AUTO","AUTOBRAKE RTO","\u2022CABIN READY"]},
+  {id:8,phase:"DEPARTURE",title:"After Takeoff / RTO OFF",
+    caution:[],advisory:[],
+    memo:["SEATBELTS ON","DOORS AUTO"]},
+  {id:9,phase:"ARRIVAL",title:"After Landing / Manual Brake",
+    caution:[],advisory:["AUTOBRAKE"],memo:["SEATBELTS ON","DOORS AUTO"]},
+  {id:10,phase:"ARRIVAL",title:"APU Start",
+    caution:[],advisory:[],memo:["APU RUNNING","SEATBELTS ON","DOORS AUTO"]},
+  {id:11,phase:"ARRIVAL",title:"Parking Brake Set",
+    caution:[],advisory:[],memo:["APU RUNNING","SEATBELTS ON","DOORS AUTO","PARKING BRAKE SET"]},
+  {id:12,phase:"ARRIVAL",title:"ENG Shutdown",
+    caution:["ENG SHUTDOWN","HYD PRESS SYS L+C+R"],advisory:["FUEL PRESS ENG L+R","TCAS OFF"],memo:["APU RUNNING","SEATBELTS ON","DOORS AUTO","PARKING BRAKE SET"]},
+  {id:13,phase:"ARRIVAL",title:"Seatbelt OFF",
+    caution:["ENG SHUTDOWN","HYD PRESS SYS L+C+R"],advisory:["FUEL PRESS ENG L+R","TCAS OFF"],memo:["APU RUNNING","DOORS AUTO","PARKING BRAKE SET"]},
+  {id:14,phase:"ARRIVAL",title:"All Door Manual",
+    caution:["ENG SHUTDOWN","HYD PRESS SYS L+C+R"],advisory:["FUEL PRESS ENG L+R","TCAS OFF"],memo:["APU RUNNING","DOORS MANUAL","PARKING BRAKE SET"]}
+];
+
 var CUR={}; // shared cursor controller
 const initFMS = () => ({
-  phase:"PREFLIGHT",page:"IDENT",scratchpad:"",execLight:false,cursorIdx:null,
+  phase:"PREFLIGHT",page:"IDENT",scratchpad:"",execLight:false,cursorIdx:null,eicasScenario:1,eicasCxd:[],
   computedLegs:[],
   origin:"",dest:"",fltNo:"",coRoute:"",runway:"",refAirport:"",
   posGate:"", setInertialPos:"", setHdg:"", // POS INIT fields (FCOM 11.40.8)
@@ -17939,8 +17980,8 @@ function CDURow({n, tl="",tr="",dl="",dr="",dc="",tlc=C.white,trc=C.white,dlc=C.
       , !tlFull && (
         React.createElement('div', { style: {display:"flex",height:"20px",alignItems:"flex-end",background:tlBg||"transparent",margin:tlBg?"0 15px":0,padding:tlBg?"2px 0":0},}
           , React.createElement(DashSpacer, null)
-          , React.createElement('div', { style: {color:tlBg?"#fff":tlc,fontSize:tlBg?"20px":"20px",fontFamily:M,flex:1,fontWeight:"bold",whiteSpace:"pre",padding:"0 4px",display:"flex",alignItems:"flex-end"},}, tl)
-          , React.createElement('div', { style: {color:trc,fontSize:"20px",fontFamily:M,textAlign:"right",fontWeight:"bold",whiteSpace:"pre",padding:"0 4px"},}, tr)
+          , React.createElement('div', { style: {color:tlBg?"#fff":tlc,fontSize:tlBg?"18px":"18px",fontFamily:M,flex:1,fontWeight:"normal",whiteSpace:"pre",padding:"0 4px",display:"flex",alignItems:"flex-end"},}, tl)
+          , React.createElement('div', { style: {color:trc,fontSize:"18px",fontFamily:M,textAlign:"right",fontWeight:"normal",whiteSpace:"pre",padding:"0 4px"},}, tr)
           , React.createElement(DashSpacer, null)
         )
       )
@@ -19297,7 +19338,7 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
           if(u.toN1)s.toN1=u.toN1;
           if(u.togw)s.togw=u.togw;
           if(u.thrReduction)s.thrReduction=u.thrReduction;
-          s.pendingUplink=null;s.helpMsg="TAKEOFF DATA ACCEPTED";
+          s.pendingUplink=null;s.helpMsg="TAKEOFF DATA ACCEPTED";if(s.eicasScenario<2)s.eicasScenario=2;
           go("TOREF1");
         }
         if(side==="L"&&num===6)go("INIT_REF");
@@ -19964,7 +20005,7 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
             var _row=_pd.rows[num-1];
             if(_row){
               var _val=side==="L"?_row.dl:_row.dr;
-              if(_val&&typeof _val==="string"&&_val!=="---"&&_val!=="----"&&_val!==""&&!_val.startsWith("<")&&!_val.endsWith(">"))s.scratchpad=_val;
+              if(_val&&typeof _val==="string"&&_val!==""&&!/^[-□▯]+$/.test(_val)&&!_val.startsWith("<")&&!_val.endsWith(">"))s.scratchpad=_val;
             }
           }
         }catch(e){}
@@ -20068,7 +20109,45 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
     const rows = [...(pd.rows||[])];
     while(rows.length < 6) rows.push({});
     const preflightDone = fms.flaps&&fms.v1!=="---"&&fms.zfw&&fms.crzAlt;
+    const eicasS=EICAS_SCENARIOS[(fms.eicasScenario||1)-1]||EICAS_SCENARIOS[0];
+    const eicasLeft=(eicasS.caution||[]).concat(eicasS.advisory||[]).filter(function(m){return(fms.eicasCxd||[]).indexOf(m)<0;});
+    const eicasRight=eicasS.memo||[];
+    var EICAS_STATES=["","Cockpit Entry","Boarding Complete","Welcome Ann. Done","Before Pushback","ENG Start/APU OFF","GRD Equip Cleared","Taxiing","After Takeoff","After Landing","APU Started","Parking Brake Set","ENG Shutdown","Seatbelts OFF","All Door Manual"];
+    var EICAS_NEXT_ACT=["","Boarding Complete","Welcome Ann.","Pushback Approved","Starting ENG","Clear to Disconnect","Request Taxi","Clear for Takeoff","Clear to Land","Starting APU","Stop Position","Fuel Ctrl CUTOFF","Seatbelt OFF","AFT Shutdown Flow",""];
+    var eicasCur=EICAS_STATES[fms.eicasScenario||1]||"";
+    var eicasNxt=EICAS_NEXT_ACT[fms.eicasScenario||1]||"";
     return (React.createElement(React.Fragment, null
+      /* ═══ EICAS Message Display ═══ */
+      , React.createElement('div', { style: {display:"flex",padding:"4px 8px",height:"120px",borderBottom:"1px solid #333",flexShrink:0},}
+        /* Column 1: Caution/Advisory (flex:2) */
+        , React.createElement('div', { style: {flex:2,display:"flex",flexDirection:"column",justifyContent:"flex-start",gap:0,overflow:"hidden"},}
+          , eicasLeft.map(function(msg,i){
+            var isAdv=(eicasS.advisory||[]).indexOf(msg)>=0;
+            return React.createElement('div',{key:"el"+i,style:{color:"#E6A817",fontSize:"14px",fontFamily:"'B612',sans-serif",fontWeight:"bold",lineHeight:1.4,whiteSpace:"nowrap",transform:"scaleX(1.2)",transformOrigin:"left",paddingLeft:isAdv?"12px":"0"}},msg);
+          })
+        )
+        /* Column 2: Memo (flex:2) */
+        , React.createElement('div', { style: {flex:2,display:"flex",flexDirection:"column",justifyContent:"flex-start",gap:0,overflow:"hidden"},}
+          , eicasRight.map(function(msg,i){
+            return React.createElement('div',{key:"er"+i,style:{color:"#EEEEEE",fontSize:"14px",fontFamily:"'B612',sans-serif",fontWeight:"bold",lineHeight:1.4,whiteSpace:"nowrap",transform:"scaleX(1.2)",transformOrigin:"left"}},msg);
+          })
+        )
+        /* Column 3: Controls (flex:1) */
+        , React.createElement('div',{style:{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:1,overflow:"hidden"},}
+          /* Row 1: PREV | CANC/RCL (1:2 ratio) */
+          , React.createElement('div',{style:{display:"flex",gap:2,width:"100%"},}
+            , React.createElement('button',{onClick:function(){setFms(function(p){var s=EICAS_SCENARIOS[(p.eicasScenario||1)-1];return{...p,eicasScenario:Math.max(1,(p.eicasScenario||1)-1),eicasCxd:(s.caution||[]).concat(s.advisory||[])};});},style:{flex:1,padding:0,height:"28px",background:"#333",color:C.white,border:"1px solid #555",borderRadius:2,fontSize:"15px",fontFamily:M,fontWeight:"bold",cursor:"pointer",lineHeight:0.9}},"PREV")
+            , React.createElement('button',{onClick:function(){setFms(function(p){var s=EICAS_SCENARIOS[(p.eicasScenario||1)-1];var allM=(s.caution||[]).concat(s.advisory||[]);var cxd=p.eicasCxd||[];var vis=allM.filter(function(m){return cxd.indexOf(m)<0;});if(vis.length>0){return{...p,eicasCxd:cxd.concat(vis)};}else{return{...p,eicasCxd:cxd.filter(function(m){return allM.indexOf(m)<0;})};}});},style:{flex:2,padding:0,height:"28px",background:"#333",color:C.white,border:"1px solid #555",borderRadius:2,fontSize:"15px",fontFamily:M,fontWeight:"bold",cursor:"pointer",lineHeight:0.9}},"CANC/RCL")
+          )
+          /* Row 2: Current state description (expanded) */
+          , React.createElement('div',{style:{fontSize:"15px",fontFamily:M,color:"#0f0",textAlign:"center",lineHeight:1.3,letterSpacing:"-0.7px",whiteSpace:"pre-line",padding:"2px 0",flex:1,display:"flex",alignItems:"center",justifyContent:"center"}},eicasCur)
+          /* Row 3: NEXT + next action (vertical 2-line) */
+          , React.createElement('button',{onClick:function(){setFms(function(p){var s=EICAS_SCENARIOS[(p.eicasScenario||1)-1];return{...p,eicasScenario:Math.min(14,(p.eicasScenario||1)+1),eicasCxd:(s.caution||[]).concat(s.advisory||[])};});},style:{padding:"0 6px",height:"38px",background:"#333",color:C.white,border:"1px solid #555",borderRadius:2,fontSize:"14px",fontFamily:M,fontWeight:"bold",cursor:"pointer",width:"100%",lineHeight:1,textAlign:"left",display:"flex",flexDirection:"column",alignItems:"flex-start",justifyContent:"center",gap:"2px"}},
+            React.createElement('div',null,"NEXT"),
+            React.createElement('div',{style:{fontSize:"13px",color:"#4FC3F7",fontWeight:"bold",minHeight:"13px",whiteSpace:"nowrap",overflow:"hidden"}},eicasNxt||"")
+          )
+        )
+      )
       /* UTC time + date display (FCOM Ch.11.10 CDU Display) */
       , React.createElement('div', { style: {display:"flex",justifyContent:"space-between",padding:"2px 26px 0",minHeight:"16px"},}
         , React.createElement('span', { style: {color:C.white,fontSize:"10px",fontFamily:M},}, new Date().toISOString().substr(11,8)+"Z")
@@ -20149,15 +20228,15 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
                 var rteLegs=[{via:"OSPO2C",to:"OSPOT"},{via:"Y782",to:"TGU"},{via:"Y781",to:"BESNA"},{via:"Y209",to:"IKE"}];
                 if(pi===0){setFms(initFMS());setMfdMode("CDU");}
                 else if(pi===1){
-                  var p1=Object.assign({},initFMS(),{fltNo:"KAL781",origin:"RKSI",dest:"RJFF",runway:"15R",depRwy:"15R",routeLegs:rteLegs,depSid:"OSPO2C",depSidAct:true,phase:"ACTIVE",grWt:"391.0",fuel:"36.0",zfw:"355.0",reserves:"9.0",crzAlt:"FL310",costIndex:"50",efbInit:true,page:"PERF_INIT",chkl:{tab:"NORMAL",clIdx:1,cur:0,ck:mkCk(1),ovrd:{},menuMode:false},efbPerf:{aprt:"",rwy:"",intx:"",cond:"",wind:"",oat:"",qnh:"",rtg:"OPTIMUM",ic:"NO",atm:"MAX",flap:"OPTIMUM",aiEng:"ENG AUTO",icing:"NO",rtl:"20/30",tow:"",zfw:"",cg:"25",calcDone:false,sentToFmc:false,calcV1:"",calcVR:"",calcV2:"",calcFlap:"",calcThrust:"",calcAccelHt:"",calcDTO:"",calcSelTemp:"",calcVref30:"",calcRwyIntx:"",calcTOGW:""}});
+                  var p1=Object.assign({},initFMS(),{fltNo:"KAL781",origin:"RKSI",dest:"RJFF",runway:"15R",depRwy:"15R",routeLegs:rteLegs,depSid:"OSPO2C",depSidAct:true,phase:"ACTIVE",grWt:"391.0",fuel:"36.0",zfw:"355.0",reserves:"9.0",crzAlt:"FL310",costIndex:"50",eicasScenario:3,efbInit:true,page:"PERF_INIT",chkl:{tab:"NORMAL",clIdx:1,cur:0,ck:mkCk(1),ovrd:{},menuMode:false},efbPerf:{aprt:"",rwy:"",intx:"",cond:"",wind:"",oat:"",qnh:"",rtg:"OPTIMUM",ic:"NO",atm:"MAX",flap:"OPTIMUM",aiEng:"ENG AUTO",icing:"NO",rtl:"20/30",tow:"",zfw:"",cg:"25",calcDone:false,sentToFmc:false,calcV1:"",calcVR:"",calcV2:"",calcFlap:"",calcThrust:"",calcAccelHt:"",calcDTO:"",calcSelTemp:"",calcVref30:"",calcRwyIntx:"",calcTOGW:""}});
                   updateRouteLegs(p1);p1.computedLegs=buildLegs(p1);setFms(p1);setMfdMode("CDU");
                 } else if(pi===2){
                   var d2=FLIGHT_DB["KAL781"]||{};var cgVal2=23;var trimVal2=(cgVal2*0.22-0.06).toFixed(2);
-                  var p2=Object.assign({},initFMS(),{fltNo:"KAL781",origin:"RKSI",dest:"RJFF",runway:"15R",depRwy:"15R",routeLegs:rteLegs,depSid:"OSPO2C",depSidAct:true,phase:"ACTIVE",grWt:"391.0",fuel:"36.0",zfw:"355.0",reserves:"9.0",crzAlt:"FL310",costIndex:"50",flaps:d2.perfFlap||"5",v1:d2.perfV1||"166",vr:d2.perfVR||"171",v2:d2.perfV2||"175",cg:"23",trim:trimVal2,thrustMode:"D-TO",selOat:d2.perfSelTemp||"42",togw:"391.0",toN1:(d2.perfDTO||"91.3")+"%",eoAccelHt:(d2.perfAccelHt||"860")+"FT",wind:d2.wind?d2.wind.replace("/","°/")+"KT":"240°/05KT",arrStar:"ISKUPE",arrStarAct:true,arrApp:"ILS16L",arrAppAct:true,arrTrans:"ENTIX",efbInit:true,page:"TOREF1",chkl:{tab:"NORMAL",clIdx:3,cur:0,ck:mkCk(3),ovrd:{},menuMode:false},efbPerf:{aprt:"RKSI / ICN",rwy:"15R",intx:"FULL 15R",cond:"DRY",wind:d2.wind||"240/05",oat:d2.oat||"15",qnh:d2.qnh||"1013",rtg:"OPTIMUM",ic:"NO",atm:"MAX",flap:"OPTIMUM",aiEng:"ENG AUTO",icing:"NO",rtl:"20/30",tow:"391000",zfw:"355000",cg:"23",calcDone:true,sentToFmc:true,calcV1:d2.perfV1||"166",calcVR:d2.perfVR||"171",calcV2:d2.perfV2||"175",calcFlap:d2.perfFlap||"5",calcThrust:d2.perfThrust||"42°C D-TO",calcAccelHt:d2.perfAccelHt||"860",calcDTO:d2.perfDTO||"91.3",calcSelTemp:d2.perfSelTemp||"42",calcVref30:d2.perfVref30||"150",calcRwyIntx:"FULL 15R",calcTOGW:"391000"}});
+                  var p2=Object.assign({},initFMS(),{fltNo:"KAL781",origin:"RKSI",dest:"RJFF",runway:"15R",depRwy:"15R",routeLegs:rteLegs,depSid:"OSPO2C",depSidAct:true,phase:"ACTIVE",grWt:"391.0",fuel:"36.0",zfw:"355.0",reserves:"9.0",crzAlt:"FL310",costIndex:"50",flaps:d2.perfFlap||"5",v1:d2.perfV1||"166",vr:d2.perfVR||"171",v2:d2.perfV2||"175",cg:"23",trim:trimVal2,thrustMode:"D-TO",selOat:d2.perfSelTemp||"42",togw:"391.0",toN1:(d2.perfDTO||"91.3")+"%",eoAccelHt:(d2.perfAccelHt||"860")+"FT",wind:d2.wind?d2.wind.replace("/","°/")+"KT":"240°/05KT",arrStar:"ISKUPE",arrStarAct:true,arrApp:"ILS16L",arrAppAct:true,arrTrans:"ENTIX",eicasScenario:7,efbInit:true,page:"TOREF1",chkl:{tab:"NORMAL",clIdx:3,cur:0,ck:mkCk(3),ovrd:{},menuMode:false},efbPerf:{aprt:"RKSI / ICN",rwy:"15R",intx:"FULL 15R",cond:"DRY",wind:d2.wind||"240/05",oat:d2.oat||"15",qnh:d2.qnh||"1013",rtg:"OPTIMUM",ic:"NO",atm:"MAX",flap:"OPTIMUM",aiEng:"ENG AUTO",icing:"NO",rtl:"20/30",tow:"391000",zfw:"355000",cg:"23",calcDone:true,sentToFmc:true,calcV1:d2.perfV1||"166",calcVR:d2.perfVR||"171",calcV2:d2.perfV2||"175",calcFlap:d2.perfFlap||"5",calcThrust:d2.perfThrust||"42°C D-TO",calcAccelHt:d2.perfAccelHt||"860",calcDTO:d2.perfDTO||"91.3",calcSelTemp:d2.perfSelTemp||"42",calcVref30:d2.perfVref30||"150",calcRwyIntx:"FULL 15R",calcTOGW:"391000"}});
                   updateRouteLegs(p2);p2.computedLegs=buildLegs(p2);setFms(p2);setMfdMode("CDU");
                 } else {
                   var d3=FLIGHT_DB["KAL781"]||{};var cgVal3=23;var trimVal3=(cgVal3*0.22-0.06).toFixed(2);
-                  var p3=Object.assign({},initFMS(),{fltNo:"KAL781",origin:"RKSI",dest:"RJFF",runway:"15R",depRwy:"15R",routeLegs:rteLegs,depSid:"OSPO2C",depSidAct:true,phase:"ACTIVE",grWt:"391.0",fuel:"36.0",zfw:"355.0",reserves:"9.0",crzAlt:"FL310",costIndex:"50",flaps:d3.perfFlap||"5",v1:d3.perfV1||"166",vr:d3.perfVR||"171",v2:d3.perfV2||"175",cg:"23",trim:trimVal3,thrustMode:"D-TO",selOat:d3.perfSelTemp||"42",togw:"391.0",toN1:(d3.perfDTO||"91.3")+"%",eoAccelHt:(d3.perfAccelHt||"860")+"FT",wind:d3.wind?d3.wind.replace("/","°/")+"KT":"240°/05KT",efbInit:true,page:"CRZ",chkl:{tab:"NORMAL",clIdx:5,cur:0,ck:mkCk(5),ovrd:{},menuMode:false},efbPerf:{aprt:"RKSI / ICN",rwy:"15R",intx:"FULL 15R",cond:"DRY",wind:d3.wind||"240/05",oat:d3.oat||"15",qnh:d3.qnh||"1013",rtg:"OPTIMUM",ic:"NO",atm:"MAX",flap:"OPTIMUM",aiEng:"ENG AUTO",icing:"NO",rtl:"20/30",tow:"391000",zfw:"355000",cg:"23",calcDone:true,sentToFmc:true,calcV1:d3.perfV1||"166",calcVR:d3.perfVR||"171",calcV2:d3.perfV2||"175",calcFlap:d3.perfFlap||"5",calcThrust:d3.perfThrust||"42°C D-TO",calcAccelHt:d3.perfAccelHt||"860",calcDTO:d3.perfDTO||"91.3",calcSelTemp:d3.perfSelTemp||"42",calcVref30:d3.perfVref30||"150",calcRwyIntx:"FULL 15R",calcTOGW:"391000"}});
+                  var p3=Object.assign({},initFMS(),{fltNo:"KAL781",origin:"RKSI",dest:"RJFF",runway:"15R",depRwy:"15R",routeLegs:rteLegs,depSid:"OSPO2C",depSidAct:true,phase:"ACTIVE",grWt:"391.0",fuel:"36.0",zfw:"355.0",reserves:"9.0",crzAlt:"FL310",costIndex:"50",flaps:d3.perfFlap||"5",v1:d3.perfV1||"166",vr:d3.perfVR||"171",v2:d3.perfV2||"175",cg:"23",trim:trimVal3,thrustMode:"D-TO",selOat:d3.perfSelTemp||"42",togw:"391.0",toN1:(d3.perfDTO||"91.3")+"%",eoAccelHt:(d3.perfAccelHt||"860")+"FT",wind:d3.wind?d3.wind.replace("/","°/")+"KT":"240°/05KT",eicasScenario:8,efbInit:true,page:"CRZ",chkl:{tab:"NORMAL",clIdx:5,cur:0,ck:mkCk(5),ovrd:{},menuMode:false},efbPerf:{aprt:"RKSI / ICN",rwy:"15R",intx:"FULL 15R",cond:"DRY",wind:d3.wind||"240/05",oat:d3.oat||"15",qnh:d3.qnh||"1013",rtg:"OPTIMUM",ic:"NO",atm:"MAX",flap:"OPTIMUM",aiEng:"ENG AUTO",icing:"NO",rtl:"20/30",tow:"391000",zfw:"355000",cg:"23",calcDone:true,sentToFmc:true,calcV1:d3.perfV1||"166",calcVR:d3.perfVR||"171",calcV2:d3.perfV2||"175",calcFlap:d3.perfFlap||"5",calcThrust:d3.perfThrust||"42°C D-TO",calcAccelHt:d3.perfAccelHt||"860",calcDTO:d3.perfDTO||"91.3",calcSelTemp:d3.perfSelTemp||"42",calcVref30:d3.perfVref30||"150",calcRwyIntx:"FULL 15R",calcTOGW:"391000"}});
                   updateRouteLegs(p3);p3.computedLegs=buildLegs(p3);setFms(p3);setMfdMode("CDU");
                 }
               }, style: {flex:1,padding:"8px 2px",background:phaseColors[pi],color:"#ccc",border:"1px solid #555",borderRadius:3,fontSize:19,fontWeight:"bold",cursor:"pointer",fontFamily:M,lineHeight:1.2,textAlign:"center",whiteSpace:"pre-line"},}, ph);
@@ -21344,7 +21423,7 @@ function ChecklistView({fms,setFms}){
       )
       /* Bottom command keys (FCOM 10.50.1) */
       , React.createElement('div', { style: {display:"flex",gap:2,padding:"4px 6px",borderTop:"1px solid #444"},}
-        , React.createElement(CmdKey, { l: "NORMAL", cmd: "0", onClick: allDone?()=>{const ni=clIdx+1<CHECKLISTS.length?clIdx+1:0;setClIdx(ni);setCur(0);setFms(p=>({...p,cursorIdx:null,returnFromChkl:true}));}:goNextIncomplete,})
+        , React.createElement(CmdKey, { l: "NORMAL", cmd: "0", onClick: allDone?()=>{const ni=clIdx+1<CHECKLISTS.length?clIdx+1:0;setClIdx(ni);setCur(0);setFms(p=>{var es=p.eicasScenario;if(clIdx===1)es=4;else if(clIdx===2){es=5;setTimeout(function(){setFms(function(pp){return{...pp,eicasScenario:6};});},2500);}else if(clIdx===3)es=7;else if(clIdx===4)es=8;return{...p,cursorIdx:null,returnFromChkl:true,eicasScenario:es,eicasCxd:[]};});}:goNextIncomplete,})
         , React.createElement(CmdKey, { l: "ITEM\nOVRD", cmd: "1", onClick: itemOverride,})
         , React.createElement(CmdKey, { l: "NOTES", cmd: "2",})
         , React.createElement(CmdKey, { l: "CHKL\nOVRD", cmd: "3", onClick: ()=>{items.forEach((_,ii)=>{setOvrd(o=>({...o,[`${clIdx}-${ii}`]:true}));});setCur(items.length);},})
@@ -21903,7 +21982,7 @@ function CommView({fms,setFms}){
       display:"flex",gap:3,padding:"4px",borderTop:"2px solid #444",background:"#111",flexShrink:0
     },}
       , mainTab==="NEW_MSG"&&msgView?(React.createElement(React.Fragment, null
-        , msgView==="LOADSHEET"&&!lsAccepted&&CmdBtn({l:"ACCEPT",onClick:function(){setInfoMsg("ACCEPTING");setTimeout(function(){setInfoMsg("ACCEPTED");setLsAccepted(true);setTimeout(function(){setInfoMsg("");},2000);},1000);}})
+        , msgView==="LOADSHEET"&&!lsAccepted&&CmdBtn({l:"ACCEPT",onClick:function(){setInfoMsg("ACCEPTING");setTimeout(function(){setInfoMsg("ACCEPTED");setLsAccepted(true);setFms(function(p){return{...p,eicasScenario:Math.max(p.eicasScenario,3)};});setTimeout(function(){setInfoMsg("");},2000);},1000);}})
         , msgView==="DCL"&&fms.dclMsg&&!fms.dclMsg.accepted&&CmdBtn({l:"ACCEPT",onClick:function(){setInfoMsg("ACCEPTING");setTimeout(function(){setInfoMsg("ACCEPTED");setFms(function(p){var msgs=[].concat(p.auxMsgs);for(var i=0;i<msgs.length;i++){if(msgs[i].type==="dcl"&&!msgs[i].accepted){msgs[i]=Object.assign({},msgs[i],{accepted:true});break;}}return{...p,dclMsg:Object.assign({},p.dclMsg,{accepted:true}),auxMsgs:msgs};});setTimeout(function(){setInfoMsg("");setFms(function(p){var msgs=[].concat(p.auxMsgs);msgs.push({text:"CLEARANCE CONFIRMED",type:"info",id:Date.now()});return{...p,auxMsgs:msgs,auxBlink:true};});},2000);},1000);}})
         
         , (msgView==="ATIS"||msgView==="GATE"||msgView==="ETA"||msgView==="ACARS")&&CmdBtn({l:"PRINT"})
@@ -22624,20 +22703,19 @@ function B787Cockpit(){
         React.createElement('div', {style:{color:"#00cccc",fontSize:33,fontWeight:"bold",letterSpacing:4,marginBottom:4}}, "B787 DREAMLINER"),
         React.createElement('div', {style:{color:"#aaa",fontSize:14,letterSpacing:2}}, "COCKPIT PROCEDURE SIMULATOR"),
         React.createElement('div', {style:{color:"#777",fontSize:14,marginTop:4}}, "FOR TRAINING PURPOSE ONLY"),
-        React.createElement('div', {style:{color:"#00bb00",fontSize:11,marginTop:12,letterSpacing:1}}, "v2.8.37d \u00a0|\u00a0 by SHLee7872603")
+        React.createElement('div', {style:{color:"#00bb00",fontSize:11,marginTop:12,letterSpacing:1}}, "v2.8.39 \u00a0|\u00a0 by SHLee7872603")
       ),
       React.createElement('div', {style:{borderTop:"1px solid #333",borderBottom:"1px solid #333",padding:"14px 0",marginBottom:16}},
         React.createElement(ChkRow, {checked:ckIPad,onToggle:function(){setCkIPad(function(p){return!p;});}},
-          React.createElement('div', {style:{color:"#00cccc",fontSize:17,fontWeight:"bold",marginBottom:8,letterSpacing:1}}, "PATCH NOTES v2.8.37d"),
+          React.createElement('div', {style:{color:"#00cccc",fontSize:17,fontWeight:"bold",marginBottom:8,letterSpacing:1}}, "PATCH NOTES v2.8.39"),
           React.createElement('div', {style:{color:"#aaa",fontSize:14,fontWeight:"bold",lineHeight:1.8}},
-            React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginBottom:2}}, "v2.8.37d"),
-            React.createElement('div', null, "\u2022 EXEC: PREFLIGHT \uc218\uc815 \uc2dc \ube44\ud65c\uc131, ACTIVATE \ud6c4\uc5d0\ub9cc \ud65c\uc131"),
-            React.createElement('div', null, "\u2022 DEP/ARR ACT \uc0c1\ud0dc\uc5d0\uc11c \uc804\uccb4 \ubaa9\ub85d \ud45c\uc2dc+\uc120\ud0dd \uac00\ub2a5"),
-            React.createElement('div', null, "\u2022 ERASE\u2192INDEX: ACT \uc120\ud0dd\uc740 \ucee4\ubc0b\ub41c \uc0c1\ud0dc"),
-            React.createElement('div', null, "\u2022 SID OSPO2E\u00b7EGOB2E \uace0\ub3c4\uc81c\ud55c A suffix \uc218\uc815"),
-            React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginTop:8,marginBottom:2}}, "v2.8.37c"),
-            React.createElement('div', null, "\u2022 NAV DATA: RJFF STAR 4\uac1c \u00b7 SID 2\uac1c \ucd94\uac00 (RWY 33L/R)"),
-            React.createElement('div', null, "\u2022 APPR REF GW/R1-R3 \u00b7 LEGS \uc774\uc911\ub3d9\uae30\ud654 \uc218\uc815"),
+            React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginBottom:2}}, "v2.8.39"),
+            React.createElement('div', null, "\u2022 B612 cockpit font \u00b7 CDU \uae00\uc790\uc0c9 \ud1b5\uc77c(white)"),
+            React.createElement('div', null, "\u2022 EICAS \ucee8\ud2b8\ub864 \uac1c\ud3b8 \u00b7 \uba54\uc2dc\uc9c0\ubcc4 CANC/RCL"),
+            React.createElement('div', null, "\u2022 Advisory indent \u00b7 S9 AUTOBRAKE \u00b7 \ube48 \ud544\ub4dc \ubcf5\uc0ac \ubc29\uc9c0"),
+            React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginTop:8,marginBottom:2}}, "v2.8.38"),
+            React.createElement('div', null, "\u2022 EICAS \uba54\uc2dc\uc9c0 \ud45c\uc2dc (14\uac1c \uc2dc\ub098\ub9ac\uc624, CDU \uc870\uc791 \uc5f0\ub3d9)"),
+            React.createElement('div', null, "\u2022 S1~S8 \uccb4\ud06c\ub9ac\uc2a4\ud2b8 \uc790\ub3d9\uc804\ud658 \u00b7 Phase \ubc84\ud2bc EICAS \uc5f0\ub3d9"),
 
           )
         )
