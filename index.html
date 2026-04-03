@@ -17313,8 +17313,8 @@ const FLIGHT_DB = {
       {wpt:"RW33R", crs:"334°", dist:"8NM", spdAlt:"",           pred:"Vref+5",    isDest:true},
     ],
     tripDist:457, tripTime:"01:22", tripFuel:"17.2",
-    blockFuel:"27.1", reserveFuel:"9.0",
-    zfw:"", fuel:"27.1", reserves:"9.0", crzAlt:"FL300", costIndex:"50",
+    blockFuel:"30.4", reserveFuel:"9.0",
+    zfw:"350.0", fuel:"30.4", grWt:"380.4", reserves:"9.0", crzAlt:"FL300", costIndex:"50",
     crzCg:"23", oat:"18", wind:"340/08", qnh:"1013",
     transAlt:"14000", spdTrans:"250/10000",
     optAlt:"FL340", maxAlt:"FL390", recmdAlt:"FL340",
@@ -17337,7 +17337,7 @@ const FLIGHT_DB = {
     depSids:["HAKAT5","TOGIK2","OGUNI5","YAMEK7"],
     depRwys:["34R","34L","16L","16R"],
     arrStars:["GUKD2E","KARB2E","OLME2E"],
-    arrApps:["ILS 33R","ILS 15L","ILS 33L","RNAV 34L"],
+    arrApps:["ILS 33R","ILS 15L","ILS Z 15L","ILS 33L","RNAV 34L"],
     // Weather data for EFB (fixed, not editable)
     wx:{wind:"340/08",oat:"18",qnh:"1013"},
     // Wind data per waypoint (from Flight Plan) at cruise FL
@@ -17414,8 +17414,8 @@ const FLIGHT_DB = {
       {wpt:"RW16L", crs:"158°",  dist:"3NM", spdAlt:"",           pred:"Vref+5",    isDest:true},
     ],
     tripDist:382, tripTime:"01:10", tripFuel:"14.8",
-    blockFuel:"36.0", reserveFuel:"9.0",
-    zfw:"", fuel:"36.0", reserves:"9.0", crzAlt:"FL310", costIndex:"50",
+    blockFuel:"36.4", reserveFuel:"9.0",
+    zfw:"355.0", fuel:"36.4", grWt:"391.4", reserves:"9.0", crzAlt:"FL310", costIndex:"50",
     crzCg:"23", oat:"15", wind:"240/05", qnh:"1013",
     transAlt:"14000", spdTrans:"250/10000",
     optAlt:"FL350", maxAlt:"FL410", recmdAlt:"FL350",
@@ -17475,7 +17475,7 @@ const AIRPORT_DB = {
     pos:"N37°27.7 E126°26.6",
     gates:{A01:"N37°27.8 E126°26.4",A02:"N37°27.7 E126°26.5",B01:"N37°27.6 E126°26.7",B02:"N37°27.5 E126°26.8"},
     depSids:["OSPO2C","EGOB2C","OSPO2E","EGOB2E"],depRwys:["15R","15L","33R","33L"],
-    arrStars:["GUKD2E","KARB2E","OLME2E"],arrApps:["ILS 33R","ILS 15L","ILS 33L","RNAV 34L"]},
+    arrStars:["GUKD2E","KARB2E","OLME2E"],arrApps:["ILS 33R","ILS 15L","ILS Z 15L","ILS 33L","RNAV 34L"]},
   RJFF:{
     pos:"N33°35.2 E130°27.1",
     gates:{1:"N33°35.3 E130°27.0",2:"N33°35.1 E130°27.2",3:"N33°35.2 E130°27.0"},
@@ -17642,28 +17642,49 @@ const NAV_DATA = {
     {wpt:"ELMIS",crs:"102°",dist:"6.9NM",spdAlt:"210/7000",pred:"210/ 7000"},
     {wpt:"ENTIX",crs:"153°",dist:"15NM",spdAlt:"2000",pred:"210/ 2000"}]},
   // ═══ RKSI Approaches ═══
-  ILS33R:{type:"APP",trans:["ENPIL","PAMBI"],wpts:[
+  ILS33R:{type:"APP",trans:["ENPIL","PAMBI"],ifWpt:"BIRIN",wpts:[
     {wpt:"GE019",crs:"334°",dist:"",spdAlt:"5000A",pred:"210/ 5000A"},
     {wpt:"BIRIN",crs:"334°",dist:"3.0NM",spdAlt:"5000A",pred:"210/ 5000A"},
     {wpt:"PIBAK",crs:"334°",dist:"6.9NM",spdAlt:"3600",pred:"180/ 3600"},
     {wpt:"GOKAK",crs:"334°",dist:"3.3NM",spdAlt:"2600",pred:"Vapp/ 2600"},
     {wpt:"RW33R",crs:"334°",dist:"8NM",spdAlt:"",pred:"Vref+5",isDest:true}]},
-  ILS15L:{type:"APP",trans:["MOGUN"],wpts:[
+  ILS15L:{type:"APP",trans:["MOGUN"],ifWpt:"MOGUN",wpts:[
     {wpt:"MOGUN",crs:"180°",dist:"5NM",spdAlt:"3000",pred:"210/ 3000"},
     {wpt:"GE041",crs:"154°",dist:"6NM",spdAlt:"2400",pred:"180/ 2400"},
     {wpt:"RW15L",crs:"154°",dist:"7NM",spdAlt:"",pred:"Vref+5",isDest:true}]},
-  ILS33L:{type:"APP",trans:["ENPIL"],wpts:[
+  // ═══ ILS Z OR LOC Z RWY 15L (Jeppesen 21-1, 26SEP25) ═══
+  // LOC: ISLL 111.9, CRS 153°, GS 3.00°, TCH 52', DA(H) 223'(200')
+  // IAF: MUNAN(3000'), BITIM(MAX3500/MIN3000)  IF: PUDIM(3000')  FAF: SAKOS(2600' D7.9 ISLL)
+  // BITIM trans: BITIM→270°/3.1→OLTEM(MAX180KT,MAND3000')→226°/3.0→PUDIM
+  // MUNAN trans: MUNAN→063°/6.5→PUDIM
+  // MISSED: hdg 108° → D8.0 NCN(4000') → 214° → GC966 D13.0 NCN → Hold 034° LEFT MAX5000'
+  ILSZ15L:{type:"APP",trans:["MUNAN","BITIM"],ifWpt:"PUDIM",wpts:[
+    {wpt:"PUDIM",crs:"153°",dist:"",spdAlt:"3000",pred:"210/ 3000"},
+    {wpt:"SAKOS",crs:"153°",dist:"4.9NM",spdAlt:"2600",pred:"210/ 2600"},
+    {wpt:"RW15L",crs:"153°",dist:"7.9NM",spdAlt:"",pred:"Vref+5",isDest:true}],
+    transLegs:{
+      MUNAN:[{wpt:"MUNAN",crs:"",dist:"",spdAlt:"3000",pred:"210/ 3000"},
+             {wpt:"PUDIM",crs:"063°",dist:"6.5NM",spdAlt:"3000",pred:"210/ 3000"}],
+      BITIM:[{wpt:"BITIM",crs:"",dist:"",spdAlt:"3500/3000",pred:"210/ 3000"},
+             {wpt:"OLTEM",crs:"270°",dist:"3.1NM",spdAlt:"3000",pred:"180/ 3000"},
+             {wpt:"PUDIM",crs:"226°",dist:"3.0NM",spdAlt:"3000",pred:"210/ 3000"}]
+    },
+    missedApproach:[
+      {wpt:"D8NCN",crs:"108°",dist:"",spdAlt:"4000",pred:"V2+15/ 4000"},
+      {wpt:"GC966",crs:"214°",dist:"5.0NM",spdAlt:"5000",pred:"250/ 5000"},
+      {wpt:"GC966",crs:"",dist:"",spdAlt:"5000",pred:"250/ 5000",isHold:true,holdCrs:"034°",holdTurn:"L",holdTime:"1.0MIN"}]},
+  ILS33L:{type:"APP",trans:["ENPIL"],ifWpt:"SEBAM",wpts:[
     {wpt:"ENPIL",crs:"334°",dist:"",spdAlt:"7000",pred:"210/ 7000"},
     {wpt:"SEBAM",crs:"334°",dist:"7NM",spdAlt:"5000",pred:"210/ 5000"},
     {wpt:"BOKDO",crs:"334°",dist:"5NM",spdAlt:"3600",pred:"180/ 3600"},
     {wpt:"RW33L",crs:"334°",dist:"10NM",spdAlt:"",pred:"Vref+5",isDest:true}]},
-  RNAV34L:{type:"APP",trans:["GE027"],wpts:[
+  RNAV34L:{type:"APP",trans:["GE027"],ifWpt:"GE340",wpts:[
     {wpt:"GE027",crs:"340°",dist:"",spdAlt:"7000",pred:"210/ 7000"},
     {wpt:"GE340",crs:"340°",dist:"8NM",spdAlt:"5000",pred:"210/ 5000"},
     {wpt:"GE341",crs:"340°",dist:"5NM",spdAlt:"3200",pred:"180/ 3200"},
     {wpt:"RW34L",crs:"340°",dist:"6NM",spdAlt:"",pred:"Vref+5",isDest:true}]},
   // ═══ RJFF Approaches ═══
-  RNP16L:{type:"APP",trans:["ENTIX","NOKOH","OKINO"],wpts:[
+  RNP16L:{type:"APP",trans:["ENTIX","NOKOH","OKINO"],ifWpt:"AKTIB",wpts:[
     {wpt:"AKTIB",crs:"158°",dist:"",spdAlt:"2000",pred:"210/ 2000"},
     {wpt:"ADMUB",crs:"158°",dist:"2.1NM",spdAlt:"1400A",pred:"180/ 1400A"},
     {wpt:"F6L50",crs:"158°",dist:"1.7NM",spdAlt:"1028A",pred:"170/ 1028A"},
@@ -17676,7 +17697,7 @@ const NAV_DATA = {
       {wpt:"IGDER",crs:"338°",dist:"2.0NM",spdAlt:"6000",pred:"250/ 6000"},
       {wpt:"IKE",  crs:"328°",dist:"13.2NM",spdAlt:"6000",pred:"250/ 6000"},
       {wpt:"IKE",  crs:"",dist:"",spdAlt:"6000",pred:"250/ 6000",isHold:true,holdCrs:"158°",holdTurn:"R",holdTime:"1.0MIN"}]},
-  ILS16L:{type:"APP",trans:["ENTIX"],wpts:[
+  ILS16L:{type:"APP",trans:["ENTIX"],ifWpt:"AKTIB",wpts:[
     {wpt:"AKTIB",crs:"158°",dist:"",spdAlt:"2000",pred:"210/ 2000"},
     {wpt:"ADMUB",crs:"158°",dist:"4.0NM",spdAlt:"1600A",pred:"180/ 1600A"},
     {wpt:"RW16L",crs:"158°",dist:"4.6NM",spdAlt:"",pred:"Vref+5",isDest:true}],
@@ -17684,7 +17705,7 @@ const NAV_DATA = {
       {wpt:"YAMEK",crs:"158°",dist:"5.0NM",spdAlt:"5000",pred:"V2+15/ 3000"},
       {wpt:"IKE",  crs:"328°",dist:"13.2NM",spdAlt:"6000",pred:"250/ 6000"},
       {wpt:"IKE",  crs:"",dist:"",spdAlt:"6000",pred:"250/ 6000",isHold:true,holdCrs:"158°",holdTurn:"R",holdTime:"1.0MIN"}]},
-  RNAV34R:{type:"APP",trans:["SAKOX"],wpts:[
+  RNAV34R:{type:"APP",trans:["SAKOX"],ifWpt:"FF340",wpts:[
     {wpt:"SAKOX",crs:"338°",dist:"",spdAlt:"3000",pred:"210/ 3000"},
     {wpt:"FF340",crs:"338°",dist:"8NM",spdAlt:"2000",pred:"180/ 2000"},
     {wpt:"FF341",crs:"338°",dist:"5NM",spdAlt:"",pred:"Vapp/ 1400"},
@@ -17847,26 +17868,26 @@ function updateRouteLegs(fms){
     }
     fms.routeLegs.push({via:fms.arrStar,to:starExit,_star:true});
   }
-  // 3.5) APPR TRANS — FCOM 11.40.23: show as VIA=APPR TRANS / TO=trans fix
-  // Skip if STAR exit already equals the transition fix (no separate row needed)
+  // 3.5) APPR TRANS — FCOM 11.40.23: VIA=APPR TRANS / TO=first APP wpt
   var appKey=(fms.arrApp||"").replace(/\s/g,"");
   var app=NAV_DATA[appKey];
   if(fms.arrTrans&&app&&app.trans){
-    var prevLegTrans=fms.routeLegs[fms.routeLegs.length-1];
-    var prevToTrans=prevLegTrans?prevLegTrans.to:"";
-    if(prevToTrans!==fms.arrTrans){
-      fms.routeLegs.push({via:"APPR TRANS",to:fms.arrTrans,_appTrans:true});
-    }
+    // Always show APPR TRANS row when transition is selected
+    // TO = IF (Intermediate Fix) of the approach
+    var appTransTo=app.ifWpt||app.wpts[0].wpt;
+    fms.routeLegs.push({via:"APPR TRANS",to:appTransTo,_appTrans:true});
   }
   // 4) APP — FCOM 11.40.23: VIA=APP name, TO=runway (last wpt)
-  // DISC check: prev TO vs APP start wpt (= arrTrans if selected, else first APP wpt)
+  // No DISC when APPR TRANS bridges STAR→APP
   if(app&&app.type==="APP"){
-    var appStartWpt=fms.arrTrans||app.wpts[0].wpt;
     var appRwy=app.wpts[app.wpts.length-1].wpt;
     var prevLeg=fms.routeLegs[fms.routeLegs.length-1];
     var prevTo=prevLeg?prevLeg.to:"";
-    if(prevTo&&appStartWpt&&prevTo!==appStartWpt&&!prevLeg._disc){
-      fms.routeLegs.push({via:"DISCONTINUITY",to:"",_disc:true});
+    if(!fms.arrTrans){
+      var appStartWpt=app.wpts[0].wpt;
+      if(prevTo&&appStartWpt&&prevTo!==appStartWpt&&!prevLeg._disc){
+        fms.routeLegs.push({via:"DISCONTINUITY",to:"",_disc:true});
+      }
     }
     fms.routeLegs.push({via:appKey,to:appRwy,_app:true});
     // 5) MISSED APPROACH — VIA=MISSED APPR / TO=last missed approach fix (hold fix)
@@ -19394,6 +19415,10 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
               if(!s.routeLegs[idx].via)s.routeLegs[idx].via="DIRECT";
               s.routeLegs[idx]={...s.routeLegs[idx],to:inputTo};
             }
+            // FCOM 11.42.2: Airport ICAO → ROUTE DISCONTINUITY after it
+            if(AIRPORT_DB[inputTo]&&!(s.routeLegs[idx+1]&&s.routeLegs[idx+1]._disc)){
+              s.routeLegs.splice(idx+1,0,{via:"DISCONTINUITY",to:"",_disc:true});
+            }
             s.scratchpad="";if(s.phase==="ACTIVE")s.execLight=true;
             updateRouteLegs(s);s.computedLegs=buildLegs(s);
           }
@@ -20377,22 +20402,67 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
           var phases=["INITIAL","CDU SETUP\nCOMPLETE","BFR T/O","CRUISE"];
           var phaseColors=["#334","#336","#353","#533"];
           var mkCk=function(upTo){var ck={};var counts=[10,8,6,5,3];for(var ci=0;ci<upTo;ci++){for(var ii=0;ii<counts[ci];ii++)ck[ci+"-"+ii]=true;}return ck;};
+          var iataMap={"RJFF":"FUK","RKSI":"ICN","RKES":"CJU","RKSS":"GMP","RJTT":"HND","RJAA":"NRT"};
+          /* Helper: build preset FMS state from FLIGHT_DB for any flight */
+          var buildPreset=function(fltKey,phase){
+            var db=FLIGHT_DB[fltKey];if(!db)return null;
+            var fltNo=fltKey;var origin=db.origin;var dest=db.dest;var rwy=db.runway;
+            var rteLegs=db.route.map(function(r){return{via:r.via,to:r.to};});
+            var sid=db.sid;var star=db.star;var app=db.approach;var appTr=db.appTrans;
+            var grWt=db.grWt||"0";var fuel=db.fuel||"0";var zfw=db.zfw||"0";
+            var reserves=db.reserves||"9.0";var crzAlt=db.crzAlt||"FL310";var ci=db.costIndex||"50";
+            var cg=db.crzCg||"23";var trimVal=(parseFloat(cg)*0.22-0.06).toFixed(2);
+            var togwLbs=Math.round(parseFloat(grWt)*1000).toString();
+            var zfwLbs=Math.round(parseFloat(zfw)*1000).toString();
+            var intx=db.intx||"FULL "+rwy;
+            var oIata=iataMap[origin]||"";var aprtDisp=oIata?origin+" / "+oIata:origin;
+            var base={fltNo:fltNo,origin:origin,dest:dest,runway:rwy,depRwy:rwy,
+              routeLegs:rteLegs,depSid:sid,depSidAct:true,phase:"ACTIVE",
+              grWt:grWt,fuel:fuel,zfw:zfw,reserves:reserves,crzAlt:crzAlt,costIndex:ci,
+              efbInit:true};
+            if(phase==="setup"){
+              return Object.assign({},initFMS(),base,{eicasScenario:3,page:"PERF_INIT",
+                chkl:{tab:"NORMAL",clIdx:1,cur:0,ck:mkCk(1),ovrd:{},menuMode:false},
+                efbPerf:{aprt:"",rwy:"",intx:"",cond:"",wind:"",oat:"",qnh:"",rtg:"OPTIMUM",ic:"NO",atm:"MAX",flap:"OPTIMUM",aiEng:"ENG AUTO",icing:"NO",rtl:"20/30",tow:"",zfw:"",cg:cg,calcDone:false,sentToFmc:false,calcV1:"",calcVR:"",calcV2:"",calcFlap:"",calcThrust:"",calcAccelHt:"",calcDTO:"",calcSelTemp:"",calcVref30:"",calcRwyIntx:"",calcTOGW:""}});
+            }
+            if(phase==="bfrto"){
+              return Object.assign({},initFMS(),base,{
+                flaps:db.perfFlap||"5",v1:db.perfV1||"",vr:db.perfVR||"",v2:db.perfV2||"",
+                cg:cg,trim:trimVal,thrustMode:"D-TO",selOat:db.perfSelTemp||"",togw:grWt,
+                toN1:(db.perfDTO||"")+"%",eoAccelHt:(db.perfAccelHt||"")+"FT",
+                wind:db.wind?db.wind.replace("/","°/")+"KT":"",
+                arrStar:star,arrStarAct:true,arrApp:app,arrAppAct:true,arrTrans:appTr,
+                eicasScenario:7,page:"TOREF1",
+                chkl:{tab:"NORMAL",clIdx:3,cur:0,ck:mkCk(3),ovrd:{},menuMode:false},
+                efbPerf:{aprt:aprtDisp,rwy:rwy,intx:intx,cond:db.cond||"DRY",wind:db.wind||"",oat:db.oat||"",qnh:db.qnh||"1013",rtg:"OPTIMUM",ic:"NO",atm:"MAX",flap:"OPTIMUM",aiEng:"ENG AUTO",icing:"NO",rtl:"20/30",tow:togwLbs,zfw:zfwLbs,cg:cg,calcDone:true,sentToFmc:true,calcV1:db.perfV1||"",calcVR:db.perfVR||"",calcV2:db.perfV2||"",calcFlap:db.perfFlap||"",calcThrust:db.perfThrust||"",calcAccelHt:db.perfAccelHt||"",calcDTO:db.perfDTO||"",calcSelTemp:db.perfSelTemp||"",calcVref30:db.perfVref30||"",calcRwyIntx:intx,calcTOGW:togwLbs}});
+            }
+            if(phase==="cruise"){
+              return Object.assign({},initFMS(),base,{
+                flaps:db.perfFlap||"5",v1:db.perfV1||"",vr:db.perfVR||"",v2:db.perfV2||"",
+                cg:cg,trim:trimVal,thrustMode:"D-TO",selOat:db.perfSelTemp||"",togw:grWt,
+                toN1:(db.perfDTO||"")+"%",eoAccelHt:(db.perfAccelHt||"")+"FT",
+                wind:db.wind?db.wind.replace("/","°/")+"KT":"",
+                eicasScenario:8,page:"CRZ",
+                chkl:{tab:"NORMAL",clIdx:5,cur:0,ck:mkCk(5),ovrd:{},menuMode:false},
+                efbPerf:{aprt:aprtDisp,rwy:rwy,intx:intx,cond:db.cond||"DRY",wind:db.wind||"",oat:db.oat||"",qnh:db.qnh||"1013",rtg:"OPTIMUM",ic:"NO",atm:"MAX",flap:"OPTIMUM",aiEng:"ENG AUTO",icing:"NO",rtl:"20/30",tow:togwLbs,zfw:zfwLbs,cg:cg,calcDone:true,sentToFmc:true,calcV1:db.perfV1||"",calcVR:db.perfVR||"",calcV2:db.perfV2||"",calcFlap:db.perfFlap||"",calcThrust:db.perfThrust||"",calcAccelHt:db.perfAccelHt||"",calcDTO:db.perfDTO||"",calcSelTemp:db.perfSelTemp||"",calcVref30:db.perfVref30||"",calcRwyIntx:intx,calcTOGW:togwLbs}});
+            }
+            return null;
+          };
           return React.createElement('div', { style: {display:"flex",gap:"3px",width:"100%"},}
             , phases.map(function(ph,pi){
               return React.createElement('button', { key: ph, onClick: function(){
-                var rteLegs=[{via:"OSPO2C",to:"OSPOT"},{via:"Y782",to:"TGU"},{via:"Y781",to:"BESNA"},{via:"Y209",to:"IKE"}];
+                var fltKey=(fms.fltNo||"KAL781").toUpperCase();
+                if(!FLIGHT_DB[fltKey])fltKey="KAL781";
                 if(pi===0){setFms(initFMS());setMfdMode("CDU");}
                 else if(pi===1){
-                  var p1=Object.assign({},initFMS(),{fltNo:"KAL781",origin:"RKSI",dest:"RJFF",runway:"15R",depRwy:"15R",routeLegs:rteLegs,depSid:"OSPO2C",depSidAct:true,phase:"ACTIVE",grWt:"391.0",fuel:"36.0",zfw:"355.0",reserves:"9.0",crzAlt:"FL310",costIndex:"50",eicasScenario:3,efbInit:true,page:"PERF_INIT",chkl:{tab:"NORMAL",clIdx:1,cur:0,ck:mkCk(1),ovrd:{},menuMode:false},efbPerf:{aprt:"",rwy:"",intx:"",cond:"",wind:"",oat:"",qnh:"",rtg:"OPTIMUM",ic:"NO",atm:"MAX",flap:"OPTIMUM",aiEng:"ENG AUTO",icing:"NO",rtl:"20/30",tow:"",zfw:"",cg:"25",calcDone:false,sentToFmc:false,calcV1:"",calcVR:"",calcV2:"",calcFlap:"",calcThrust:"",calcAccelHt:"",calcDTO:"",calcSelTemp:"",calcVref30:"",calcRwyIntx:"",calcTOGW:""}});
-                  updateRouteLegs(p1);p1.computedLegs=buildLegs(p1);setFms(p1);setMfdMode("CDU");
+                  var p1=buildPreset(fltKey,"setup");
+                  if(p1){updateRouteLegs(p1);p1.computedLegs=buildLegs(p1);setFms(p1);setMfdMode("CDU");}
                 } else if(pi===2){
-                  var d2=FLIGHT_DB["KAL781"]||{};var cgVal2=23;var trimVal2=(cgVal2*0.22-0.06).toFixed(2);
-                  var p2=Object.assign({},initFMS(),{fltNo:"KAL781",origin:"RKSI",dest:"RJFF",runway:"15R",depRwy:"15R",routeLegs:rteLegs,depSid:"OSPO2C",depSidAct:true,phase:"ACTIVE",grWt:"391.0",fuel:"36.0",zfw:"355.0",reserves:"9.0",crzAlt:"FL310",costIndex:"50",flaps:d2.perfFlap||"5",v1:d2.perfV1||"166",vr:d2.perfVR||"171",v2:d2.perfV2||"175",cg:"23",trim:trimVal2,thrustMode:"D-TO",selOat:d2.perfSelTemp||"42",togw:"391.0",toN1:(d2.perfDTO||"91.3")+"%",eoAccelHt:(d2.perfAccelHt||"860")+"FT",wind:d2.wind?d2.wind.replace("/","°/")+"KT":"240°/05KT",arrStar:"ISKUPE",arrStarAct:true,arrApp:"ILS16L",arrAppAct:true,arrTrans:"ENTIX",eicasScenario:7,efbInit:true,page:"TOREF1",chkl:{tab:"NORMAL",clIdx:3,cur:0,ck:mkCk(3),ovrd:{},menuMode:false},efbPerf:{aprt:"RKSI / ICN",rwy:"15R",intx:"FULL 15R",cond:"DRY",wind:d2.wind||"240/05",oat:d2.oat||"15",qnh:d2.qnh||"1013",rtg:"OPTIMUM",ic:"NO",atm:"MAX",flap:"OPTIMUM",aiEng:"ENG AUTO",icing:"NO",rtl:"20/30",tow:"391000",zfw:"355000",cg:"23",calcDone:true,sentToFmc:true,calcV1:d2.perfV1||"166",calcVR:d2.perfVR||"171",calcV2:d2.perfV2||"175",calcFlap:d2.perfFlap||"5",calcThrust:d2.perfThrust||"42°C D-TO",calcAccelHt:d2.perfAccelHt||"860",calcDTO:d2.perfDTO||"91.3",calcSelTemp:d2.perfSelTemp||"42",calcVref30:d2.perfVref30||"150",calcRwyIntx:"FULL 15R",calcTOGW:"391000"}});
-                  updateRouteLegs(p2);p2.computedLegs=buildLegs(p2);setFms(p2);setMfdMode("CDU");
+                  var p2=buildPreset(fltKey,"bfrto");
+                  if(p2){updateRouteLegs(p2);p2.computedLegs=buildLegs(p2);setFms(p2);setMfdMode("CDU");}
                 } else {
-                  var d3=FLIGHT_DB["KAL781"]||{};var cgVal3=23;var trimVal3=(cgVal3*0.22-0.06).toFixed(2);
-                  var p3=Object.assign({},initFMS(),{fltNo:"KAL781",origin:"RKSI",dest:"RJFF",runway:"15R",depRwy:"15R",routeLegs:rteLegs,depSid:"OSPO2C",depSidAct:true,phase:"ACTIVE",grWt:"391.0",fuel:"36.0",zfw:"355.0",reserves:"9.0",crzAlt:"FL310",costIndex:"50",flaps:d3.perfFlap||"5",v1:d3.perfV1||"166",vr:d3.perfVR||"171",v2:d3.perfV2||"175",cg:"23",trim:trimVal3,thrustMode:"D-TO",selOat:d3.perfSelTemp||"42",togw:"391.0",toN1:(d3.perfDTO||"91.3")+"%",eoAccelHt:(d3.perfAccelHt||"860")+"FT",wind:d3.wind?d3.wind.replace("/","°/")+"KT":"240°/05KT",eicasScenario:8,efbInit:true,page:"CRZ",chkl:{tab:"NORMAL",clIdx:5,cur:0,ck:mkCk(5),ovrd:{},menuMode:false},efbPerf:{aprt:"RKSI / ICN",rwy:"15R",intx:"FULL 15R",cond:"DRY",wind:d3.wind||"240/05",oat:d3.oat||"15",qnh:d3.qnh||"1013",rtg:"OPTIMUM",ic:"NO",atm:"MAX",flap:"OPTIMUM",aiEng:"ENG AUTO",icing:"NO",rtl:"20/30",tow:"391000",zfw:"355000",cg:"23",calcDone:true,sentToFmc:true,calcV1:d3.perfV1||"166",calcVR:d3.perfVR||"171",calcV2:d3.perfV2||"175",calcFlap:d3.perfFlap||"5",calcThrust:d3.perfThrust||"42°C D-TO",calcAccelHt:d3.perfAccelHt||"860",calcDTO:d3.perfDTO||"91.3",calcSelTemp:d3.perfSelTemp||"42",calcVref30:d3.perfVref30||"150",calcRwyIntx:"FULL 15R",calcTOGW:"391000"}});
-                  updateRouteLegs(p3);p3.computedLegs=buildLegs(p3);setFms(p3);setMfdMode("CDU");
+                  var p3=buildPreset(fltKey,"cruise");
+                  if(p3){updateRouteLegs(p3);p3.computedLegs=buildLegs(p3);setFms(p3);setMfdMode("CDU");}
                 }
               }, style: {flex:1,padding:"8px 2px",background:phaseColors[pi],color:"#ccc",border:"1px solid #555",borderRadius:3,fontSize:19,fontWeight:"bold",cursor:"pointer",fontFamily:M,lineHeight:1.2,textAlign:"center",whiteSpace:"pre-line"},}, ph);
             })
@@ -22866,7 +22936,8 @@ function B787Cockpit(){
           React.createElement('div', {style:{color:"#aaa",fontSize:14,fontWeight:"bold",lineHeight:1.8}},
             React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginBottom:2}}, "v2.9.4"),
             React.createElement('div', null, "\u2022 EICAS Gauge Display \u00b7 MFD \ucc3d \ud1b5\ud569"),
-            React.createElement('div', null, "\u2022 Role\ubcc4 \uc704\uce58(FO:L\ucc3d / CPT:R\ucc3d) \u00b7 DSP CANC/RCL \u00b7 SCENARIO"),
+            React.createElement('div', null, "\u2022 Preset FLT No.\ubcc4 \uc790\ub3d9 Load \u00b7 ICAO DISC \u00b7 APPR TRANS \ud45c\uc2dc"),
+            React.createElement('div', null, "\u2022 ILS Z 15L(RKSI) NAV_DATA \u00b7 DSP CANC/RCL \u00b7 SCENARIO"),
             React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginTop:8,marginBottom:2}}, "v2.9.3"),
             React.createElement('div', null, "\u2022 FWD Panel iPad 11\" \uac00\ub85c \uaf3d\ucc44\uc6c0 \u00b7 DEP/ARR ACT \ubaa9\ub85d\ud45c\uc2dc"),
 
