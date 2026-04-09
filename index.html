@@ -10,7 +10,7 @@
 <meta name="theme-color" content="#050505">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>B787 CDU Practice v2.9.7</title>
+<title>B787 CDU Practice v2.9.8</title>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js" async></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js" async></script>
 <style>*{margin:0;padding:0;box-sizing:border-box;-webkit-user-select:none;user-select:none}body{background:#050505;overflow-x:hidden}</style>
@@ -23184,7 +23184,9 @@ function B787Cockpit(){
       db.ref("rooms/"+code+"/guestState").on("value",function(snap){
         var v=snap.val(); if(!v) return;
         _syncSkip.current=true;
-        setFms(function(p){var merged={...p};for(var k in v){if(SYNC_KEYS.indexOf(k)>=0)merged[k]=v[k];}return merged;});
+        setFms(function(p){var merged={...p};for(var k in v){if(SYNC_KEYS.indexOf(k)>=0)merged[k]=v[k];}
+          if(v.pendingUplink&&!p.pendingUplink)merged.page="TOREF_UPLINK";
+          return merged;});
       });
       _syncRef.current=ref;
       // Cleanup on disconnect
@@ -23211,7 +23213,9 @@ function B787Cockpit(){
       db.ref("rooms/"+code+"/state").on("value",function(snap2){
         var v=snap2.val(); if(!v) return;
         _syncSkip.current=true;
-        setFms(function(p){var merged={...p};for(var k in v){if(SYNC_KEYS.indexOf(k)>=0)merged[k]=v[k];}return merged;});
+        setFms(function(p){var merged={...p};for(var k in v){if(SYNC_KEYS.indexOf(k)>=0)merged[k]=v[k];}
+          if(v.pendingUplink&&!p.pendingUplink)merged.page="TOREF_UPLINK";
+          return merged;});
       });
       _syncRef.current=ref;
       ref.child("guest").onDisconnect().remove();
@@ -23259,20 +23263,17 @@ function B787Cockpit(){
         React.createElement('div', {style:{color:"#00cccc",fontSize:33,fontWeight:"bold",letterSpacing:4,marginBottom:4}}, "B787 DREAMLINER"),
         React.createElement('div', {style:{color:"#aaa",fontSize:14,letterSpacing:2}}, "COCKPIT PROCEDURE SIMULATOR"),
         React.createElement('div', {style:{color:"#777",fontSize:14,marginTop:4}}, "FOR TRAINING PURPOSE ONLY"),
-        React.createElement('div', {style:{color:"#00bb00",fontSize:11,marginTop:12,letterSpacing:1}}, "v2.9.7 \u00a0|\u00a0 by SH Lee \u00a0 s.lee@koreanair.com")
+        React.createElement('div', {style:{color:"#00bb00",fontSize:11,marginTop:12,letterSpacing:1}}, "v2.9.8 \u00a0|\u00a0 by SH Lee \u00a0 s.lee@koreanair.com")
       ),
       React.createElement('div', {style:{borderTop:"1px solid #333",borderBottom:"1px solid #333",padding:"14px 0",marginBottom:16}},
         React.createElement(ChkRow, {checked:ckIPad,onToggle:function(){setCkIPad(function(p){return!p;});}},
-          React.createElement('div', {style:{color:"#00cccc",fontSize:17,fontWeight:"bold",marginBottom:8,letterSpacing:1}}, "PATCH NOTES v2.9.7"),
+          React.createElement('div', {style:{color:"#00cccc",fontSize:17,fontWeight:"bold",marginBottom:8,letterSpacing:1}}, "PATCH NOTES v2.9.8"),
           React.createElement('div', {style:{color:"#aaa",fontSize:14,fontWeight:"bold",lineHeight:1.8}},
-            React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginBottom:2}}, "v2.9.7"),
+            React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginBottom:2}}, "v2.9.8"),
+            React.createElement('div', null, "\u2022 EFB SEND OUTPUT \u2192 \uc0c1\ub300 \uae30\uae30 TOREF UPLINK \uc790\ub3d9 \ud45c\uc2dc"),
+            React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginTop:8,marginBottom:2}}, "v2.9.7"),
             React.createElement('div', null, "\u2022 Firebase SDK \ube44\ub3d9\uae30 \ub85c\ub529 \u00b7 \uc624\ud504\ub77c\uc778\uc2dc \ud398\uc774\uc9c0 \ucc28\ub2e8 \ud574\uacb0"),
-            React.createElement('div', null, "\u2022 MFKKeypad POS \ud398\uc774\uc9c0 PREV/NEXT \ucd94\uac00"),
-            React.createElement('div', null, "\u2022 RTE 1/2 page 5\ud589 \ub179\uc0c9\ubc30\uacbd \uad6c\ubd84\uc120 \uc81c\uac70"),
-            React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginTop:8,marginBottom:2}}, "v2.9.6"),
-            React.createElement('div', null, "\u2022 Captain-F/O Dual CDU \uc2e4\uc2dc\uac04 \ub3d9\uae30\ud654 (Firebase)"),
-            React.createElement('div', null, "\u2022 DESCENT FORECAST page \uad6c\ud604 (FCOM 11.43.7-9)"),
-            React.createElement('div', null, "\u2022 RTE 2 page \uad6c\ud604 (FCOM 11.40.18-25)"),
+            React.createElement('div', null, "\u2022 MFKKeypad POS PREV/NEXT \u00b7 RTE 5\ud589 \uad6c\ubd84\uc120 \uc81c\uac70"),
 
           )
         )
