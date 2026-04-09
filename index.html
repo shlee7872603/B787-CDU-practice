@@ -10,9 +10,9 @@
 <meta name="theme-color" content="#050505">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>B787 CDU Practice v2.9.6</title>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<title>B787 CDU Practice v2.9.7</title>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js" async></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js" async></script>
 <style>*{margin:0;padding:0;box-sizing:border-box;-webkit-user-select:none;user-select:none}body{background:#050505;overflow-x:hidden}</style>
 </head>
 <body>
@@ -18258,7 +18258,7 @@ function cduPageData(fms) {
       {tl:"RUNWAY",tr:"FLT NO",dl:fms.runway||"-----",dr:fms.fltNo||"----------",dlc:fms.runway?C.green:C.cyan,drc:fms.fltNo?C.green:C.cyan,dlBg:true,drBg:true},
       {tl:"ROUTE",tr:"CO ROUTE",dl:fms.phase==="ACTIVE"?"<REPORT":"<REQUEST",dr:fms.coRoute||"----------",dlc:C.cyan,drc:C.cyan,drBg:true},
       {dr:fms.phase==="ACTIVE"?"RTE COPY>":"",drc:C.cyan},
-      {tl:fms.phase==="ACTIVE"?"ROUTE":"",tlFull:fms.phase!=="ACTIVE"?"\u2500".repeat(38):null,tlFullColor:C.dim,
+      {tl:fms.phase==="ACTIVE"?"ROUTE":"",
        dl:fms.rteUplinkPending?"<LOAD":(fms.phase==="ACTIVE"?"<PRINT":""),
        dr:"ALTN>",
        dlc:fms.rteUplinkPending?C.cyan:C.cyan,drc:C.cyan},
@@ -18290,7 +18290,7 @@ function cduPageData(fms) {
       {tl:"RUNWAY",tr:"FLT NO",dl:fms.rte2Runway||"-----",dr:fms.rte2FltNo||"----------",dlc:fms.rte2Runway?C.green:C.cyan,drc:fms.rte2FltNo?C.green:C.cyan,dlBg:true,drBg:true},
       {tl:"ROUTE",tr:"CO ROUTE",dl:"<REQUEST",dr:fms.rte2CoRoute||"----------",dlc:C.cyan,drc:C.cyan,drBg:true},
       {},
-      {tlFull:"\u2500".repeat(38),tlFullColor:C.dim,dr:"ALTN>",drc:C.cyan},
+      {dr:"ALTN>",drc:C.cyan},
       {dl:"<RTE 1",dr:(fms.rte2Origin&&fms.rte2Dest?"ACTIVATE>":""),dlc:C.cyan,drc:C.cyan},
     ],sep:5},
     // ═══ RTE 2 page 2/x (FCOM 11.40.23) — VIA/TO legs ═══
@@ -20685,6 +20685,10 @@ function MFKKeypad({fms,setFms,mfdMode,setMfdMode}) {
     if(p.page==="CRZ")return{...p,page:"CLB"};
     if(p.page==="DES")return{...p,page:"CRZ"};
     if(p.page==="DES_FORECAST"){var mx=Math.ceil((p.desFcstWinds||[]).length/4)||1;if(p.desFcstPage>1)return{...p,desFcstPage:p.desFcstPage-1};return{...p,desFcstPage:mx};}
+    if(p.page==="POS_REF")return{...p,page:"POS_INIT"};
+    if(p.page==="POS_REF_3")return{...p,page:"POS_REF"};
+    if(p.page==="POS_REF_4")return{...p,page:"POS_REF_3"};
+    if(p.page==="POS_INIT")return{...p,page:"POS_REF_4"};
     return p;
   });
   const handleNext=()=>setFms(p=>{
@@ -20703,6 +20707,10 @@ function MFKKeypad({fms,setFms,mfdMode,setMfdMode}) {
     if(p.page==="CLB")return{...p,page:"CRZ"};
     if(p.page==="CRZ")return{...p,page:"DES"};
     if(p.page==="DES_FORECAST"){var dfmx=Math.ceil((p.desFcstWinds||[]).length/4)||1;if(p.desFcstPage<dfmx)return{...p,desFcstPage:p.desFcstPage+1};return{...p,desFcstPage:1};}
+    if(p.page==="POS_INIT")return{...p,page:"POS_REF"};
+    if(p.page==="POS_REF")return{...p,page:"POS_REF_3"};
+    if(p.page==="POS_REF_3")return{...p,page:"POS_REF_4"};
+    if(p.page==="POS_REF_4")return{...p,page:"POS_INIT"};
     return p;
   });
   const hk=k=>{setFms(p=>{const s={...p};s.helpMsg="";
@@ -23080,18 +23088,23 @@ function CDUMiniView({fms,setFms}){
 
 // ═══════ [FIREBASE] Real-time Sync ═══════
 var _fbApp=null,_fbDb=null;
-try{
-  _fbApp=firebase.initializeApp({
-    apiKey:"AIzaSyBBZ8LRh4_KHg2BJ_zodCy2BwncG3Tcxwo",
-    authDomain:"b787-cdu-practice.firebaseapp.com",
-    databaseURL:"https://b787-cdu-practice-default-rtdb.firebaseio.com",
-    projectId:"b787-cdu-practice",
-    storageBucket:"b787-cdu-practice.firebasestorage.app",
-    messagingSenderId:"366919780771",
-    appId:"1:366919780771:web:2453836452a716cc543216"
-  });
-  _fbDb=firebase.database();
-}catch(e){console.warn("Firebase init failed:",e);}
+function _fbInit(){
+  if(_fbDb) return _fbDb;
+  if(typeof firebase==="undefined"||!firebase.initializeApp){return null;}
+  try{
+    _fbApp=firebase.initializeApp({
+      apiKey:"AIzaSyBBZ8LRh4_KHg2BJ_zodCy2BwncG3Tcxwo",
+      authDomain:"b787-cdu-practice.firebaseapp.com",
+      databaseURL:"https://b787-cdu-practice-default-rtdb.firebaseio.com",
+      projectId:"b787-cdu-practice",
+      storageBucket:"b787-cdu-practice.firebasestorage.app",
+      messagingSenderId:"366919780771",
+      appId:"1:366919780771:web:2453836452a716cc543216"
+    });
+    _fbDb=firebase.database();
+    return _fbDb;
+  }catch(e){console.warn("Firebase init failed:",e);return null;}
+}
 
 // Shared state keys (synced between CPT and FO)
 var SYNC_KEYS=["phase","origin","dest","fltNo","coRoute","runway","refAirport",
@@ -23159,15 +23172,16 @@ function B787Cockpit(){
 
   // ═══ Firebase Sync Functions ═══
   function syncCreateRoom(){
-    if(!_fbDb) return;
+    var db=_fbInit();
+    if(!db){alert("Firebase SDK가 아직 로딩중입니다. 잠시 후 다시 시도해주세요.");return;}
     var code=_syncGenCode();
-    var ref=_fbDb.ref("rooms/"+code);
+    var ref=db.ref("rooms/"+code);
     ref.set({host:true,ts:Date.now(),state:_syncExtract(fms)}).then(function(){
       setSyncRoom(code);setSyncRole("host");setSyncPanel(false);
       // Listen for guest presence
-      _fbDb.ref("rooms/"+code+"/guest").on("value",function(snap){setSyncPeer(!!snap.val());});
+      db.ref("rooms/"+code+"/guest").on("value",function(snap){setSyncPeer(!!snap.val());});
       // Listen for guest state changes
-      _fbDb.ref("rooms/"+code+"/guestState").on("value",function(snap){
+      db.ref("rooms/"+code+"/guestState").on("value",function(snap){
         var v=snap.val(); if(!v) return;
         _syncSkip.current=true;
         setFms(function(p){var merged={...p};for(var k in v){if(SYNC_KEYS.indexOf(k)>=0)merged[k]=v[k];}return merged;});
@@ -23178,9 +23192,11 @@ function B787Cockpit(){
     });
   }
   function syncJoinRoom(code){
-    if(!_fbDb||!code) return;
+    var db=_fbInit();
+    if(!db){alert("Firebase SDK가 아직 로딩중입니다. 잠시 후 다시 시도해주세요.");return;}
+    if(!code) return;
     code=code.toUpperCase();
-    var ref=_fbDb.ref("rooms/"+code);
+    var ref=db.ref("rooms/"+code);
     ref.once("value").then(function(snap){
       if(!snap.exists()||!snap.val().host){alert("방을 찾을 수 없습니다: "+code);return;}
       ref.child("guest").set(true);
@@ -23192,7 +23208,7 @@ function B787Cockpit(){
         setFms(function(p){var merged={...p};for(var k in hostState){if(SYNC_KEYS.indexOf(k)>=0)merged[k]=hostState[k];}return merged;});
       }
       // Listen for host state changes
-      _fbDb.ref("rooms/"+code+"/state").on("value",function(snap2){
+      db.ref("rooms/"+code+"/state").on("value",function(snap2){
         var v=snap2.val(); if(!v) return;
         _syncSkip.current=true;
         setFms(function(p){var merged={...p};for(var k in v){if(SYNC_KEYS.indexOf(k)>=0)merged[k]=v[k];}return merged;});
@@ -23202,25 +23218,27 @@ function B787Cockpit(){
     });
   }
   function syncDisconnect(){
-    if(_fbDb&&syncRoom){
-      if(syncRole==="host"){_fbDb.ref("rooms/"+syncRoom).remove();}
-      else{_fbDb.ref("rooms/"+syncRoom+"/guest").remove();_fbDb.ref("rooms/"+syncRoom+"/guestState").remove();}
-      _fbDb.ref("rooms/"+syncRoom).off();
-      _fbDb.ref("rooms/"+syncRoom+"/state").off();
-      _fbDb.ref("rooms/"+syncRoom+"/guestState").off();
+    var db=_fbDb;
+    if(db&&syncRoom){
+      if(syncRole==="host"){db.ref("rooms/"+syncRoom).remove();}
+      else{db.ref("rooms/"+syncRoom+"/guest").remove();db.ref("rooms/"+syncRoom+"/guestState").remove();}
+      db.ref("rooms/"+syncRoom).off();
+      db.ref("rooms/"+syncRoom+"/state").off();
+      db.ref("rooms/"+syncRoom+"/guestState").off();
     }
     setSyncRoom(null);setSyncRole(null);setSyncPeer(false);
     _syncRef.current=null;_syncLastJson.current="";
   }
   // Push state changes to Firebase
   useEffect(function(){
-    if(!_fbDb||!syncRoom||_syncSkip.current){_syncSkip.current=false;return;}
+    if(!syncRoom||_syncSkip.current){_syncSkip.current=false;return;}
+    var db=_fbDb; if(!db) return;
     var data=_syncExtract(fms);
     var json=JSON.stringify(data);
     if(json===_syncLastJson.current) return;
     _syncLastJson.current=json;
-    if(syncRole==="host"){_fbDb.ref("rooms/"+syncRoom+"/state").set(data);}
-    else if(syncRole==="guest"){_fbDb.ref("rooms/"+syncRoom+"/guestState").set(data);}
+    if(syncRole==="host"){db.ref("rooms/"+syncRoom+"/state").set(data);}
+    else if(syncRole==="guest"){db.ref("rooms/"+syncRoom+"/guestState").set(data);}
   },[fms,syncRoom,syncRole]);
   // Cleanup on unmount
   useEffect(function(){return function(){syncDisconnect();};},[]);
@@ -23241,20 +23259,20 @@ function B787Cockpit(){
         React.createElement('div', {style:{color:"#00cccc",fontSize:33,fontWeight:"bold",letterSpacing:4,marginBottom:4}}, "B787 DREAMLINER"),
         React.createElement('div', {style:{color:"#aaa",fontSize:14,letterSpacing:2}}, "COCKPIT PROCEDURE SIMULATOR"),
         React.createElement('div', {style:{color:"#777",fontSize:14,marginTop:4}}, "FOR TRAINING PURPOSE ONLY"),
-        React.createElement('div', {style:{color:"#00bb00",fontSize:11,marginTop:12,letterSpacing:1}}, "v2.9.6 \u00a0|\u00a0 by SH Lee \u00a0 s.lee@koreanair.com")
+        React.createElement('div', {style:{color:"#00bb00",fontSize:11,marginTop:12,letterSpacing:1}}, "v2.9.7 \u00a0|\u00a0 by SH Lee \u00a0 s.lee@koreanair.com")
       ),
       React.createElement('div', {style:{borderTop:"1px solid #333",borderBottom:"1px solid #333",padding:"14px 0",marginBottom:16}},
         React.createElement(ChkRow, {checked:ckIPad,onToggle:function(){setCkIPad(function(p){return!p;});}},
-          React.createElement('div', {style:{color:"#00cccc",fontSize:17,fontWeight:"bold",marginBottom:8,letterSpacing:1}}, "PATCH NOTES v2.9.6"),
+          React.createElement('div', {style:{color:"#00cccc",fontSize:17,fontWeight:"bold",marginBottom:8,letterSpacing:1}}, "PATCH NOTES v2.9.7"),
           React.createElement('div', {style:{color:"#aaa",fontSize:14,fontWeight:"bold",lineHeight:1.8}},
-            React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginBottom:2}}, "v2.9.6"),
+            React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginBottom:2}}, "v2.9.7"),
+            React.createElement('div', null, "\u2022 Firebase SDK \ube44\ub3d9\uae30 \ub85c\ub529 \u00b7 \uc624\ud504\ub77c\uc778\uc2dc \ud398\uc774\uc9c0 \ucc28\ub2e8 \ud574\uacb0"),
+            React.createElement('div', null, "\u2022 MFKKeypad POS \ud398\uc774\uc9c0 PREV/NEXT \ucd94\uac00"),
+            React.createElement('div', null, "\u2022 RTE 1/2 page 5\ud589 \ub179\uc0c9\ubc30\uacbd \uad6c\ubd84\uc120 \uc81c\uac70"),
+            React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginTop:8,marginBottom:2}}, "v2.9.6"),
             React.createElement('div', null, "\u2022 Captain-F/O Dual CDU \uc2e4\uc2dc\uac04 \ub3d9\uae30\ud654 (Firebase)"),
             React.createElement('div', null, "\u2022 DESCENT FORECAST page \uad6c\ud604 (FCOM 11.43.7-9)"),
             React.createElement('div', null, "\u2022 RTE 2 page \uad6c\ud604 (FCOM 11.40.18-25)"),
-            React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginTop:8,marginBottom:2}}, "v2.9.5"),
-            React.createElement('div', null, "\u2022 RTE 1 \ud544\ub4dc \uc790\ub3d9\ucee4\uc11c\uc774\ub3d9: ORIGIN\u2192DEST\u2192FLT NO\u2192ACTIVATE"),
-            React.createElement('div', null, "\u2022 Track Pad \ucee4\uc11c\uc704\uce58 \u2192 Cursor Control \ub3d9\uae30\ud654"),
-            React.createElement('div', null, "\u2022 AUX DSP Clearance ACCEPTED \ub179\uc0c9 \ud45c\uc2dc"),
 
           )
         )
