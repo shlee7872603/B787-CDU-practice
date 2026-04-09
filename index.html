@@ -10,7 +10,7 @@
 <meta name="theme-color" content="#050505">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>B787 CDU Practice v2.10.4</title>
+<title>B787 CDU Practice v2.10.6</title>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js" async></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js" async></script>
 <style>*{margin:0;padding:0;box-sizing:border-box;-webkit-user-select:none;user-select:none}body{background:#050505;overflow-x:hidden}</style>
@@ -20565,7 +20565,8 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
       /* Message area — Phase preset buttons */
       , React.createElement('div', { style: {flex:"3 1 0",padding:"6px 8px",borderTop:"1px solid #333",minHeight:0,display:"flex",alignItems:"center"},}
         , (function(){
-          var phases=["INITIAL","CDU SETUP\nCOMPLETE","BFR T/O","CRUISE"];
+          var phases=["INITIAL","CDU SETUP","BFR T/O","CRUISE"];
+          var phaseDescs=["FMS Reset","RTE DEP/ARR\nPERF Done","T/O REF\nComplete","Enroute"];
           var phaseColors=["#334","#336","#353","#533"];
           var mkCk=function(upTo){var ck={};var counts=[10,8,6,5,3];for(var ci=0;ci<upTo;ci++){for(var ii=0;ii<counts[ci];ii++)ck[ci+"-"+ii]=true;}return ck;};
           var iataMap={"RJFF":"FUK","RKSI":"ICN","RKES":"CJU","RKSS":"GMP","RJTT":"HND","RJAA":"NRT"};
@@ -20630,7 +20631,10 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
                   var p3=buildPreset(fltKey,"cruise");
                   if(p3){updateRouteLegs(p3);p3.computedLegs=buildLegs(p3);setFms(p3);setMfdMode("CDU");}
                 }
-              }, style: {flex:1,padding:"8px 2px",background:phaseColors[pi],color:"#ccc",border:"1px solid #555",borderRadius:3,fontSize:19,fontWeight:"bold",cursor:"pointer",fontFamily:M,lineHeight:1.2,textAlign:"center",whiteSpace:"pre-line"},}, ph);
+              }, style: {flex:1,padding:"6px 2px",background:phaseColors[pi],color:"#ccc",border:"1px solid #555",borderRadius:3,fontSize:16,fontWeight:"bold",cursor:"pointer",fontFamily:M,lineHeight:1.2,textAlign:"center",whiteSpace:"pre-line",display:"flex",flexDirection:"column",alignItems:"center",gap:3},},
+                React.createElement('span', null, ph),
+                React.createElement('span', {style:{fontSize:10,color:"#aaa",fontWeight:"normal",lineHeight:1.3,whiteSpace:"pre-line",letterSpacing:0.5}}, phaseDescs[pi])
+              );
             })
           );
         })()
@@ -23181,7 +23185,9 @@ function B787Cockpit(){
   const [ckScope,setCkScope]=useState(false);
   const [ckTrackpad,setCkTrackpad]=useState(false);
   const [ckPreset,setCkPreset]=useState(false);
+  const [ckSync,setCkSync]=useState(false);
   const [role,setRole]=useState(null);
+  const [userEmail,setUserEmail]=useState("");
   const [fwdState,setFwdState]=useState({dspSide:"L",mfdL:"ND",mfdR:"ND",engOn:false,eicasSide:"L"});
   // ═══ Firebase Sync State ═══
   const [syncRoom,setSyncRoom]=useState(null);   // room code e.g. "A3K9"
@@ -23273,7 +23279,22 @@ function B787Cockpit(){
   useEffect(function(){return function(){syncDisconnect();};},[]);
 
   // ═══ Splash Screen ═══
-  var allChecked=ckIPad&&ckScope&&ckTrackpad&&ckPreset&&role!==null;
+  // Firebase visit logging (write-only)
+  const _logVisit = (email) => {
+    const db = _fbInit();
+    if(!db || !email) return;
+    const key = email.replace(/[.#$\[\]]/g,"_");
+    const ref = db.ref("users/" + key);
+    ref.child("visitCount").transaction(c => (c||0)+1);
+    ref.update({
+      email: email,
+      lastVisit: new Date().toISOString()
+    });
+    ref.child("visits").push({ timestamp: new Date().toISOString() });
+  };
+
+  const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userEmail);
+  var allChecked=ckIPad&&ckScope&&ckTrackpad&&ckSync&&role!==null&&emailValid;
   var ChkRow=function(props){var checked=props.checked,onToggle=props.onToggle,children=props.children;return(
     React.createElement('div', {onClick:onToggle,style:{display:"flex",alignItems:"flex-start",gap:10,cursor:"pointer",padding:"6px 0"}},
       React.createElement('div', {style:{width:20,height:20,border:"2px solid "+(checked?"#00e800":"#555"),borderRadius:3,background:checked?"#003300":"transparent",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,marginTop:2}},
@@ -23288,20 +23309,32 @@ function B787Cockpit(){
         React.createElement('div', {style:{color:"#00cccc",fontSize:33,fontWeight:"bold",letterSpacing:4,marginBottom:4}}, "B787 DREAMLINER"),
         React.createElement('div', {style:{color:"#aaa",fontSize:14,letterSpacing:2}}, "COCKPIT PROCEDURE SIMULATOR"),
         React.createElement('div', {style:{color:"#777",fontSize:14,marginTop:4}}, "FOR TRAINING PURPOSE ONLY"),
-        React.createElement('div', {style:{color:"#00bb00",fontSize:11,marginTop:12,letterSpacing:1}}, "v2.10.4 \u00a0|\u00a0 by SH Lee \u00a0 s.lee@koreanair.com")
+        React.createElement('div', {style:{color:"#00bb00",fontSize:11,marginTop:12,letterSpacing:1}}, "v2.10.6 \u00a0|\u00a0 by SH Lee \u00a0 s.lee@koreanair.com"),
+        React.createElement('div', {style:{color:"#888",fontSize:11,marginTop:6}}, "\uc624\ub958\uac00 \uc788\uc744 \uc2dc \uc704 \uba54\uc77c\ub85c \uc54c\ub824\uc8fc\uc2dc\uae30 \ubc14\ub78d\ub2c8\ub2e4.")
       ),
       React.createElement('div', {style:{borderTop:"1px solid #333",borderBottom:"1px solid #333",padding:"14px 0",marginBottom:16}},
         React.createElement(ChkRow, {checked:ckIPad,onToggle:function(){setCkIPad(function(p){return!p;});}},
-          React.createElement('div', {style:{color:"#00cccc",fontSize:17,fontWeight:"bold",marginBottom:8,letterSpacing:1}}, "PATCH NOTES v2.10.4"),
+          React.createElement('div', {style:{color:"#00cccc",fontSize:17,fontWeight:"bold",marginBottom:8,letterSpacing:1}}, "PATCH NOTES v2.10.6"),
           React.createElement('div', {style:{color:"#aaa",fontSize:14,fontWeight:"bold",lineHeight:1.8}},
-            React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginBottom:2}}, "v2.10.4"),
+            React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginBottom:2}}, "v2.10.6"),
+            React.createElement('div', null, "\u2022 \uc2a4\ud50c\ub798\uc2dc \uac1c\uc120 \u00b7 \uc624\ub958\uc548\ub0b4 \u00b7 PHASE PRESET \uc124\uba85 \ucd94\uac00"),
+            React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginTop:8,marginBottom:2}}, "v2.10.5"),
+            React.createElement('div', null, "\u2022 EMAIL \uc785\ub825 \u00b7 SYNC \uac00\uc774\ub4dc \u00b7 \uad6c\ud604\ubc94\uc704 \uc815\ub9ac"),
+            React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginTop:8,marginBottom:2}}, "v2.10.4"),
             React.createElement('div', null, "\u2022 Firebase \uc2e4\uc2dc\uac04 \ub3d9\uae30\ud654 (Captain-FO \ub4c0\uc5bc CDU)"),
-            React.createElement('div', null, "\u2022 EFB SEND OUTPUT \u2192 \uc0c1\ub300 \uae30\uae30 TOREF UPLINK \uc790\ub3d9 \ud45c\uc2dc"),
             React.createElement('div', null, "\u2022 EFB INITIALIZE/CLOSE FLIGHT \uc560\ub2c8\uba54\uc774\uc158 \u00b7 \ube44\ud65c\uc131\ubc84\ud2bc"),
-            React.createElement('div', null, "\u2022 Firebase SDK \ube44\ub3d9\uae30 \ub85c\ub529 \u00b7 \uc624\ud504\ub77c\uc778 \ub0b4\uc131"),
-            React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginTop:8,marginBottom:2}}, "v2.9.7"),
-            React.createElement('div', null, "\u2022 MFKKeypad POS PREV/NEXT \u00b7 RTE 5\ud589 \uad6c\ubd84\uc120 \uc81c\uac70"),
 
+          )
+        )
+      ),
+      React.createElement('div', {style:{borderBottom:"1px solid #333",padding:"0 0 14px",marginBottom:16}},
+        React.createElement(ChkRow, {checked:ckSync,onToggle:function(){setCkSync(function(p){return!p;});}},
+          React.createElement('div', {style:{color:"#00cccc",fontSize:17,fontWeight:"bold",marginBottom:8,letterSpacing:1}}, "SYNC (Dual CDU)"),
+          React.createElement('div', {style:{color:"#aaa",fontSize:14,lineHeight:1.8}},
+            React.createElement('div', null, React.createElement('span', {style:{color:"#fff"}}, "1. "), "\uc0ac\uc6a9\ud560 \uae30\uae30\ub4e4\uc5d0\uc11c \uac01\uac01 START"),
+            React.createElement('div', null, React.createElement('span', {style:{color:"#fff"}}, "2. "), "\ud55c\ucabd \uae30\uae30\uc5d0\uc11c CDU \uc88c\uce21 \uc0c1\ub2e8 ", React.createElement('span', {style:{color:"#00e800",fontWeight:"bold"}}, "SYNC"), " \ubc84\ud2bc \ud074\ub9ad \u2192 ", React.createElement('span', {style:{color:"#00e800"}}, "\ubc29 \ub9cc\ub4e4\uae30")),
+            React.createElement('div', null, React.createElement('span', {style:{color:"#fff"}}, "3. "), "\ud654\uba74\uc5d0 \ud45c\uc2dc\ub41c ", React.createElement('span', {style:{color:"#ffcc00",fontWeight:"bold"}}, "4\uc790\ub9ac \ucf54\ub4dc"), "\ub97c \uc0c1\ub300 \uae30\uae30\uc5d0 \uc785\ub825 \u2192 ", React.createElement('span', {style:{color:"#00e800"}}, "\ubc29 \ucc38\uc5ec")),
+            React.createElement('div', null, React.createElement('span', {style:{color:"#fff"}}, "4. "), "\uc5f0\uacb0 \uc644\ub8cc \u2014 CDU \uc785\ub825\uac12\uc774 \uc2e4\uc2dc\uac04 \ub3d9\uae30\ud654\ub429\ub2c8\ub2e4")
           )
         )
       ),
@@ -23309,10 +23342,8 @@ function B787Cockpit(){
         React.createElement(ChkRow, {checked:ckScope,onToggle:function(){setCkScope(function(p){return!p;});}},
           React.createElement('div', {style:{color:"#00cccc",fontSize:17,fontWeight:"bold",marginBottom:8,letterSpacing:1}}, "\uad6c\ud604\ubc94\uc704"),
           React.createElement('div', {style:{color:"#aaa",fontSize:15,lineHeight:2}},
-            React.createElement('div', null, React.createElement('span', {style:{color:"#fff"}}, "Database"), " ", React.createElement('span', {style:{color:"#999"}}, "KAL781 & 782. RTE, SID, ARR, APP \uc77c\ubd80, T/O Performance")),
-            React.createElement('div', null, React.createElement('span', {style:{color:"#00e800"}}, "CDU, COMM"), " ", React.createElement('span', {style:{color:"#999"}}, "for Preflight")),
-            React.createElement('div', {style:{paddingLeft:16,color:"#999",fontSize:14,lineHeight:1.8}}, "COMM(DCL, ATIS, Load sheet, ACARS Initialization, ETA, Request Gate)"),
-            React.createElement('div', null, React.createElement('span', {style:{color:"#00e800"}}, "INFO, SYS"), React.createElement('span', {style:{color:"#999"}}, "(STAT, AIR, DOOR)"), ", ", React.createElement('span', {style:{color:"#00e800"}}, "CHKL"))
+            React.createElement('div', null, React.createElement('span', {style:{color:"#fff"}}, "Database"), " ", React.createElement('span', {style:{color:"#999"}}, "KAL781/782 (RKSI\u2194RJFF)")),
+            React.createElement('div', null, React.createElement('span', {style:{color:"#00e800"}}, "CDU, COMM, CHKL, INFO, SYS, EFB, FWD"), " ", React.createElement('span', {style:{color:"#999"}}, "for Preflight"))
           )
         )
       ),
@@ -23325,11 +23356,11 @@ function B787Cockpit(){
         )
       ),
       React.createElement('div', {style:{borderBottom:"1px solid #333",padding:"0 0 14px",marginBottom:16}},
-        React.createElement(ChkRow, {checked:ckPreset,onToggle:function(){setCkPreset(function(p){return!p;});}},
-          React.createElement('div', {style:{color:"#aaa",fontSize:15,lineHeight:1.8}},
-            React.createElement('span', {style:{color:"#fff"}}, "Preflight Setup"), " ", React.createElement('span', {style:{color:"#999"}}, "\uc774 \uc644\ub8cc\ub41c CDU \uc0c1\ud0dc\ub97c Load \uac00\ub2a5")
-          )
-        )
+        React.createElement('div', {style:{color:"#00cccc",fontSize:17,fontWeight:"bold",marginBottom:10,letterSpacing:1}}, "EMAIL"),
+        React.createElement('input', {type:"email",value:userEmail,onChange:function(e){setUserEmail(e.target.value);},placeholder:"email@koreanair.com",style:{
+          width:"100%",padding:"10px 12px",background:"#111",color:"#00e800",border:"2px solid "+(emailValid?"#00aa00":"#555"),
+          borderRadius:4,fontSize:16,fontFamily:M,letterSpacing:1,outline:"none",boxSizing:"border-box"
+        }})
       ),
       React.createElement('div', {style:{borderBottom:"1px solid #333",padding:"0 0 14px",marginBottom:16}},
         React.createElement('div', {style:{color:"#00cccc",fontSize:17,fontWeight:"bold",marginBottom:10,letterSpacing:1}}, "ROLE \uc120\ud0dd"),
@@ -23349,7 +23380,7 @@ function B787Cockpit(){
         )
       ),
       React.createElement('div', {style:{textAlign:"center",marginTop:24}},
-        React.createElement('button', {onClick:allChecked?function(){setSplash(false);}:undefined,style:{
+        React.createElement('button', {onClick:allChecked?function(){_logVisit(userEmail);setSplash(false);}:undefined,style:{
           padding:"12px 48px",
           background:allChecked?"linear-gradient(180deg,#2a4a2a 0%,#1a3a1a 100%)":"#1a1a1a",
           color:allChecked?"#00e800":"#444",
