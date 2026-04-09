@@ -10,7 +10,7 @@
 <meta name="theme-color" content="#050505">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>B787 CDU Practice v2.9.8</title>
+<title>B787 CDU Practice v2.10.4</title>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js" async></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js" async></script>
 <style>*{margin:0;padding:0;box-sizing:border-box;-webkit-user-select:none;user-select:none}body{background:#050505;overflow-x:hidden}</style>
@@ -20971,6 +20971,7 @@ function MFKKeypad({fms,setFms,mfdMode,setMfdMode}) {
 // ═══════ [COMP] EFBPanel (Image 1 style) — LSK aligned with menu rows ═══════
 function EFBPanel({fms,setFms,onClose}) {
   const [page,setPage]=useState("MAIN");
+  const [efbInitializing,setEfbInitializing]=useState(false);
   const Screw=()=>(React.createElement('div', { style: {width:12,height:12,borderRadius:"50%",background:"radial-gradient(circle,#777 30%,#444 70%)",border:"1px solid #555",flexShrink:0},}));
   const BzBtn=({l,onClick})=>(React.createElement('button', { onClick: onClick, style: {width:68,height:32,padding:"2px 4px",background:"linear-gradient(180deg,#5a5a5a 0%,#3a3a3a 50%,#2a2a2a 100%)",color:"#ccc",border:"1px solid #555",borderRadius:"3px",fontSize:"13px",fontWeight:"bold",cursor:"pointer",fontFamily:M,boxShadow:"0 1px 3px rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,255,255,0.1)",display:"flex",alignItems:"center",justifyContent:"center"},}, l||""));
   const ERow = ({left,right,onL,onR,empty=false}) => (
@@ -21090,34 +21091,55 @@ function EFBPanel({fms,setFms,onClose}) {
   };
 
   const handleInitFlt = () => {
-    const d = db || {};
-    const iataMap={"RJFF":"FUK","RKSI":"ICN","RKES":"CJU","RKSS":"GMP","RJTT":"HND","RJAA":"NRT"};
-    setFms(prev => {
-      const o = prev.origin || d.origin || "";
-      const iata = iataMap[o] || "";
-      const aprtDisp = iata ? `${o} / ${iata}` : o;
-      return {...prev, efbInit: true,
-  efbPerf:{...prev.efbPerf,
-        aprt: aprtDisp,
-        rwy: prev.runway || d.runway || "",
-        wind: d.wind || "", oat: d.oat || prev.oat, qnh: d.qnh || "1013",
-        intx: d.intx || "", cond: d.cond || "DRY",
-        rtg: d.rtg||"OPTIMUM", ic: d.ic||"NO", atm: d.atm||"MAX",
-        flap: d.flapOpt||"OPTIMUM", aiEng: d.aiEng||"AUTO", icing: d.icing||"NO",
-        rtl: d.rtl||"20/30",
-      }};
-    });
-    setPage("PERF_INPUT");
+    // 0.1s delay → inactive buttons for 2s → CLOSE FLIGHT
+    setTimeout(()=>{
+      setEfbInitializing(true);
+      setTimeout(()=>{
+        setEfbInitializing(false);
+        const d2 = FLIGHT_DB[(fms.fltNo||"").toUpperCase()] || {};
+        const iataMap={"RJFF":"FUK","RKSI":"ICN","RKES":"CJU","RKSS":"GMP","RJTT":"HND","RJAA":"NRT"};
+        setFms(prev => {
+          const o = prev.origin || d2.origin || "";
+          const iata = iataMap[o] || "";
+          const aprtDisp = iata ? `${o} / ${iata}` : o;
+          return {...prev, efbInit: true,
+      efbPerf:{...prev.efbPerf,
+            aprt: aprtDisp,
+            rwy: prev.runway || d2.runway || "",
+            wind: d2.wind || "", oat: d2.oat || prev.oat, qnh: d2.qnh || "1013",
+            intx: d2.intx || "", cond: d2.cond || "DRY",
+            rtg: d2.rtg||"OPTIMUM", ic: d2.ic||"NO", atm: d2.atm||"MAX",
+            flap: d2.flapOpt||"OPTIMUM", aiEng: d2.aiEng||"AUTO", icing: d2.icing||"NO",
+            rtl: d2.rtl||"20/30",
+          }};
+        });
+      },2000);
+    },100);
+  };
+
+  const handleCloseFlt = () => {
+    setFms(prev => ({...prev, efbInit: false,
+      efbPerf:{aprt:"",rwy:"",intx:"",cond:"",wind:"",oat:"",qnh:"",
+        rtg:"",ic:"",atm:"",flap:"",aiEng:"",icing:"",rtl:"",
+        tow:"",zfw:"",cg:"23",
+        calcDone:false, calcV1:"",calcVR:"",calcV2:"",calcFlap:"",calcThrust:"",
+        calcAccelHt:"",calcDTO:"",calcSelTemp:"",calcVref30:"",calcRwyIntx:"",calcTOGW:"",
+        sentToFmc:false,
+      }
+    }));
   };
 
   const renderPage=()=>{
-    if(page==="MAIN") return (
+    if(page==="MAIN") {
+      const ini = efbInitializing; // true during 2s inactive animation
+      const isInit = fms.efbInit;  // true after INITIALIZE complete
+      return (
       React.createElement(EfbScreen, { title: "MAIN MENU" ,
         lsk: [
-          {label:"PERFORMANCE",onClick:()=>setPage("PERF_INPUT")},
-          {label:"LOGBOOK"},
-          {label:"FLIGHT\nFOLDER"},
-          {label:"ENROUTE"},
+          {label:"PERFORMANCE",onClick:ini?undefined:()=>setPage("PERF_INPUT"),inactive:ini},
+          {label:"LOGBOOK",inactive:ini},
+          {label:"FLIGHT\nFOLDER",inactive:ini},
+          {label:"ENROUTE",inactive:ini},
           null,null,
           {label:"IDENT\nPAGE",onClick:()=>setPage("IDENT")},
           {label:"SYSTEM\nPAGE",onClick:()=>setPage("SYS")},
@@ -21125,17 +21147,20 @@ function EFBPanel({fms,setFms,onClose}) {
         rsk: [
           {label:"VIDEO"},
           null,
-          {label:"DOCUMENTS",onClick:()=>setPage("DOCS")},
-          {label:"TERMINAL\nCHARTS"},
+          {label:"DOCUMENTS",onClick:ini?undefined:()=>setPage("DOCS"),inactive:ini},
+          {label:"TERMINAL\nCHARTS",inactive:ini},
           null,
           {label:"PILOT\nUTILITIES"},
           {label:"DATA LOAD",onClick:()=>setPage("DATALOAD")},
-          {label:"INITIALIZE\nFLIGHT",onClick:handleInitFlt},
+          isInit
+            ? {label:"CLOSE\nFLIGHT",onClick:handleCloseFlt}
+            : {label:"INITIALIZE\nFLIGHT",onClick:ini?undefined:handleInitFlt,inactive:ini},
         ],}
 
         , React.createElement('div', { style: {padding:"40px 20px",textAlign:"center",color:"#555",fontSize:14,fontFamily:M},}, "MEMO")
       )
     );
+    }
 
     if(page==="IDENT") {
       const now=new Date();const mon=["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"][now.getUTCMonth()];
@@ -21421,9 +21446,9 @@ function EFBPanel({fms,setFms,onClose}) {
   };
 
   // FCOM 10.70.4: Soft key = wide gray rectangle, all same height
-  const SK=({label,onClick,color="#fff",bg="#3a3a3a",fontSize:fs=18})=>label?(React.createElement('button', { onClick: onClick||undefined, style: {
-    width:"100%",height:60,background:bg,border:"1px solid #555",borderRadius:0,
-    color,fontSize:fs,fontWeight:"bold",cursor:onClick?"pointer":"default",fontFamily:M,
+  const SK=({label,onClick,color="#fff",bg="#3a3a3a",fontSize:fs=18,inactive})=>label?(React.createElement('button', { onClick: inactive?undefined:(onClick||undefined), style: {
+    width:"100%",height:60,background:inactive?"#000":bg,border:inactive?"2px solid #00cccc":"1px solid #555",borderRadius:0,
+    color:inactive?"#00cccc":color,fontSize:fs,fontWeight:"bold",cursor:(!inactive&&onClick)?"pointer":"default",fontFamily:M,
     textAlign:"left",whiteSpace:"pre-line",lineHeight:1.15,padding:"2px 6px",
     display:"flex",alignItems:"center"
   },}, label)):null;
@@ -23263,16 +23288,18 @@ function B787Cockpit(){
         React.createElement('div', {style:{color:"#00cccc",fontSize:33,fontWeight:"bold",letterSpacing:4,marginBottom:4}}, "B787 DREAMLINER"),
         React.createElement('div', {style:{color:"#aaa",fontSize:14,letterSpacing:2}}, "COCKPIT PROCEDURE SIMULATOR"),
         React.createElement('div', {style:{color:"#777",fontSize:14,marginTop:4}}, "FOR TRAINING PURPOSE ONLY"),
-        React.createElement('div', {style:{color:"#00bb00",fontSize:11,marginTop:12,letterSpacing:1}}, "v2.9.8 \u00a0|\u00a0 by SH Lee \u00a0 s.lee@koreanair.com")
+        React.createElement('div', {style:{color:"#00bb00",fontSize:11,marginTop:12,letterSpacing:1}}, "v2.10.4 \u00a0|\u00a0 by SH Lee \u00a0 s.lee@koreanair.com")
       ),
       React.createElement('div', {style:{borderTop:"1px solid #333",borderBottom:"1px solid #333",padding:"14px 0",marginBottom:16}},
         React.createElement(ChkRow, {checked:ckIPad,onToggle:function(){setCkIPad(function(p){return!p;});}},
-          React.createElement('div', {style:{color:"#00cccc",fontSize:17,fontWeight:"bold",marginBottom:8,letterSpacing:1}}, "PATCH NOTES v2.9.8"),
+          React.createElement('div', {style:{color:"#00cccc",fontSize:17,fontWeight:"bold",marginBottom:8,letterSpacing:1}}, "PATCH NOTES v2.10.4"),
           React.createElement('div', {style:{color:"#aaa",fontSize:14,fontWeight:"bold",lineHeight:1.8}},
-            React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginBottom:2}}, "v2.9.8"),
+            React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginBottom:2}}, "v2.10.4"),
+            React.createElement('div', null, "\u2022 Firebase \uc2e4\uc2dc\uac04 \ub3d9\uae30\ud654 (Captain-FO \ub4c0\uc5bc CDU)"),
             React.createElement('div', null, "\u2022 EFB SEND OUTPUT \u2192 \uc0c1\ub300 \uae30\uae30 TOREF UPLINK \uc790\ub3d9 \ud45c\uc2dc"),
+            React.createElement('div', null, "\u2022 EFB INITIALIZE/CLOSE FLIGHT \uc560\ub2c8\uba54\uc774\uc158 \u00b7 \ube44\ud65c\uc131\ubc84\ud2bc"),
+            React.createElement('div', null, "\u2022 Firebase SDK \ube44\ub3d9\uae30 \ub85c\ub529 \u00b7 \uc624\ud504\ub77c\uc778 \ub0b4\uc131"),
             React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginTop:8,marginBottom:2}}, "v2.9.7"),
-            React.createElement('div', null, "\u2022 Firebase SDK \ube44\ub3d9\uae30 \ub85c\ub529 \u00b7 \uc624\ud504\ub77c\uc778\uc2dc \ud398\uc774\uc9c0 \ucc28\ub2e8 \ud574\uacb0"),
             React.createElement('div', null, "\u2022 MFKKeypad POS PREV/NEXT \u00b7 RTE 5\ud589 \uad6c\ubd84\uc120 \uc81c\uac70"),
 
           )
