@@ -10,7 +10,9 @@
 <meta name="theme-color" content="#050505">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>B787 CDU Practice v2.9.5</title>
+<title>B787 CDU Practice v2.9.6</title>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 <style>*{margin:0;padding:0;box-sizing:border-box;-webkit-user-select:none;user-select:none}body{background:#050505;overflow-x:hidden}</style>
 </head>
 <body>
@@ -18098,6 +18100,22 @@ const initFMS = () => ({
   // DES page state (FCOM 11.43.2)
   desSpdMode:"ECON",desSelSpd:"",desSpdTrans:"",desSpdRestr:"",
   desWptAlt:"",desFPA:"",desVB:"",desVS:"",
+  // RTE 2 state (FCOM 11.40.18-25)
+  rte2Origin:"",rte2Dest:"",rte2FltNo:"",rte2Runway:"",rte2CoRoute:"",
+  rte2Legs:[],rte2Page:1,rte2UplinkPending:false,
+  // DES FORECAST state (FCOM 11.43.7-9)
+  desFcstPage:1,desFcstTransLvl:"FL180",desFcstTaiAlt:"",
+  desFcstWinds:[
+    {alt:"FL400",temp:"-40",dir:"090",spd:"105"},
+    {alt:"FL360",temp:"-31",dir:"078",spd:"69"},
+    {alt:"FL320",temp:"-23",dir:"130",spd:"29"},
+    {alt:"FL280",temp:"-19",dir:"240",spd:"55"},
+    {alt:"FL220",temp:"-8",dir:"240",spd:"60"},
+    {alt:"FL180",temp:"5",dir:"240",spd:"50"},
+    {alt:"14000",temp:"10",dir:"230",spd:"40"},
+    {alt:"8000",temp:"19",dir:"150",spd:"25"},
+    {alt:"4000",temp:"25",dir:"110",spd:"5"}
+  ],
   // RNP/ANP
   rnp:"1.00",anp:"0.04",
   routeLegs:[], rtePage:1, legsPage:1, progPage:1, helpMsg:"",
@@ -18240,9 +18258,9 @@ function cduPageData(fms) {
       {tl:"RUNWAY",tr:"FLT NO",dl:fms.runway||"-----",dr:fms.fltNo||"----------",dlc:fms.runway?C.green:C.cyan,drc:fms.fltNo?C.green:C.cyan,dlBg:true,drBg:true},
       {tl:"ROUTE",tr:"CO ROUTE",dl:fms.phase==="ACTIVE"?"<REPORT":"<REQUEST",dr:fms.coRoute||"----------",dlc:C.cyan,drc:C.cyan,drBg:true},
       {dr:fms.phase==="ACTIVE"?"RTE COPY>":"",drc:C.cyan},
-      {tl:fms.phase==="ACTIVE"?"ROUTE":"",
+      {tl:fms.phase==="ACTIVE"?"ROUTE":"",tlFull:fms.phase!=="ACTIVE"?"\u2500".repeat(38):null,tlFullColor:C.dim,
        dl:fms.rteUplinkPending?"<LOAD":(fms.phase==="ACTIVE"?"<PRINT":""),
-       dr:fms.phase==="ACTIVE"?"ALTN>":"",
+       dr:"ALTN>",
        dlc:fms.rteUplinkPending?C.cyan:C.cyan,drc:C.cyan},
       {dl:fms.execLight?"<ERASE":"<RTE 2",dr:fms.phase==="ACTIVE"?"PERF INIT>":(fms.origin&&fms.dest&&!fms.execLight?"ACTIVATE>":"PERF INIT>"),dlc:C.cyan,drc:C.cyan},
     ],sep:fms.phase==="ACTIVE"?4:5,helpMsg:fms.helpMsg},
@@ -18263,8 +18281,39 @@ function cduPageData(fms) {
         else rows.push({tl:i===0&&!legsSlice.length?"VIA":"",tr:i===0&&!legsSlice.length?"TO":"",
           dl:"-----",dr:"▯▯▯▯▯",dlc:C.cyan,drc:C.cyan,dlBg:true,drBg:true,tlc:C.dim,trc:C.dim});
       }
-      rows.push({dl:(fms.routeLegs.length||fms.execLight)?"<ERASE":"<RTE 2",dr:fms.phase==="ACTIVE"?"PERF INIT>":(fms.origin&&fms.dest&&!fms.execLight?"ACTIVATE>":"PERF INIT>"),dlc:C.cyan,drc:C.cyan});
+      rows.push({dl:fms.execLight?"<ERASE":"<RTE 2",dr:fms.phase==="ACTIVE"?"PERF INIT>":(fms.origin&&fms.dest&&!fms.execLight?"ACTIVATE>":"PERF INIT>"),dlc:C.cyan,drc:C.cyan});
       return {title:fms.execLight&&fms.phase==="ACTIVE"?"MOD RTE 1":(fms.phase==="ACTIVE"?"ACT RTE 1":"RTE 1"),titleSub:`${fms.rtePage}/${totalPages}`,rows,sep:5};
+    })(),
+    // ═══ RTE 2 page 1/x (FCOM 11.40.18) — identical structure to RTE 1 ═══
+    RTE_2: {title:"RTE 2",titleSub:`1/${Math.max(2,Math.floor((fms.rte2Legs||[]).length/5)+2)}`, rows:[
+      {tl:"ORIGIN",tr:"DEST",dl:fms.rte2Origin||"▯▯▯▯",dr:fms.rte2Dest||"▯▯▯▯",dlc:fms.rte2Origin?C.green:C.cyan,drc:fms.rte2Dest?C.green:C.cyan,dlBg:true,drBg:true},
+      {tl:"RUNWAY",tr:"FLT NO",dl:fms.rte2Runway||"-----",dr:fms.rte2FltNo||"----------",dlc:fms.rte2Runway?C.green:C.cyan,drc:fms.rte2FltNo?C.green:C.cyan,dlBg:true,drBg:true},
+      {tl:"ROUTE",tr:"CO ROUTE",dl:"<REQUEST",dr:fms.rte2CoRoute||"----------",dlc:C.cyan,drc:C.cyan,drBg:true},
+      {},
+      {tlFull:"\u2500".repeat(38),tlFullColor:C.dim,dr:"ALTN>",drc:C.cyan},
+      {dl:"<RTE 1",dr:(fms.rte2Origin&&fms.rte2Dest?"ACTIVATE>":""),dlc:C.cyan,drc:C.cyan},
+    ],sep:5},
+    // ═══ RTE 2 page 2/x (FCOM 11.40.23) — VIA/TO legs ═══
+    RTE_2_2: (()=>{
+      const legs=fms.rte2Legs||[];
+      const startIdx = ((fms.rte2Page||1) - 2) * 5;
+      const totalPages = Math.max(2, Math.floor(legs.length / 5) + 2);
+      const legsSlice = legs.slice(startIdx, startIdx + 5);
+      const rows = [];
+      for(let i=0; i<5; i++) {
+        const leg = legsSlice[i];
+        if(leg&&leg._disc) rows.push({tl:i===0?"VIA":"",tr:i===0?"TO":"",
+          tlFull:i===0?null:"ROUTE  DISCONTINUITY",tlFullBg:"transparent",tlFullColor:C.white,
+          dl:"□□□□□",dr:"-----",dlc:C.white,drc:C.white,dlBg:true,drBg:true,tlc:C.white,trc:C.dim});
+        else if(leg) rows.push({tl:i===0?"VIA":"",tr:i===0?"TO":"",
+          dl:leg.via||"DIRECT",dr:leg.to||(leg.via?"-----":""),dlBg:true,drBg:true,
+          dlc:leg._star||leg._app||leg._appTrans||leg._sid||leg._missed?C.cyan:C.green,drc:leg._star||leg._app||leg._appTrans||leg._sid||leg._missed?C.cyan:leg.to?C.green:C.white,
+          tlc:C.dim,trc:C.dim});
+        else rows.push({tl:i===0&&!legsSlice.length?"VIA":"",tr:i===0&&!legsSlice.length?"TO":"",
+          dl:"-----",dr:"▯▯▯▯▯",dlc:C.cyan,drc:C.cyan,dlBg:true,drBg:true,tlc:C.dim,trc:C.dim});
+      }
+      rows.push({dl:"<RTE 1",dr:"",dlc:C.cyan,drc:C.cyan});
+      return {title:"RTE 2",titleSub:`${fms.rte2Page||1}/${totalPages}`,rows,sep:5};
     })(),
     PERF_INIT: {title:"PERF INIT", rows:[
       {tl:"GR WT",tr:"CRZ ALT",
@@ -18487,6 +18536,48 @@ function cduPageData(fms) {
       {dr:"FORECAST>",drc:C.cyan},
       {dl:"<OFFPATH DES",dr:isAct?"DES DIR>":"DES NOW>",dlc:C.cyan,drc:C.cyan},
     ],sep:4};})(),
+    DES_FORECAST:(()=>{
+      const pg=fms.desFcstPage||1;
+      const w=fms.desFcstWinds||[];
+      const startIdx=(pg-1)*4;
+      const maxPg=Math.ceil(w.length/4)||1;
+      if(pg===1){
+        return {title:"DESCENT  FORECAST",titleSub:`${pg}/${maxPg}`,rows:[
+          {tl:"TRANS LVL",tr:"TAI/ON ALT",
+           dl:fms.desFcstTransLvl||"-----",dr:fms.desFcstTaiAlt||"-----",
+           dlc:fms.desFcstTransLvl?C.green:C.cyan,drc:fms.desFcstTaiAlt?C.green:C.cyan,
+           tlc:C.dim,trc:C.dim,dlBg:true,drBg:true},
+          {tl:"ALT/TEMP",tr:"WIND DIR/SPD",
+           dl:w[0]?w[0].alt+"/"+w[0].temp+"\u00b0C":"",dr:w[0]?w[0].dir+"\u00b0/"+String(w[0].spd).padStart(3," ")+" KT":"",
+           dlc:C.green,drc:C.green,tlc:C.dim,trc:C.dim,dlBg:true,drBg:true},
+          {dl:w[1]?w[1].alt+"/"+w[1].temp+"\u00b0C":"",dr:w[1]?w[1].dir+"\u00b0/"+String(w[1].spd).padStart(3," ")+" KT":"",
+           dlc:C.green,drc:C.green,dlBg:true,drBg:true},
+          {dl:w[2]?w[2].alt+"/"+w[2].temp+"\u00b0C":"",dr:w[2]?w[2].dir+"\u00b0/"+String(w[2].spd).padStart(3," ")+" KT":"",
+           dlc:C.green,drc:C.green,dlBg:true,drBg:true},
+          {dl:w[3]?w[3].alt+"/"+w[3].temp+"\u00b0C":"",dr:w[3]?w[3].dir+"\u00b0/"+String(w[3].spd).padStart(3," ")+" KT":"",
+           dlc:C.green,drc:C.green,dlBg:true,drBg:true},
+          {tlFull:"FORECAST  "+"\u2500".repeat(22),tlFullColor:C.dim,
+           dl:"<REQUEST",dr:"DES>",dlc:C.cyan,drc:C.cyan},
+        ],sep:4};
+      } else {
+        const si=startIdx;
+        return {title:"DESCENT  FORECAST",titleSub:`${pg}/${maxPg}`,rows:[
+          {tl:"ALT/TEMP",tr:"WIND DIR/SPD",
+           dl:w[si]?w[si].alt+"/"+w[si].temp+"\u00b0C":"",dr:w[si]?w[si].dir+"\u00b0/"+String(w[si].spd).padStart(3," ")+" KT":"",
+           dlc:C.green,drc:C.green,tlc:C.dim,trc:C.dim,dlBg:true,drBg:true},
+          {dl:w[si+1]?w[si+1].alt+"/"+w[si+1].temp+"\u00b0C":"",dr:w[si+1]?w[si+1].dir+"\u00b0/"+String(w[si+1].spd).padStart(3," ")+" KT":"",
+           dlc:C.green,drc:C.green,dlBg:true,drBg:true},
+          {dl:w[si+2]?w[si+2].alt+"/"+w[si+2].temp+"\u00b0C":"",dr:w[si+2]?w[si+2].dir+"\u00b0/"+String(w[si+2].spd).padStart(3," ")+" KT":"",
+           dlc:C.green,drc:C.green,dlBg:true,drBg:true},
+          {dl:w[si+3]?w[si+3].alt+"/"+w[si+3].temp+"\u00b0C":"",dr:w[si+3]?w[si+3].dir+"\u00b0/"+String(w[si+3].spd).padStart(3," ")+" KT":"",
+           dlc:C.green,drc:C.green,dlBg:true,drBg:true},
+          {dl:w[si+4]?w[si+4].alt+"/"+w[si+4].temp+"\u00b0C":"",dr:w[si+4]?w[si+4].dir+"\u00b0/"+String(w[si+4].spd).padStart(3," ")+" KT":"",
+           dlc:C.green,drc:C.green,dlBg:true,drBg:true},
+          {tlFull:"FORECAST  "+"\u2500".repeat(22),tlFullColor:C.dim,
+           dl:"<REQUEST",dr:"DES>",dlc:C.cyan,drc:C.cyan},
+        ],sep:4};
+      }
+    })(),
     NAV_RADIO:(()=>{
       const db=FLIGHT_DB[(fms.fltNo||"").toUpperCase()];
       const isAct=fms.phase==="ACTIVE";
@@ -19344,8 +19435,10 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
             }
             s.execLight=false;
             if(s._snapshot&&s._snapshot.computedLegs){s.computedLegs=JSON.parse(JSON.stringify(s._snapshot.computedLegs));}else{updateRouteLegs(s);s.computedLegs=buildLegs(s);}
-          } else go("INIT_REF");
+          } else {s.rte2Page=1;go("RTE_2");}
         }
+        // R5: ALTN> (FCOM 11.40.21)
+        if(side==="R"&&num===5)go("ALTN");
       }
       // [HDL] RTE_1_2
       else if(p==="RTE_1_2"){
@@ -19442,18 +19535,46 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
             }
             s.execLight=false;
             if(s._snapshot&&s._snapshot.computedLegs){s.computedLegs=JSON.parse(JSON.stringify(s._snapshot.computedLegs));}else{updateRouteLegs(s);s.computedLegs=buildLegs(s);}
-          } else if(s.routeLegs.length){
-            // <ERASE — erase visible route legs on this page
-            const si=(s.rtePage-2)*5;
-            s.routeLegs.splice(si,5);
-            // Strip empty legs
-            s.routeLegs=s.routeLegs.filter(function(l){return l.via||l.to;});
-            s.computedLegs=buildLegs(s);
-            if(s.phase==="ACTIVE")s.execLight=true;
-            // Go back to page 1 if current page is now empty
-            if(si>=s.routeLegs.length&&s.rtePage>2)s.rtePage=Math.max(2,Math.floor(s.routeLegs.length/5)+2);
-          }
+          } else {s.rte2Page=1;go("RTE_2");}
         }
+      }
+      // [HDL] RTE_2 (FCOM 11.40.18-22) — page 1/x
+      else if(p==="RTE_2"){
+        if(side==="L"&&num===1&&sp){if(sp==="DELETE"){s.rte2Origin="";s.scratchpad="";}else{s.rte2Origin=sp.toUpperCase();s.scratchpad="";s._rteNext={side:"R",num:1};}}
+        if(side==="R"&&num===1&&sp){if(sp==="DELETE"){s.rte2Dest="";s.scratchpad="";}else{s.rte2Dest=sp.toUpperCase();s.scratchpad="";s._rteNext={side:"R",num:2};}}
+        if(side==="L"&&num===2&&sp){if(sp==="DELETE"){s.rte2Runway="";s.scratchpad="";}else{s.rte2Runway=sp.toUpperCase();s.scratchpad="";}}
+        if(side==="R"&&num===2&&sp){if(sp==="DELETE"){s.rte2FltNo="";s.scratchpad="";}else{s.rte2FltNo=sp.toUpperCase();s.scratchpad="";s._rteNext={side:"R",num:6};}}
+        if(side==="R"&&num===3&&sp){if(sp==="DELETE"){s.rte2CoRoute="";s.scratchpad="";}else{s.rte2CoRoute=sp.toUpperCase();s.scratchpad="";}}
+        if(side==="L"&&num===3){s.helpMsg="RTE 2 REQUEST SENT";}
+        if(side==="R"&&num===5)go("ALTN");
+        if(side==="R"&&num===6){if(s.rte2Origin&&s.rte2Dest){s.execLight=true;}}
+        if(side==="L"&&num===6)go("RTE_1");
+      }
+      // [HDL] RTE_2_2 (FCOM 11.40.23-25) — page 2+/x VIA/TO
+      else if(p==="RTE_2_2"){
+        if(!s.rte2Legs)s.rte2Legs=[];
+        const startIdx=((s.rte2Page||1)-2)*5;
+        // DELETE
+        if((side==="L"||side==="R")&&num>=1&&num<=5&&sp==="DELETE"){
+          const idx=startIdx+(num-1);
+          if(idx<s.rte2Legs.length){s.rte2Legs.splice(idx,1);s.rte2Legs=s.rte2Legs.filter(function(l){return l.via||l.to||l._disc;});s.scratchpad="";}
+        }
+        // L1-L5: VIA
+        if(side==="L"&&num>=1&&num<=5&&sp&&sp!=="DELETE"){
+          const idx=startIdx+(num-1);
+          while(s.rte2Legs.length<=idx)s.rte2Legs.push({via:"",to:""});
+          s.rte2Legs[idx]={...s.rte2Legs[idx],via:sp.toUpperCase()};
+          s.scratchpad="";
+        }
+        // R1-R5: TO
+        if(side==="R"&&num>=1&&num<=5&&sp&&sp!=="DELETE"){
+          const idx=startIdx+(num-1);
+          while(s.rte2Legs.length<=idx)s.rte2Legs.push({via:"",to:""});
+          if(!s.rte2Legs[idx].via)s.rte2Legs[idx].via="DIRECT";
+          s.rte2Legs[idx]={...s.rte2Legs[idx],to:sp.toUpperCase()};
+          s.scratchpad="";
+        }
+        if(side==="L"&&num===6)go("RTE_1");
       }
       // [HDL] PERF_INIT
       else if(p==="PERF_INIT"){
@@ -19561,11 +19682,40 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
         if(side==="L"&&num===3&&sp){s.desSpdTrans=sp;s.scratchpad="";}  // SPD TRANS
         if(side==="R"&&num===3&&sp){s.desWptAlt=sp;s.scratchpad="";}  // WPT/ALT
         if(side==="L"&&num===4&&sp){s.desSpdRestr=sp;s.scratchpad="";s.execLight=true;}  // SPD RESTR
-        if(side==="R"&&num===5){/* FORECAST */}
+        if(side==="R"&&num===5){s.desFcstPage=1;go("DES_FORECAST");}
         if(side==="L"&&num===6){/* OFFPATH DES */}
         if(side==="R"&&num===6){/* DES DIR or DES NOW */s.helpMsg="DESCENT INITIATED";}
         if(side==="L"&&num===5){  // <ECON (when visible)
           if(s.desSpdMode!=="ECON"){s.desSpdMode="ECON";s.desSelSpd="";if(s.phase==="ACTIVE")s.execLight=true;}
+        }
+      }
+      // [HDL] DES_FORECAST (FCOM 11.43.7-9)
+      else if(p==="DES_FORECAST"){
+        var pg=s.desFcstPage||1;
+        var w=s.desFcstWinds;if(!w)w=s.desFcstWinds=[];
+        if(pg===1){
+          // L1: TRANS LVL
+          if(side==="L"&&num===1&&sp){if(sp==="DELETE"){s.desFcstTransLvl="";s.scratchpad="";}else{s.desFcstTransLvl=sp;s.scratchpad="";}}
+          // R1: TAI/ON ALT
+          if(side==="R"&&num===1&&sp){if(sp==="DELETE"){s.desFcstTaiAlt="";s.scratchpad="";}else{s.desFcstTaiAlt=sp;s.scratchpad="";}}
+          // L2-L5: ALT/TEMP
+          if(side==="L"&&num>=2&&num<=5&&sp){var wi=num-2;if(sp==="DELETE"){if(w[wi])w[wi]={alt:"",temp:"",dir:w[wi].dir||"",spd:w[wi].spd||""};}else{var pts=sp.split("/");while(w.length<=wi)w.push({alt:"",temp:"",dir:"",spd:""});w[wi].alt=pts[0]||"";w[wi].temp=(pts[1]||"").replace(/°C$/i,"");}s.scratchpad="";}
+          // R2-R5: WIND DIR/SPD
+          if(side==="R"&&num>=2&&num<=5&&sp){var wi2=num-2;if(sp==="DELETE"){if(w[wi2])w[wi2]={alt:w[wi2].alt||"",temp:w[wi2].temp||"",dir:"",spd:""};}else{var pts2=sp.split("/");while(w.length<=wi2)w.push({alt:"",temp:"",dir:"",spd:""});w[wi2].dir=pts2[0]||"";w[wi2].spd=pts2[1]||"";}s.scratchpad="";}
+          // L6: <REQUEST
+          if(side==="L"&&num===6){s.helpMsg="DESCENT FORECAST REQUEST SENT";}
+          // R6: DES>
+          if(side==="R"&&num===6)go("DES");
+        } else {
+          var si=(pg-1)*4;
+          // L1-L5: ALT/TEMP
+          if(side==="L"&&num>=1&&num<=5&&sp){var wi3=si+(num-1);if(sp==="DELETE"){if(w[wi3])w[wi3]={alt:"",temp:"",dir:w[wi3].dir||"",spd:w[wi3].spd||""};}else{var pts3=sp.split("/");while(w.length<=wi3)w.push({alt:"",temp:"",dir:"",spd:""});w[wi3].alt=pts3[0]||"";w[wi3].temp=(pts3[1]||"").replace(/°C$/i,"");}s.scratchpad="";}
+          // R1-R5: WIND DIR/SPD
+          if(side==="R"&&num>=1&&num<=5&&sp){var wi4=si+(num-1);if(sp==="DELETE"){if(w[wi4])w[wi4]={alt:w[wi4].alt||"",temp:w[wi4].temp||"",dir:"",spd:""};}else{var pts4=sp.split("/");while(w.length<=wi4)w.push({alt:"",temp:"",dir:"",spd:""});w[wi4].dir=pts4[0]||"";w[wi4].spd=pts4[1]||"";}s.scratchpad="";}
+          // L6: <REQUEST
+          if(side==="L"&&num===6){s.helpMsg="DESCENT FORECAST REQUEST SENT";}
+          // R6: DES>
+          if(side==="R"&&num===6)go("DES");
         }
       }
       // [HDL] LEGS
@@ -20234,6 +20384,9 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
     if(p.page==="RTE_1"){const mx=Math.max(2,Math.floor(p.routeLegs.length/5)+2);return{...p,page:"RTE_1_2",rtePage:mx};}
     if(p.page==="RTE_1_2"&&p.rtePage<=2)return{...p,page:"RTE_1",rtePage:1};
     if(p.page==="RTE_1_2"&&p.rtePage>2)return{...p,rtePage:p.rtePage-1};
+    if(p.page==="RTE_2"){const mx2=Math.max(2,Math.floor((p.rte2Legs||[]).length/5)+2);return{...p,page:"RTE_2_2",rte2Page:mx2};}
+    if(p.page==="RTE_2_2"&&(p.rte2Page||1)<=2)return{...p,page:"RTE_2",rte2Page:1};
+    if(p.page==="RTE_2_2"&&(p.rte2Page||1)>2)return{...p,rte2Page:(p.rte2Page||1)-1};
     if(p.page==="LEGS"){var cl=p.computedLegs||[];var mx=Math.max(1,Math.ceil((cl.length||(p.routeLegs.length+2))/5));if(p.legsPage>1)return{...p,legsPage:p.legsPage-1};return{...p,legsPage:mx};}
     if(p.page==="RTE_DATA"&&p.legsPage>1)return{...p,legsPage:p.legsPage-1};
     if(p.page==="PROGRESS")return{...p,progPage:p.progPage>1?p.progPage-1:4};
@@ -20243,6 +20396,7 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
     if(p.page==="RKSI_ARR"&&!p.arrStar&&!p.arrApp&&(p.arrPage||1)>1)return{...p,arrPage:(p.arrPage||1)-1};
     if(p.page==="CRZ")return{...p,page:"CLB"};
     if(p.page==="DES")return{...p,page:"CRZ"};
+    if(p.page==="DES_FORECAST"){var mx=Math.ceil((p.desFcstWinds||[]).length/4)||1;if(p.desFcstPage>1)return{...p,desFcstPage:p.desFcstPage-1};return{...p,desFcstPage:mx};}
     if(p.page==="POS_REF")return{...p,page:"POS_INIT"};
     if(p.page==="POS_REF_3")return{...p,page:"POS_REF"};
     if(p.page==="POS_REF_4")return{...p,page:"POS_REF_3"};
@@ -20251,6 +20405,8 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
   });
   const handleNext = ()=>setFms(p=>{
     if(p.page==="TOREF1")return{...p,page:"TOREF2"};
+    if(p.page==="RTE_2")return{...p,page:"RTE_2_2",rte2Page:2};
+    if(p.page==="RTE_2_2"){const mx2r=Math.floor((p.rte2Legs||[]).length/5)+2;if((p.rte2Page||1)<mx2r)return{...p,rte2Page:(p.rte2Page||1)+1};}
     if(p.page==="POS_INIT")return{...p,page:"POS_REF"};
     if(p.page==="POS_REF")return{...p,page:"POS_REF_3"};
     if(p.page==="POS_REF_3")return{...p,page:"POS_REF_4"};
@@ -20266,6 +20422,7 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
     if(p.page==="RKSI_ARR"&&!p.arrStar&&!p.arrApp){var db=AIRPORT_DB[(p.dest||"").toUpperCase()];var mx=Math.max(1,Math.ceil(Math.max(((db||{}).arrStars||[]).length,((db||{}).arrApps||[]).length)/5));if((p.arrPage||1)<mx)return{...p,arrPage:(p.arrPage||1)+1};}
     if(p.page==="CLB")return{...p,page:"CRZ"};
     if(p.page==="CRZ")return{...p,page:"DES"};
+    if(p.page==="DES_FORECAST"){var dfmx=Math.ceil((p.desFcstWinds||[]).length/4)||1;if(p.desFcstPage<dfmx)return{...p,desFcstPage:p.desFcstPage+1};return{...p,desFcstPage:1};}
     return p;
   });
 
@@ -20515,6 +20672,9 @@ function MFKKeypad({fms,setFms,mfdMode,setMfdMode}) {
     if(p.page==="RTE_1"){const mx=Math.max(2,Math.floor(p.routeLegs.length/5)+2);return{...p,page:"RTE_1_2",rtePage:mx};}
     if(p.page==="RTE_1_2"&&p.rtePage<=2)return{...p,page:"RTE_1",rtePage:1};
     if(p.page==="RTE_1_2"&&p.rtePage>2)return{...p,rtePage:p.rtePage-1};
+    if(p.page==="RTE_2"){const mx2=Math.max(2,Math.floor((p.rte2Legs||[]).length/5)+2);return{...p,page:"RTE_2_2",rte2Page:mx2};}
+    if(p.page==="RTE_2_2"&&(p.rte2Page||1)<=2)return{...p,page:"RTE_2",rte2Page:1};
+    if(p.page==="RTE_2_2"&&(p.rte2Page||1)>2)return{...p,rte2Page:(p.rte2Page||1)-1};
     if(p.page==="LEGS"){var cl=p.computedLegs||[];var mx=Math.max(1,Math.ceil((cl.length||(p.routeLegs.length+2))/5));if(p.legsPage>1)return{...p,legsPage:p.legsPage-1};return{...p,legsPage:mx};}
     if(p.page==="RTE_DATA"&&p.legsPage>1)return{...p,legsPage:p.legsPage-1};
     if(p.page==="PROGRESS")return{...p,progPage:p.progPage>1?p.progPage-1:4};
@@ -20524,12 +20684,15 @@ function MFKKeypad({fms,setFms,mfdMode,setMfdMode}) {
     if(p.page==="RKSI_ARR"&&!p.arrStar&&!p.arrApp&&(p.arrPage||1)>1)return{...p,arrPage:(p.arrPage||1)-1};
     if(p.page==="CRZ")return{...p,page:"CLB"};
     if(p.page==="DES")return{...p,page:"CRZ"};
+    if(p.page==="DES_FORECAST"){var mx=Math.ceil((p.desFcstWinds||[]).length/4)||1;if(p.desFcstPage>1)return{...p,desFcstPage:p.desFcstPage-1};return{...p,desFcstPage:mx};}
     return p;
   });
   const handleNext=()=>setFms(p=>{
     if(p.page==="TOREF1")return{...p,page:"TOREF2"};
     if(p.page==="RTE_1")return{...p,page:"RTE_1_2",rtePage:2};
     if(p.page==="RTE_1_2"){const mx=Math.floor(p.routeLegs.length/5)+2;if(p.rtePage<mx)return{...p,rtePage:p.rtePage+1};}
+    if(p.page==="RTE_2")return{...p,page:"RTE_2_2",rte2Page:2};
+    if(p.page==="RTE_2_2"){const mx2r=Math.floor((p.rte2Legs||[]).length/5)+2;if((p.rte2Page||1)<mx2r)return{...p,rte2Page:(p.rte2Page||1)+1};}
     if(p.page==="LEGS"){var cl=p.computedLegs||[];var mx=Math.max(1,Math.ceil((cl.length||(p.routeLegs.length+2))/5));if(p.legsPage<mx)return{...p,legsPage:p.legsPage+1};return{...p,legsPage:1};}
     if(p.page==="RTE_DATA"){var cl2=p.computedLegs||[];var rl=cl2.filter(function(l){return !l.isRwy;});var mx2=Math.max(1,Math.ceil(rl.length/5));if(p.legsPage<mx2)return{...p,legsPage:p.legsPage+1};}
     if(p.page==="PROGRESS")return{...p,progPage:p.progPage<4?p.progPage+1:1};
@@ -20539,6 +20702,7 @@ function MFKKeypad({fms,setFms,mfdMode,setMfdMode}) {
     if(p.page==="RKSI_ARR"&&!p.arrStar&&!p.arrApp){var db=AIRPORT_DB[(p.dest||"").toUpperCase()];var mx=Math.max(1,Math.ceil(Math.max(((db||{}).arrStars||[]).length,((db||{}).arrApps||[]).length)/5));if((p.arrPage||1)<mx)return{...p,arrPage:(p.arrPage||1)+1};}
     if(p.page==="CLB")return{...p,page:"CRZ"};
     if(p.page==="CRZ")return{...p,page:"DES"};
+    if(p.page==="DES_FORECAST"){var dfmx=Math.ceil((p.desFcstWinds||[]).length/4)||1;if(p.desFcstPage<dfmx)return{...p,desFcstPage:p.desFcstPage+1};return{...p,desFcstPage:1};}
     return p;
   });
   const hk=k=>{setFms(p=>{const s={...p};s.helpMsg="";
@@ -22914,6 +23078,59 @@ function CDUMiniView({fms,setFms}){
   );
 }
 
+// ═══════ [FIREBASE] Real-time Sync ═══════
+var _fbApp=null,_fbDb=null;
+try{
+  _fbApp=firebase.initializeApp({
+    apiKey:"AIzaSyBBZ8LRh4_KHg2BJ_zodCy2BwncG3Tcxwo",
+    authDomain:"b787-cdu-practice.firebaseapp.com",
+    databaseURL:"https://b787-cdu-practice-default-rtdb.firebaseio.com",
+    projectId:"b787-cdu-practice",
+    storageBucket:"b787-cdu-practice.firebasestorage.app",
+    messagingSenderId:"366919780771",
+    appId:"1:366919780771:web:2453836452a716cc543216"
+  });
+  _fbDb=firebase.database();
+}catch(e){console.warn("Firebase init failed:",e);}
+
+// Shared state keys (synced between CPT and FO)
+var SYNC_KEYS=["phase","origin","dest","fltNo","coRoute","runway","refAirport",
+  "posGate","setInertialPos","setHdg",
+  "rteUplinkPending","model","engRating","navData","navActive","opProgram","dragFF",
+  "grWt","fuel","zfw","reserves","crzAlt","costIndex","minFuelTemp","crzCg","stepSize",
+  "thrustMode","selOat","oat","flaps","v1","vr","v2","cg","trim",
+  "wind","accelHt","eoAccelHt","thrReduction","landFlaps","vref",
+  "appLandRef","appGsOn","appWindCorr","appFlapSpd","appGwEntered",
+  "rwyWind","slopeCond","toN1","togw",
+  "depSid","depRwy","depTrans","depEoSid","depSidAct",
+  "arrStar","arrApp","arrTrans","arrRwy","arrStarAct","arrAppAct",
+  "routeLegs","rtePage","computedLegs",
+  "eicasScenario","eicasCxd","execLight",
+  "rte2Origin","rte2Dest","rte2FltNo","rte2Runway","rte2CoRoute","rte2Legs","rte2Page","rte2UplinkPending",
+  "desFcstPage","desFcstTransLvl","desFcstTaiAlt","desFcstWinds",
+  "fixData","fixPage","windPage","windReqPending","windEntries",
+  "rtaFix","rtaTime","altnAirports","altnSelected","altnInhibit",
+  "altnDetailIdx","altnRouteMode","altnAlt","altnSpd","altnPage",
+  "progDestWpt","fuelSel","offsetDist","offsetStart","offsetEnd","offsetSlopStart","offsetSlopEnd",
+  "pendingUplink","auxMsgs","auxBlink","dclMsg",
+  "spdMode","clbSpdMode","clbSelSpd","clbSpdRestr","spdTrans","transAlt",
+  "crzSpdMode","crzSelSpd","crzN1","stepTo",
+  "desSpdMode","desSelSpd","desSpdTrans","desSpdRestr","desWptAlt","desFPA","desVB","desVS",
+  "rnp","anp","legsPage","progPage","helpMsg",
+  "efbInit","efbPerf",
+  "depSid","depRwy","depTrans","depEoSid","depSidAct",
+  "arrPage"];
+
+function _syncExtract(fmsObj){
+  var out={};
+  for(var i=0;i<SYNC_KEYS.length;i++){
+    var k=SYNC_KEYS[i];
+    if(fmsObj[k]!==undefined) out[k]=JSON.parse(JSON.stringify(fmsObj[k]));
+  }
+  return out;
+}
+function _syncGenCode(){return Math.random().toString(36).substring(2,6).toUpperCase();}
+
 // ═══════ [MAIN] B787Cockpit ═══════
 function B787Cockpit(){
   const [fms,setFms]=useState(initFMS);
@@ -22928,9 +23145,85 @@ function B787Cockpit(){
   const [ckPreset,setCkPreset]=useState(false);
   const [role,setRole]=useState(null);
   const [fwdState,setFwdState]=useState({dspSide:"L",mfdL:"ND",mfdR:"ND",engOn:false,eicasSide:"L"});
+  // ═══ Firebase Sync State ═══
+  const [syncRoom,setSyncRoom]=useState(null);   // room code e.g. "A3K9"
+  const [syncRole,setSyncRole]=useState(null);    // "host" or "guest"
+  const [syncPeer,setSyncPeer]=useState(false);   // peer connected?
+  const [syncPanel,setSyncPanel]=useState(false);  // show sync panel?
+  const _syncSkip=useRef(false); // skip next setFms to avoid echo
+  const _syncRef=useRef(null);   // Firebase ref listener cleanup
+  const _syncLastJson=useRef(""); // last sent JSON to avoid redundant writes
 
   const activeView = showAux ? "AUX" : showFwd ? "FWD" : showEfb ? "EFB" : "CDU";
   const switchView = (v) => { setShowFwd(v==="FWD"); setShowEfb(v==="EFB"); setShowAux(v==="AUX"); };
+
+  // ═══ Firebase Sync Functions ═══
+  function syncCreateRoom(){
+    if(!_fbDb) return;
+    var code=_syncGenCode();
+    var ref=_fbDb.ref("rooms/"+code);
+    ref.set({host:true,ts:Date.now(),state:_syncExtract(fms)}).then(function(){
+      setSyncRoom(code);setSyncRole("host");setSyncPanel(false);
+      // Listen for guest presence
+      _fbDb.ref("rooms/"+code+"/guest").on("value",function(snap){setSyncPeer(!!snap.val());});
+      // Listen for guest state changes
+      _fbDb.ref("rooms/"+code+"/guestState").on("value",function(snap){
+        var v=snap.val(); if(!v) return;
+        _syncSkip.current=true;
+        setFms(function(p){var merged={...p};for(var k in v){if(SYNC_KEYS.indexOf(k)>=0)merged[k]=v[k];}return merged;});
+      });
+      _syncRef.current=ref;
+      // Cleanup on disconnect
+      ref.child("host").onDisconnect().remove();
+    });
+  }
+  function syncJoinRoom(code){
+    if(!_fbDb||!code) return;
+    code=code.toUpperCase();
+    var ref=_fbDb.ref("rooms/"+code);
+    ref.once("value").then(function(snap){
+      if(!snap.exists()||!snap.val().host){alert("방을 찾을 수 없습니다: "+code);return;}
+      ref.child("guest").set(true);
+      setSyncRoom(code);setSyncRole("guest");setSyncPanel(false);setSyncPeer(true);
+      // Apply host state
+      var hostState=snap.val().state;
+      if(hostState){
+        _syncSkip.current=true;
+        setFms(function(p){var merged={...p};for(var k in hostState){if(SYNC_KEYS.indexOf(k)>=0)merged[k]=hostState[k];}return merged;});
+      }
+      // Listen for host state changes
+      _fbDb.ref("rooms/"+code+"/state").on("value",function(snap2){
+        var v=snap2.val(); if(!v) return;
+        _syncSkip.current=true;
+        setFms(function(p){var merged={...p};for(var k in v){if(SYNC_KEYS.indexOf(k)>=0)merged[k]=v[k];}return merged;});
+      });
+      _syncRef.current=ref;
+      ref.child("guest").onDisconnect().remove();
+    });
+  }
+  function syncDisconnect(){
+    if(_fbDb&&syncRoom){
+      if(syncRole==="host"){_fbDb.ref("rooms/"+syncRoom).remove();}
+      else{_fbDb.ref("rooms/"+syncRoom+"/guest").remove();_fbDb.ref("rooms/"+syncRoom+"/guestState").remove();}
+      _fbDb.ref("rooms/"+syncRoom).off();
+      _fbDb.ref("rooms/"+syncRoom+"/state").off();
+      _fbDb.ref("rooms/"+syncRoom+"/guestState").off();
+    }
+    setSyncRoom(null);setSyncRole(null);setSyncPeer(false);
+    _syncRef.current=null;_syncLastJson.current="";
+  }
+  // Push state changes to Firebase
+  useEffect(function(){
+    if(!_fbDb||!syncRoom||_syncSkip.current){_syncSkip.current=false;return;}
+    var data=_syncExtract(fms);
+    var json=JSON.stringify(data);
+    if(json===_syncLastJson.current) return;
+    _syncLastJson.current=json;
+    if(syncRole==="host"){_fbDb.ref("rooms/"+syncRoom+"/state").set(data);}
+    else if(syncRole==="guest"){_fbDb.ref("rooms/"+syncRoom+"/guestState").set(data);}
+  },[fms,syncRoom,syncRole]);
+  // Cleanup on unmount
+  useEffect(function(){return function(){syncDisconnect();};},[]);
 
   // ═══ Splash Screen ═══
   var allChecked=ckIPad&&ckScope&&ckTrackpad&&ckPreset&&role!==null;
@@ -22948,20 +23241,20 @@ function B787Cockpit(){
         React.createElement('div', {style:{color:"#00cccc",fontSize:33,fontWeight:"bold",letterSpacing:4,marginBottom:4}}, "B787 DREAMLINER"),
         React.createElement('div', {style:{color:"#aaa",fontSize:14,letterSpacing:2}}, "COCKPIT PROCEDURE SIMULATOR"),
         React.createElement('div', {style:{color:"#777",fontSize:14,marginTop:4}}, "FOR TRAINING PURPOSE ONLY"),
-        React.createElement('div', {style:{color:"#00bb00",fontSize:11,marginTop:12,letterSpacing:1}}, "v2.9.5 \u00a0|\u00a0 by SH Lee \u00a0 s.lee@koreanair.com")
+        React.createElement('div', {style:{color:"#00bb00",fontSize:11,marginTop:12,letterSpacing:1}}, "v2.9.6 \u00a0|\u00a0 by SH Lee \u00a0 s.lee@koreanair.com")
       ),
       React.createElement('div', {style:{borderTop:"1px solid #333",borderBottom:"1px solid #333",padding:"14px 0",marginBottom:16}},
         React.createElement(ChkRow, {checked:ckIPad,onToggle:function(){setCkIPad(function(p){return!p;});}},
-          React.createElement('div', {style:{color:"#00cccc",fontSize:17,fontWeight:"bold",marginBottom:8,letterSpacing:1}}, "PATCH NOTES v2.9.5"),
+          React.createElement('div', {style:{color:"#00cccc",fontSize:17,fontWeight:"bold",marginBottom:8,letterSpacing:1}}, "PATCH NOTES v2.9.6"),
           React.createElement('div', {style:{color:"#aaa",fontSize:14,fontWeight:"bold",lineHeight:1.8}},
-            React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginBottom:2}}, "v2.9.5"),
+            React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginBottom:2}}, "v2.9.6"),
+            React.createElement('div', null, "\u2022 Captain-F/O Dual CDU \uc2e4\uc2dc\uac04 \ub3d9\uae30\ud654 (Firebase)"),
+            React.createElement('div', null, "\u2022 DESCENT FORECAST page \uad6c\ud604 (FCOM 11.43.7-9)"),
+            React.createElement('div', null, "\u2022 RTE 2 page \uad6c\ud604 (FCOM 11.40.18-25)"),
+            React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginTop:8,marginBottom:2}}, "v2.9.5"),
             React.createElement('div', null, "\u2022 RTE 1 \ud544\ub4dc \uc790\ub3d9\ucee4\uc11c\uc774\ub3d9: ORIGIN\u2192DEST\u2192FLT NO\u2192ACTIVATE"),
             React.createElement('div', null, "\u2022 Track Pad \ucee4\uc11c\uc704\uce58 \u2192 Cursor Control \ub3d9\uae30\ud654"),
             React.createElement('div', null, "\u2022 AUX DSP Clearance ACCEPTED \ub179\uc0c9 \ud45c\uc2dc"),
-            React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginTop:8,marginBottom:2}}, "v2.9.4"),
-            React.createElement('div', null, "\u2022 EICAS Gauge Display \u00b7 MFD \ucc3d \ud1b5\ud569"),
-            React.createElement('div', null, "\u2022 Preset FLT No.\ubcc4 \uc790\ub3d9 Load \u00b7 ICAO DISC \u00b7 APPR TRANS \ud45c\uc2dc"),
-            React.createElement('div', null, "\u2022 ILS Z 15L(RKSI) NAV_DATA \u00b7 DSP CANC/RCL \u00b7 SCENARIO"),
 
           )
         )
@@ -23039,6 +23332,21 @@ function B787Cockpit(){
       , React.createElement('span', { style: {color:C.green,fontSize:9},}, "FMS:", fms.phase)
       , React.createElement('span', { style: {color:C.cyan,fontSize:9},}, fms.origin||"----", "→", fms.dest||"----")
       , React.createElement('span', { style: {color:C.amber,fontSize:9},}, "UTC:", new Date().toISOString().substr(11,5), "Z")
+      , React.createElement('div', { style: {width:1,height:18,background:"#333"},})
+      , React.createElement('button', { onClick: ()=>{if(syncRoom){syncDisconnect();}else{setSyncPanel(!syncPanel);}}, style: {padding:"4px 8px",background:syncRoom?(syncPeer?"#0a2a0a":"#2a2a0a"):"#0a0a1a",color:syncRoom?(syncPeer?"#00e800":"#cccc00"):"#aaccff",border:"1px solid "+(syncRoom?(syncPeer?"#0a0":"#660"):"#446"),borderRadius:3,fontSize:11,fontWeight:"bold",cursor:"pointer",fontFamily:M,position:"relative"},},
+        syncRoom?("SYNC: "+syncRoom+(syncPeer?" \u2713":" ...")):"SYNC"
+      )
+    )
+    /* Sync Panel Popup */
+    , syncPanel&&!syncRoom&&React.createElement('div', {style:{position:"absolute",top:38,right:12,background:"#111",border:"1px solid #444",borderRadius:6,padding:16,zIndex:9999,minWidth:260,boxShadow:"0 4px 20px rgba(0,0,0,0.9)"}},
+      React.createElement('div', {style:{color:"#00cccc",fontSize:15,fontWeight:"bold",marginBottom:12,letterSpacing:1}}, "DUAL CDU SYNC"),
+      React.createElement('div', {style:{color:"#aaa",fontSize:12,marginBottom:14,lineHeight:1.5}}, "Captain\uacfc F/O\uac00 \uac19\uc740 \ubc29\uc5d0 \uc811\uc18d\ud558\uba74 FMS \uc0c1\ud0dc\uac00 \uc2e4\uc2dc\uac04 \ub3d9\uae30\ud654\ub429\ub2c8\ub2e4."),
+      React.createElement('button', {onClick:syncCreateRoom,style:{width:"100%",padding:"10px",background:"linear-gradient(180deg,#1a3a1a,#0a2a0a)",color:"#00e800",border:"1px solid #0a0",borderRadius:4,fontSize:14,fontWeight:"bold",cursor:"pointer",fontFamily:M,marginBottom:10}}, "\ubc29 \ub9cc\ub4e4\uae30 (HOST)"),
+      React.createElement('div', {style:{display:"flex",gap:8}},
+        React.createElement('input', {id:"syncJoinInput",type:"text",maxLength:4,placeholder:"CODE",style:{flex:1,padding:"8px",background:"#1a1a1a",color:"#fff",border:"1px solid #555",borderRadius:4,fontSize:14,fontFamily:M,textAlign:"center",textTransform:"uppercase"}}),
+        React.createElement('button', {onClick:function(){var inp=document.getElementById("syncJoinInput");if(inp)syncJoinRoom(inp.value);},style:{padding:"8px 16px",background:"#1a1a2a",color:"#aaccff",border:"1px solid #446",borderRadius:4,fontSize:14,fontWeight:"bold",cursor:"pointer",fontFamily:M}}, "\ucc38\uc5ec")
+      ),
+      React.createElement('button', {onClick:function(){setSyncPanel(false);},style:{position:"absolute",top:6,right:10,background:"none",border:"none",color:"#666",fontSize:18,cursor:"pointer"}}, "\u2715")
     )
     /* Content */
     , React.createElement('div', { style: {flex:1,display:"flex",justifyContent:"center",alignItems:"stretch",padding:"6px",width:"100%",overflow:"auto"},}
