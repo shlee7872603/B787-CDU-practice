@@ -23294,7 +23294,7 @@ function B787Cockpit(){
     ref.child("visits").push({ timestamp: new Date().toISOString() });
   };
 
-  const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userEmail);
+  const emailValid = /^[^\s@]+@koreanair\.com$/i.test(userEmail);
   var allChecked=ckIPad&&ckScope&&ckTrackpad&&ckSync&&role!==null&&emailValid;
   var ChkRow=function(props){var checked=props.checked,onToggle=props.onToggle,children=props.children;return(
     React.createElement('div', {onClick:onToggle,style:{display:"flex",alignItems:"flex-start",gap:10,cursor:"pointer",padding:"6px 0"}},
