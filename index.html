@@ -10,7 +10,7 @@
 <meta name="theme-color" content="#050505">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>B787 CDU Practice v2.12.0</title>
+<title>B787 CDU Practice v2.13.2</title>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js" crossorigin="anonymous" async></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js" crossorigin="anonymous" async></script>
 <style>*{margin:0;padding:0;box-sizing:border-box;-webkit-user-select:none;user-select:none}body{background:#050505;overflow-x:hidden}</style>
@@ -19080,6 +19080,16 @@ const FLIGHT_DB = {
       {via:"Z53",to:"BASEM"},
       {via:"Y685",to:"GUKDO"}
     ],
+    presetRteLegs:[
+      {via:"HAKAT5",to:"DGC",_sid:true},
+      {via:"G339",to:"BEETL"},
+      {via:"Y208",to:"INVOK"},
+      {via:"Z91",to:"PSN"},
+      {via:"Y782",to:"BITUX"},
+      {via:"Z53",to:"BASEM"},
+      {via:"Y685",to:"GUKDO"},
+      {via:"DIRECT",to:"RKSI"}
+    ],
     legs:[
       {wpt:"RW34R", crs:"338°", dist:"",    spdAlt:"",           pred:"",          isRwy:true},
       {wpt:"DGC",   crs:"338°", dist:"12NM",spdAlt:"",           pred:"250/ 5000", via:"HAKAT5"},
@@ -19168,6 +19178,13 @@ const FLIGHT_DB = {
       {via:"Y782",to:"TGU"},
       {via:"Y781",to:"BESNA"},
       {via:"Y209",to:"IKE"}
+    ],
+    presetRteLegs:[
+      {via:"OSPO2C",to:"OSPOT",_sid:true},
+      {via:"Y782",to:"TGU"},
+      {via:"Y781",to:"BESNA"},
+      {via:"Y209",to:"IKE"},
+      {via:"DIRECT",to:"RJFF"}
     ],
     legs:[
       // === OSPOT 2C RNAV SID RWY15R (20-3H) ===
@@ -19275,6 +19292,21 @@ const FLIGHT_DB = {
       {via:"DIRECT",to:"TADIS"},
       {via:"DIRECT",to:"OTNIK"},
     ],
+    presetRteLegs:[
+      {via:"EGOB2E",to:"EGOBA",_sid:true},
+      {via:"Y697",to:"LANAT"},
+      {via:"Y51",to:"SAMON"},
+      {via:"Y513",to:"KMC"},
+      {via:"DIRECT",to:"DAIGO"},
+      {via:"Y889",to:"PUTER"},
+      {via:"A590",to:"HAMND"},
+      {via:"DIRECT",to:"ELLAM"},
+      {via:"DIRECT",to:"FERNO"},
+      {via:"DIRECT",to:"TADIS"},
+      {via:"DIRECT",to:"OTNIK"},
+      {via:"BOXUM7",_viaDisp:"BOXUM7.OTNIK",to:"DERLI",_star:true},
+      {via:"DIRECT",to:"CYYZ"}
+    ],
     legs:[
       {wpt:"RW33L", crs:"334°", dist:"",    spdAlt:"",           pred:"",          isRwy:true},
       {wpt:"EGOBA",crs:"087°", dist:"22NM",spdAlt:"FL210A",     pred:".780/FL210A",via:"EGOB2E"},
@@ -19346,6 +19378,24 @@ const FLIGHT_DB = {
       {via:"A326",to:"DONVO"},
       {via:"G597",to:"AGAVO"},
       {via:"Y644",to:"REBIT"},
+    ],
+    presetRteLegs:[
+      {via:"IKLEN3",_viaDisp:"IKLEN3.TONNY",to:"TONNY",_sid:true},
+      {via:"DIRECT",to:"YYB"},
+      {via:"DIRECT",to:"GRAMP"},
+      {via:"DIRECT",to:"VETRO"},
+      {via:"DIRECT",to:"PEMLU"},
+      {via:"DIRECT",to:"PELEE"},
+      {via:"DIRECT",to:"DUSMA"},
+      {via:"DIRECT",to:"VIRSO"},
+      {via:"DIRECT",to:"YZS"},
+      {via:"DIRECT",to:"SIMLI"},
+      {via:"A588",to:"CHI"},
+      {via:"W107",to:"SANKO"},
+      {via:"A326",to:"DONVO"},
+      {via:"G597",to:"AGAVO"},
+      {via:"Y644",to:"REBIT"},
+      {via:"DIRECT",to:"RKSI"}
     ],
     legs:[
       {wpt:"RW33R", crs:"334°", dist:"",    spdAlt:"",           pred:"",          isRwy:true},
@@ -20049,131 +20099,149 @@ const NAV_DATA = {
   BOXUM7:{type:"STAR",entry:"BOXUM",trans:["OTNIK","TUDAN","IRKIM"],vectors:true,
     rwyVariants:{"15":"BOXUM7_15","23":"BOXUM7_23","24":"BOXUM7_23","33":"BOXUM7_33","34":"BOXUM7_33"},
     wpts:[
-    {wpt:"BOXUM",crs:"138°",dist:"",spdAlt:"FL190",pred:".780/FL190"},
-    {wpt:"DUVOS",crs:"138°",dist:"12.9NM",spdAlt:"FL130",pred:"280/FL130"},
-    {wpt:"DEBGO",crs:"143°",dist:"12.2NM",spdAlt:"11000",pred:"250/11000"},
-    {wpt:"ERBUS",crs:"143°",dist:"8.0NM",spdAlt:"8000",pred:"250/ 8000"},
-    {wpt:"MODOL",crs:"237°",dist:"3.2NM",spdAlt:"6000",pred:"210/ 6000"},
-    {wpt:"SELAP",crs:"237°",dist:"8.2NM",spdAlt:"5000",pred:"210/ 5000"},
-    {wpt:"DUNOP",crs:"237°",dist:"3.0NM",spdAlt:"4000",pred:"210/ 4000"},
-    {wpt:"LITRO",crs:"236°",dist:"3.0NM",spdAlt:"3000",pred:"210/ 3000"},
-    {wpt:"DERLI",crs:"237°",dist:"3.0NM",spdAlt:"3000",pred:"210/ 3000"}],
+    {wpt:"BOXUM",crs:"148°",dist:"",spdAlt:"FL190",pred:".780/FL190"},
+    {wpt:"DUVOS",crs:"153°",dist:"12NM",spdAlt:"250KT/13000",pred:"250/13000"},
+    {wpt:"DEBGO",crs:"148°",dist:"8NM",spdAlt:"220KT/8000",pred:"220/ 8000"},
+    {wpt:"ERBUS",crs:"236°",dist:"3NM",spdAlt:"",pred:"210"},
+    {wpt:"MODOL",crs:"057°",dist:"8NM",spdAlt:"210KT/6000",pred:"210/ 6000"},
+    {wpt:"SELAP",crs:"057°",dist:"3NM",spdAlt:"",pred:"210"},
+    {wpt:"DUNOP",crs:"",dist:"3NM",spdAlt:"",pred:"210"},
+    {wpt:"LITRO",crs:"",dist:"3NM",spdAlt:"",pred:"210"},
+    {wpt:"DERLI",crs:"",dist:"3NM",spdAlt:"",pred:"210"}],
     transLegs:{
-      OTNIK:[{wpt:"OTNIK",crs:"125°",dist:"",spdAlt:"",pred:".780/FL350"},
-             {wpt:"NAKAL",crs:"125°",dist:"30.4NM",spdAlt:"",pred:".780/FL310"},
-             {wpt:"GOPAK",crs:"126°",dist:"27.9NM",spdAlt:"FL240",pred:".780/FL240"},
-             {wpt:"TUDAN",crs:"126°",dist:"22.7NM",spdAlt:"",pred:".780/FL240"},
-             {wpt:"SETGO",crs:"137°",dist:"28.5NM",spdAlt:"FL210",pred:"280/FL210"},
-             {wpt:"IRKIM",crs:"116°",dist:"58.6NM",spdAlt:"FL190",pred:"280/FL190"},
-             {wpt:"BOXUM",crs:"169°",dist:"39.9NM",spdAlt:"FL190",pred:".780/FL190"}],
-      TUDAN:[{wpt:"TUDAN",crs:"137°",dist:"",spdAlt:"",pred:".780/FL310"},
-             {wpt:"SETGO",crs:"137°",dist:"28.5NM",spdAlt:"FL210",pred:"280/FL210"},
-             {wpt:"IRKIM",crs:"116°",dist:"58.6NM",spdAlt:"FL190",pred:"280/FL190"},
-             {wpt:"BOXUM",crs:"169°",dist:"39.9NM",spdAlt:"FL190",pred:".780/FL190"}],
-      IRKIM:[{wpt:"IRKIM",crs:"169°",dist:"",spdAlt:"",pred:".780/FL240"},
-             {wpt:"BOXUM",crs:"169°",dist:"39.9NM",spdAlt:"FL190",pred:".780/FL190"}]}},
+      OTNIK:[{wpt:"OTNIK",crs:"135°",dist:"",spdAlt:"",pred:".780/FL350"},
+             {wpt:"NAKAL",crs:"136°",dist:"30NM",spdAlt:"",pred:".780/FL310"},
+             {wpt:"GOPAK",crs:"",dist:"28NM",spdAlt:"FL240",pred:".780/FL240"},
+             {wpt:"TUDAN",crs:"",dist:"23NM",spdAlt:"",pred:".780/FL240"},
+             {wpt:"SETGO",crs:"147°",dist:"29NM",spdAlt:"FL210",pred:"280/FL210"},
+             {wpt:"DARID",crs:"148°",dist:"54NM",spdAlt:"FL190",pred:"280/FL190"},
+             {wpt:"BOXUM",crs:"148°",dist:"35NM",spdAlt:"FL190",pred:".780/FL190"}],
+      TUDAN:[{wpt:"TUDAN",crs:"147°",dist:"",spdAlt:"",pred:".780/FL310"},
+             {wpt:"SETGO",crs:"147°",dist:"29NM",spdAlt:"FL210",pred:"280/FL210"},
+             {wpt:"DARID",crs:"148°",dist:"54NM",spdAlt:"FL190",pred:"280/FL190"},
+             {wpt:"BOXUM",crs:"148°",dist:"35NM",spdAlt:"FL190",pred:".780/FL190"}],
+      IRKIM:[{wpt:"IRKIM",crs:"179°",dist:"",spdAlt:"",pred:".780/FL240"},
+             {wpt:"BOXUM",crs:"148°",dist:"40NM",spdAlt:"FL190",pred:".780/FL190"}]}},
   // BOXUM 7 — RWYS 15L/R (Jeppesen 10-2A)
-  BOXUM7_15:{type:"STAR",entry:"BOXUM",trans:["OTNIK","TUDAN","IRKIM"],wpts:[
-    {wpt:"BOXUM",crs:"138°",dist:"",spdAlt:"FL190",pred:".780/FL190"},
-    {wpt:"DUVOS",crs:"138°",dist:"12.9NM",spdAlt:"FL130",pred:"280/FL130"},
+  // BOXUM 7 — RWYS 15L/R (Jeppesen 10-2A) — splits at DUVOS: 15L=ONGOX→BEFNI, 15R=BLOOS→PILKI
+  BOXUM7_15:{type:"STAR",entry:"BOXUM",trans:["OTNIK","TUDAN","IRKIM"],
+    rwyVariants15:{"15L":"15L","15R":"15R"},
+    wpts:[
+    {wpt:"BOXUM",crs:"148°",dist:"",spdAlt:"FL190",pred:".780/FL190"},
+    {wpt:"DUVOS",crs:"158°",dist:"11NM",spdAlt:"220KT/7000",pred:"220/ 7000"},
     {wpt:"ONGOX",crs:"146°",dist:"",spdAlt:"",pred:"220"},
-    {wpt:"BLOOS",crs:"146°",dist:"",spdAlt:"",pred:"220"}],
+    {wpt:"BEFNI",crs:"",dist:"",spdAlt:"",pred:"220"}],
+    wpts15R:[
+    {wpt:"BOXUM",crs:"148°",dist:"",spdAlt:"FL190",pred:".780/FL190"},
+    {wpt:"DUVOS",crs:"160°",dist:"11NM",spdAlt:"220KT/7000",pred:"220/ 7000"},
+    {wpt:"BLOOS",crs:"146°",dist:"",spdAlt:"",pred:"220"},
+    {wpt:"PILKI",crs:"",dist:"",spdAlt:"",pred:"220"}],
     transLegs:{
-      OTNIK:[{wpt:"OTNIK",crs:"125°",dist:"",spdAlt:"",pred:".780/FL350"},
-             {wpt:"NAKAL",crs:"125°",dist:"30.4NM",spdAlt:"",pred:".780/FL310"},
-             {wpt:"GOPAK",crs:"126°",dist:"27.9NM",spdAlt:"FL240",pred:".780/FL240"},
-             {wpt:"TUDAN",crs:"126°",dist:"22.7NM",spdAlt:"",pred:".780/FL240"},
-             {wpt:"SETGO",crs:"137°",dist:"28.5NM",spdAlt:"FL210",pred:"280/FL210"},
-             {wpt:"IRKIM",crs:"116°",dist:"58.6NM",spdAlt:"FL190",pred:"280/FL190"},
-             {wpt:"BOXUM",crs:"169°",dist:"39.9NM",spdAlt:"FL190",pred:".780/FL190"}],
-      TUDAN:[{wpt:"TUDAN",crs:"137°",dist:"",spdAlt:"",pred:".780/FL310"},
-             {wpt:"SETGO",crs:"137°",dist:"28.5NM",spdAlt:"FL210",pred:"280/FL210"},
-             {wpt:"IRKIM",crs:"116°",dist:"58.6NM",spdAlt:"FL190",pred:"280/FL190"},
-             {wpt:"BOXUM",crs:"169°",dist:"39.9NM",spdAlt:"FL190",pred:".780/FL190"}],
-      IRKIM:[{wpt:"IRKIM",crs:"169°",dist:"",spdAlt:"",pred:".780/FL240"},
-             {wpt:"BOXUM",crs:"169°",dist:"39.9NM",spdAlt:"FL190",pred:".780/FL190"}]}},
+      OTNIK:[{wpt:"OTNIK",crs:"135°",dist:"",spdAlt:"",pred:".780/FL350"},
+             {wpt:"NAKAL",crs:"136°",dist:"30NM",spdAlt:"",pred:".780/FL310"},
+             {wpt:"GOPAK",crs:"",dist:"28NM",spdAlt:"FL240",pred:".780/FL240"},
+             {wpt:"TUDAN",crs:"",dist:"23NM",spdAlt:"",pred:".780/FL240"},
+             {wpt:"SETGO",crs:"147°",dist:"29NM",spdAlt:"FL210",pred:"280/FL210"},
+             {wpt:"DARID",crs:"148°",dist:"54NM",spdAlt:"FL190",pred:"280/FL190"},
+             {wpt:"BOXUM",crs:"148°",dist:"35NM",spdAlt:"FL190",pred:".780/FL190"}],
+      TUDAN:[{wpt:"TUDAN",crs:"147°",dist:"",spdAlt:"",pred:".780/FL310"},
+             {wpt:"SETGO",crs:"147°",dist:"29NM",spdAlt:"FL210",pred:"280/FL210"},
+             {wpt:"DARID",crs:"148°",dist:"54NM",spdAlt:"FL190",pred:"280/FL190"},
+             {wpt:"BOXUM",crs:"148°",dist:"35NM",spdAlt:"FL190",pred:".780/FL190"}],
+      IRKIM:[{wpt:"IRKIM",crs:"179°",dist:"",spdAlt:"",pred:".780/FL240"},
+             {wpt:"BOXUM",crs:"148°",dist:"40NM",spdAlt:"FL190",pred:".780/FL190"}]}},
   // BOXUM 7 — RWYS 23, 24L/R (Jeppesen 10-2A1)
-  BOXUM7_23:{type:"STAR",entry:"BOXUM",trans:["OTNIK","TUDAN","IRKIM"],wpts:[
-    {wpt:"BOXUM",crs:"138°",dist:"",spdAlt:"FL190",pred:".780/FL190"},
-    {wpt:"DUVOS",crs:"138°",dist:"12.9NM",spdAlt:"FL130",pred:"280/FL130"},
-    {wpt:"LEVIG",crs:"",dist:"",spdAlt:"13000",pred:"250/13000"},
-    {wpt:"DAVIK",crs:"",dist:"",spdAlt:"10000",pred:"250/10000"},
-    {wpt:"SATUR",crs:"328°",dist:"",spdAlt:"8000",pred:"250/ 8000"},
+  // BOXUM 7 — RWYS 23, 24L/R (Jeppesen 10-2A1) — vectors termination at SATUR
+  BOXUM7_23:{type:"STAR",entry:"BOXUM",trans:["OTNIK","TUDAN","IRKIM"],vectors:true,wpts:[
+    {wpt:"BOXUM",crs:"148°",dist:"",spdAlt:"FL190",pred:".780/FL190"},
+    {wpt:"DUVOS",crs:"157°",dist:"12NM",spdAlt:"250KT/13000",pred:"250/13000"},
+    {wpt:"ADSED",crs:"146°",dist:"8NM",spdAlt:"220KT/8000",pred:"220/ 8000"},
+    {wpt:"ERBUS",crs:"056°",dist:"3NM",spdAlt:"",pred:"210"},
+    {wpt:"TASKU",crs:"057°",dist:"8NM",spdAlt:"210KT/6000",pred:"210/ 6000"},
+    {wpt:"DAVIK",crs:"",dist:"",spdAlt:"",pred:"210"},
+    {wpt:"LEVIG",crs:"",dist:"",spdAlt:"",pred:"210"},
     {wpt:"MIPED",crs:"",dist:"",spdAlt:"",pred:"210"},
-    {wpt:"TASKU",crs:"",dist:"",spdAlt:"",pred:"210"},
-    {wpt:"ADSED",crs:"",dist:"",spdAlt:"",pred:"MAX220"}],
+    {wpt:"SATUR",crs:"",dist:"",spdAlt:"",pred:"210"}],
     transLegs:{
-      OTNIK:[{wpt:"OTNIK",crs:"125°",dist:"",spdAlt:"",pred:".780/FL350"},
-             {wpt:"NAKAL",crs:"125°",dist:"30.4NM",spdAlt:"",pred:".780/FL310"},
-             {wpt:"GOPAK",crs:"126°",dist:"27.9NM",spdAlt:"FL240",pred:".780/FL240"},
-             {wpt:"TUDAN",crs:"126°",dist:"22.7NM",spdAlt:"",pred:".780/FL240"},
-             {wpt:"SETGO",crs:"137°",dist:"28.5NM",spdAlt:"FL210",pred:"280/FL210"},
-             {wpt:"IRKIM",crs:"116°",dist:"58.6NM",spdAlt:"FL190",pred:"280/FL190"},
-             {wpt:"BOXUM",crs:"169°",dist:"39.9NM",spdAlt:"FL190",pred:".780/FL190"}],
-      TUDAN:[{wpt:"TUDAN",crs:"137°",dist:"",spdAlt:"",pred:".780/FL310"},
-             {wpt:"SETGO",crs:"137°",dist:"28.5NM",spdAlt:"FL210",pred:"280/FL210"},
-             {wpt:"IRKIM",crs:"116°",dist:"58.6NM",spdAlt:"FL190",pred:"280/FL190"},
-             {wpt:"BOXUM",crs:"169°",dist:"39.9NM",spdAlt:"FL190",pred:".780/FL190"}],
-      IRKIM:[{wpt:"IRKIM",crs:"169°",dist:"",spdAlt:"",pred:".780/FL240"},
-             {wpt:"BOXUM",crs:"169°",dist:"39.9NM",spdAlt:"FL190",pred:".780/FL190"}]}},
+      OTNIK:[{wpt:"OTNIK",crs:"135°",dist:"",spdAlt:"",pred:".780/FL350"},
+             {wpt:"NAKAL",crs:"136°",dist:"30NM",spdAlt:"",pred:".780/FL310"},
+             {wpt:"GOPAK",crs:"",dist:"28NM",spdAlt:"FL240",pred:".780/FL240"},
+             {wpt:"TUDAN",crs:"",dist:"23NM",spdAlt:"",pred:".780/FL240"},
+             {wpt:"SETGO",crs:"147°",dist:"29NM",spdAlt:"FL210",pred:"280/FL210"},
+             {wpt:"DARID",crs:"148°",dist:"54NM",spdAlt:"FL190",pred:"280/FL190"},
+             {wpt:"BOXUM",crs:"148°",dist:"35NM",spdAlt:"FL190",pred:".780/FL190"}],
+      TUDAN:[{wpt:"TUDAN",crs:"147°",dist:"",spdAlt:"",pred:".780/FL310"},
+             {wpt:"SETGO",crs:"147°",dist:"29NM",spdAlt:"FL210",pred:"280/FL210"},
+             {wpt:"DARID",crs:"148°",dist:"54NM",spdAlt:"FL190",pred:"280/FL190"},
+             {wpt:"BOXUM",crs:"148°",dist:"35NM",spdAlt:"FL190",pred:".780/FL190"}],
+      IRKIM:[{wpt:"IRKIM",crs:"179°",dist:"",spdAlt:"",pred:".780/FL240"},
+             {wpt:"BOXUM",crs:"148°",dist:"40NM",spdAlt:"FL190",pred:".780/FL190"}]}},
   // BOXUM 7 — RWYS 33L/R (Jeppesen 10-2A2)
-  BOXUM7_33:{type:"STAR",entry:"BOXUM",trans:["OTNIK","TUDAN","IRKIM"],wpts:[
-    {wpt:"BOXUM",crs:"138°",dist:"",spdAlt:"FL190",pred:".780/FL190"},
-    {wpt:"DUVOS",crs:"138°",dist:"12.9NM",spdAlt:"FL130",pred:"280/FL130"},
-    {wpt:"DEBGO",crs:"143°",dist:"12.2NM",spdAlt:"11000",pred:"250/11000"},
-    {wpt:"ERBUS",crs:"143°",dist:"8.0NM",spdAlt:"8000",pred:"250/ 8000"},
-    {wpt:"MIRUG",crs:"327°",dist:"5NM",spdAlt:"",pred:"210"},
-    {wpt:"GUBOV",crs:"106°",dist:"11NM",spdAlt:"",pred:"210"},
-    {wpt:"REVOV",crs:"149°",dist:"8NM",spdAlt:"",pred:"210"},
-    {wpt:"OKOKU",crs:"091°",dist:"8NM",spdAlt:"",pred:"210"},
-    {wpt:"MAVID",crs:"146°",dist:"",spdAlt:"",pred:"210"},
-    {wpt:"KEDSU",crs:"147°",dist:"",spdAlt:"",pred:"210"}],
+  // BOXUM 7 — RWYS 33L/R (Jeppesen 10-2A2) — splits at ERBUS: 33L=190°, 33R=106°, both vectors
+  BOXUM7_33:{type:"STAR",entry:"BOXUM",trans:["OTNIK","TUDAN","IRKIM"],vectors:true,
+    rwyVariants33:{"33L":"33L","33R":"33R"},
+    wpts:[
+    {wpt:"BOXUM",crs:"148°",dist:"",spdAlt:"FL190",pred:".780/FL190"},
+    {wpt:"DUVOS",crs:"153°",dist:"20NM",spdAlt:"250KT/13000",pred:"250/13000"},
+    {wpt:"ERBUS",crs:"190°",dist:"8NM",spdAlt:"210KT/8000",pred:"210/ 8000"},
+    {wpt:"REVOV",crs:"146°",dist:"",spdAlt:"",pred:"210"},
+    {wpt:"NOXER",crs:"147°",dist:"",spdAlt:"",pred:"210"},
+    {wpt:"ALORU",crs:"",dist:"",spdAlt:"",pred:"210"},
+    {wpt:"DANAV",crs:"",dist:"",spdAlt:"",pred:"210"},
+    {wpt:"ALMAX",crs:"",dist:"",spdAlt:"",pred:"210"}],
+    wpts33R:[
+    {wpt:"BOXUM",crs:"148°",dist:"",spdAlt:"FL190",pred:".780/FL190"},
+    {wpt:"DUVOS",crs:"153°",dist:"20NM",spdAlt:"250KT/13000",pred:"250/13000"},
+    {wpt:"ERBUS",crs:"106°",dist:"8NM",spdAlt:"210KT/8000",pred:"210/ 8000"},
+    {wpt:"MIRUG",crs:"147°",dist:"",spdAlt:"",pred:"210"},
+    {wpt:"GUBOV",crs:"149°",dist:"",spdAlt:"",pred:"210"},
+    {wpt:"OKOKU",crs:"",dist:"",spdAlt:"",pred:"210"},
+    {wpt:"MAVID",crs:"",dist:"",spdAlt:"",pred:"210"},
+    {wpt:"KEDSU",crs:"",dist:"",spdAlt:"",pred:"210"}],
     transLegs:{
-      OTNIK:[{wpt:"OTNIK",crs:"125°",dist:"",spdAlt:"",pred:".780/FL350"},
-             {wpt:"NAKAL",crs:"125°",dist:"30.4NM",spdAlt:"",pred:".780/FL310"},
-             {wpt:"GOPAK",crs:"126°",dist:"27.9NM",spdAlt:"FL240",pred:".780/FL240"},
-             {wpt:"TUDAN",crs:"126°",dist:"22.7NM",spdAlt:"",pred:".780/FL240"},
-             {wpt:"SETGO",crs:"137°",dist:"28.5NM",spdAlt:"FL210",pred:"280/FL210"},
-             {wpt:"IRKIM",crs:"116°",dist:"58.6NM",spdAlt:"FL190",pred:"280/FL190"},
-             {wpt:"BOXUM",crs:"169°",dist:"39.9NM",spdAlt:"FL190",pred:".780/FL190"}],
-      TUDAN:[{wpt:"TUDAN",crs:"137°",dist:"",spdAlt:"",pred:".780/FL310"},
-             {wpt:"SETGO",crs:"137°",dist:"28.5NM",spdAlt:"FL210",pred:"280/FL210"},
-             {wpt:"IRKIM",crs:"116°",dist:"58.6NM",spdAlt:"FL190",pred:"280/FL190"},
-             {wpt:"BOXUM",crs:"169°",dist:"39.9NM",spdAlt:"FL190",pred:".780/FL190"}],
-      IRKIM:[{wpt:"IRKIM",crs:"169°",dist:"",spdAlt:"",pred:".780/FL240"},
-             {wpt:"BOXUM",crs:"169°",dist:"39.9NM",spdAlt:"FL190",pred:".780/FL190"}]}},
+      OTNIK:[{wpt:"OTNIK",crs:"135°",dist:"",spdAlt:"",pred:".780/FL350"},
+             {wpt:"NAKAL",crs:"136°",dist:"30NM",spdAlt:"",pred:".780/FL310"},
+             {wpt:"GOPAK",crs:"",dist:"28NM",spdAlt:"FL240",pred:".780/FL240"},
+             {wpt:"TUDAN",crs:"",dist:"23NM",spdAlt:"",pred:".780/FL240"},
+             {wpt:"SETGO",crs:"147°",dist:"29NM",spdAlt:"FL210",pred:"280/FL210"},
+             {wpt:"DARID",crs:"148°",dist:"54NM",spdAlt:"FL190",pred:"280/FL190"},
+             {wpt:"BOXUM",crs:"148°",dist:"35NM",spdAlt:"FL190",pred:".780/FL190"}],
+      TUDAN:[{wpt:"TUDAN",crs:"147°",dist:"",spdAlt:"",pred:".780/FL310"},
+             {wpt:"SETGO",crs:"147°",dist:"29NM",spdAlt:"FL210",pred:"280/FL210"},
+             {wpt:"DARID",crs:"148°",dist:"54NM",spdAlt:"FL190",pred:"280/FL190"},
+             {wpt:"BOXUM",crs:"148°",dist:"35NM",spdAlt:"FL190",pred:".780/FL190"}],
+      IRKIM:[{wpt:"IRKIM",crs:"179°",dist:"",spdAlt:"",pred:".780/FL240"},
+             {wpt:"BOXUM",crs:"148°",dist:"40NM",spdAlt:"FL190",pred:".780/FL190"}]}},
   // ═══ CYYZ Approaches (Jeppesen 11-4, 11-10) ═══
   // ILS RWY 05 (Jeppesen 11-1) LOC ITX 109.7, CRS 057°
-  ILS05:{type:"APP",trans:["DULPA","XIGAM"],ifWpt:"KERPU",wpts:[
-    {wpt:"KERPU",crs:"057°",dist:"",spdAlt:"3000",pred:"210/ 3000"},
-    {wpt:"MOBOT",crs:"057°",dist:"2.7NM",spdAlt:"",pred:""},
-    {wpt:"RW05",crs:"057°",dist:"1.5NM",spdAlt:"",pred:"Vref+5",isDest:true}],
-    transLegs:{
-      DULPA:[{wpt:"DULPA",crs:"",dist:"",spdAlt:"5080",pred:"250/ 5080"},
-             {wpt:"KERPU",crs:"057°",dist:"5.3NM",spdAlt:"3000",pred:"210/ 3000"}],
-      XIGAM:[{wpt:"XIGAM",crs:"",dist:"",spdAlt:"5080",pred:"250/ 5080"},
-             {wpt:"DULPA",crs:"057°",dist:"4.4NM",spdAlt:"",pred:""},
-             {wpt:"KERPU",crs:"057°",dist:"5.3NM",spdAlt:"3000",pred:"210/ 3000"}]},
+  // ILS RWY 05 (Jeppesen 11-1) LOC ITX 109.7, CRS 057°, GS 3.00°
+  // No APP TRANS — XIGAM is IF, DULPA is intermediate fix
+  // Missed: climb 1100' hdg 057°, left turn intercept R-013 YYZ to 3000', to AVTEK hold 193° L MAX230KT
+  ILS05:{type:"APP",ifWpt:"XIGAM",wpts:[
+    {wpt:"XIGAM",crs:"057°",dist:"",spdAlt:"3000",pred:"210/ 3000"},
+    {wpt:"DULPA",crs:"057°",dist:"4.4NM",spdAlt:"3000",pred:"210/ 3000"},
+    {wpt:"KERPU",crs:"057°",dist:"5.3NM",spdAlt:"2020",pred:"210/ 2020"},
+    {wpt:"MOBOT",crs:"057°",dist:"2.7NM",spdAlt:"1130",pred:"180/ 1130"},
+    {wpt:"RW05",crs:"057°",dist:"1.6NM",spdAlt:"",pred:"Vref+5",isDest:true}],
     missedApproach:[
-      {wpt:"1100",crs:"057°",dist:"",spdAlt:"1100",pred:"",isAlt:true},
-      {wpt:"3000",crs:"013°",dist:"",spdAlt:"3000",pred:"",isAlt:true},
+      {wpt:"(1100)",crs:"057°",dist:"",spdAlt:"1100",pred:"",isAlt:true},
+      {wpt:"(INTC)",crs:"013°",dist:"",spdAlt:"3000",pred:"",isIntc:true},
       {wpt:"AVTEK",crs:"013°",dist:"21NM",spdAlt:"3000",pred:"210/ 3000"},
-      {wpt:"AVTEK",crs:"",dist:"",spdAlt:"3000",pred:"210/ 3000",isHold:true,holdCrs:"193°",holdTurn:"L",holdTime:"1.0MIN"}]},
+      {wpt:"AVTEK",crs:"",dist:"",spdAlt:"3000",pred:"210/ 3000",isHold:true,holdCrs:"193°",holdTurn:"L",holdTime:"1.0MIN",holdSpd:"MAX230KT"}]},
   // ILS RWY 23 (Jeppesen 11-6) LOC IYZ 111.5, CRS 237°
-  ILS23:{type:"APP",trans:["CALVY","NUDEK"],ifWpt:"OMTOK",wpts:[
-    {wpt:"OMTOK",crs:"237°",dist:"",spdAlt:"1970",pred:"180/ 1970"},
-    {wpt:"RW23",crs:"237°",dist:"6.0NM",spdAlt:"",pred:"Vref+5",isDest:true}],
-    transLegs:{
-      CALVY:[{wpt:"CALVY",crs:"",dist:"",spdAlt:"3000",pred:"210/ 3000"},
-             {wpt:"OMTOK",crs:"237°",dist:"5.5NM",spdAlt:"1970",pred:"180/ 1970"}],
-      NUDEK:[{wpt:"NUDEK",crs:"",dist:"",spdAlt:"4000",pred:"210/ 4000"},
-             {wpt:"CALVY",crs:"237°",dist:"4.2NM",spdAlt:"",pred:""},
-             {wpt:"OMTOK",crs:"237°",dist:"5.5NM",spdAlt:"1970",pred:"180/ 1970"}]},
+  // ILS RWY 23 (Jeppesen 11-6) LOC IYZ 111.5, CRS 237°, GS 3.00°
+  // No APP TRANS — NUDEK is IF
+  // Missed: climb 1100' hdg 237°, right turn intercept R-287 YYZ to 3000', to IKDOT hold 107° R MAX230KT
+  ILS23:{type:"APP",ifWpt:"NUDEK",wpts:[
+    {wpt:"NUDEK",crs:"237°",dist:"",spdAlt:"3000",pred:"210/ 3000"},
+    {wpt:"CALVY",crs:"237°",dist:"4.2NM",spdAlt:"3000",pred:"210/ 3000"},
+    {wpt:"OMTOK",crs:"237°",dist:"5.4NM",spdAlt:"1970",pred:"180/ 1970"},
+    {wpt:"RW23",crs:"237°",dist:"4.2NM",spdAlt:"",pred:"Vref+5",isDest:true}],
     missedApproach:[
-      {wpt:"1100",crs:"237°",dist:"",spdAlt:"1100",pred:"",isAlt:true},
-      {wpt:"3000",crs:"287°",dist:"",spdAlt:"3000",pred:"",isAlt:true},
+      {wpt:"(1100)",crs:"237°",dist:"",spdAlt:"1100",pred:"",isAlt:true},
+      {wpt:"(INTC)",crs:"287°",dist:"",spdAlt:"3000",pred:"",isIntc:true},
       {wpt:"IKDOT",crs:"287°",dist:"20NM",spdAlt:"3000",pred:"210/ 3000"},
-      {wpt:"IKDOT",crs:"",dist:"",spdAlt:"3000",pred:"210/ 3000",isHold:true,holdCrs:"107°",holdTurn:"R",holdTime:"1.0MIN"}]},
+      {wpt:"IKDOT",crs:"",dist:"",spdAlt:"3000",pred:"210/ 3000",isHold:true,holdCrs:"107°",holdTurn:"R",holdTime:"1.0MIN",holdSpd:"MAX230KT"}]},
   RNAVZ05:{type:"APP",trans:["SELAP","TARMU","DARPU"],ifWpt:"RONTA",wpts:[
     {wpt:"RONTA",crs:"057°",dist:"",spdAlt:"3000",pred:"210/ 3000"},
     {wpt:"KERPU",crs:"057°",dist:"5.8NM",spdAlt:"2000",pred:"180/ 2000"},
@@ -20186,11 +20254,12 @@ const NAV_DATA = {
              {wpt:"RONTA",crs:"057°",dist:"3.7NM",spdAlt:"3000",pred:"210/ 3000"}],
       DARPU:[{wpt:"DARPU",crs:"",dist:"",spdAlt:"3000",pred:"200/ 3000"},
              {wpt:"RONTA",crs:"335°",dist:"6.3NM",spdAlt:"3000",pred:"200/ 3000"}]},
+    // Missed: same as ILS05 — climb 1100' hdg 057°, left turn intercept R-013 YYZ to 3000', to AVTEK
     missedApproach:[
-      {wpt:"1100",crs:"057°",dist:"",spdAlt:"1100",pred:"",isAlt:true},
-      {wpt:"3000",crs:"",dist:"",spdAlt:"3000",pred:"",isAlt:true},
-      {wpt:"AVTEK",crs:"",dist:"",spdAlt:"3000",pred:"210/ 3000"},
-      {wpt:"AVTEK",crs:"",dist:"",spdAlt:"3000",pred:"210/ 3000",isHold:true,holdCrs:"193°",holdTurn:"L",holdTime:"1.0MIN"}]},
+      {wpt:"(1100)",crs:"057°",dist:"",spdAlt:"1100",pred:"",isAlt:true},
+      {wpt:"(INTC)",crs:"013°",dist:"",spdAlt:"3000",pred:"",isIntc:true},
+      {wpt:"AVTEK",crs:"013°",dist:"21NM",spdAlt:"3000",pred:"210/ 3000"},
+      {wpt:"AVTEK",crs:"",dist:"",spdAlt:"3000",pred:"210/ 3000",isHold:true,holdCrs:"193°",holdTurn:"L",holdTime:"1.0MIN",holdSpd:"MAX230KT"}]},
   // RNAV (GNSS) X RWY 05 (Jeppesen 12-2) WAAS Ch 80717
   RNAVX05:{type:"APP",trans:["KEPSO","VISBU","NALMI","MERGU","IGVAP"],ifWpt:"KERPU",wpts:[
     {wpt:"KERPU",crs:"057°",dist:"",spdAlt:"3000",pred:"210/ 3000"},
@@ -20371,7 +20440,7 @@ function buildLegs(fms){
   // Enroute — GLOBAL RULE: dynamically expand routeLegs via AIRWAY_DB
   // Process enroute + _manual + _disc entries in order (exclude STAR/APP/etc)
   var rl=fms.routeLegs||[];
-  var processRL=rl.filter(function(l){return !l._star&&!l._app&&!l._appTrans&&!l._sid&&!l._missed&&!l._dest;});
+  var processRL=rl.filter(function(l){return !l._star&&!l._app&&!l._appTrans&&!l._sid&&!l._missed&&!l._dest&&!l._starDisc;});
   var prevTo=sid?sid.exit||"":"";
   var lastEnrouteTo=prevTo; // Track last enroute TO for DISC recovery
 
@@ -20417,6 +20486,10 @@ function buildLegs(fms){
     lastEnrouteTo=to;
   }
 
+  // Check if manual leg bypasses approach (DIRECT→RWxx or DIRECT→airport in routeLegs)
+  var _blHasManualRwy=(fms.routeLegs||[]).some(function(l){return l._manual&&!l._afterStar&&l.to&&/^RW\d/.test(l.to);});
+  var _blHasManualAirport=(fms.routeLegs||[]).some(function(l){return l._manual&&!l._afterStar&&l.to&&AIRPORT_DB[l.to];});
+
   // STAR — prepend transition legs if selected, then common wpts
   var star=NAV_DATA[fms.arrStar];
   if(star&&star.type==="STAR"){
@@ -20449,15 +20522,33 @@ function buildLegs(fms){
       legs=legs.concat(starWpts);
     }
     // VECTORS pseudo-leg: STAR ends with radar vectors before approach
-    if(star.vectors){
+    // Skip if manual leg closes the vectors gap
+    if(star.vectors&&!_blHasManualRwy&&!_blHasManualAirport){
       legs.push({wpt:"(VECTORS)",isVectors:true,via:fms.arrStar});
+      // Auto-insert DISC after VECTORS when no APP or no APP transition bridges the gap
+      var _appKey2=(fms.arrApp||"").replace(/\s/g,"");
+      var _app2=NAV_DATA[_appKey2];
+      if(!_app2||!fms.arrTrans){
+        legs.push({wpt:"□□□□□",crs:"",dist:"",spdAlt:"",pred:"",isDisc:true});
+      }
+    }
+    // If manual bypass, insert the manual leg directly after STAR exit
+    if(_blHasManualRwy||_blHasManualAirport){
+      var _manualLeg=(fms.routeLegs||[]).find(function(l){return l._manual&&!l._afterStar&&l.to&&(/^RW\d/.test(l.to)||AIRPORT_DB[l.to]);});
+      if(_manualLeg){
+        var enrM2=enrLookup[_manualLeg.to];
+        if(enrM2){legs.push(Object.assign({},enrM2));}
+        else{legs.push({wpt:_manualLeg.to,crs:"---°",dist:"---",spdAlt:"",pred:"",via:"DIRECT"});}
+      }
     }
   }
 
   // APP — same merge logic, but skip DISC when APPR TRANS is set
+  // Skip entirely if manual leg bypasses approach
+  var _blSkipApp=_blHasManualRwy||_blHasManualAirport;
   var appKey=(fms.arrApp||"").replace(/\s/g,"");
   var app=NAV_DATA[appKey];
-  if(app&&app.type==="APP"){
+  if(app&&app.type==="APP"&&!_blSkipApp){
     var appWpts=app.wpts.map(function(w){return Object.assign({},w,{via:appKey});});
     // Prepend APP transition legs if available
     if(fms.arrTrans&&app.transLegs&&app.transLegs[fms.arrTrans]){
@@ -20487,7 +20578,10 @@ function buildLegs(fms){
       legs=legs.concat(appWpts.slice(1));
     } else if(lastW&&appEntry&&lastW!==appEntry){
       // ROUTE DISCONTINUITY — APP entry doesn't match last waypoint
-      legs.push({wpt:"-----",isDisc:true,discFrom:lastW,discTo:appEntry});
+      // Skip if last leg is already a DISC (e.g., from vectors STAR)
+      if(!legs[legs.length-1].isDisc){
+        legs.push({wpt:"-----",isDisc:true,discFrom:lastW,discTo:appEntry});
+      }
       legs=legs.concat(appWpts);
     } else {
       legs=legs.concat(appWpts);
@@ -20495,8 +20589,9 @@ function buildLegs(fms){
   }
 
   // Missed Approach — prefer APP-specific (NAV_DATA), fallback to FLIGHT_DB
+  // Skip if manual leg goes to airport (no runway = no missed approach)
   var missedSrc=(app&&app.missedApproach)?app.missedApproach:(db&&db.missedApproach?db.missedApproach:null);
-  if(missedSrc&&app){
+  if(missedSrc&&app&&!_blHasManualAirport){
     legs=legs.concat(missedSrc.map(function(w){return Object.assign({},w,{via:"MISSED",isMissed:true});}));
   }
 
@@ -20556,45 +20651,69 @@ function updateRouteLegs(fms){
       fms.routeLegs.splice(1,1);
     }
   }
-  // Find insert position: before _afterStar entries
+  // Find insert position: before _afterStar or _legsBypass entries
   var insertPos=fms.routeLegs.length;
   for(var asi=0;asi<fms.routeLegs.length;asi++){
-    if(fms.routeLegs[asi]._afterStar){insertPos=asi;break;}
+    if(fms.routeLegs[asi]._afterStar||fms.routeLegs[asi]._legsBypass){insertPos=asi;break;}
   }
   // 3) STAR — show when arrStar is selected via DEP/ARR
   var star=NAV_DATA[fms.arrStar];
   var app=NAV_DATA[fms.arrApp]||NAV_DATA[(fms.arrApp||"").replace(/\s+/g,"")];
   var db=FLIGHT_DB[(fms.fltNo||"").toUpperCase()];
+  // General rule: check if manual legs bypass approach or route to airport
+  // Exclude _afterStar placeholders (they will be removed in step 7)
+  var _hasManualRwy=fms.routeLegs.some(function(l){return l._manual&&!l._afterStar&&l.to&&/^RW\d/.test(l.to);});
+  var _hasManualAirport=fms.routeLegs.some(function(l){return l._manual&&!l._afterStar&&l.to&&AIRPORT_DB[l.to];});
   if(star&&star.type==="STAR"){
     var starExit=star.wpts[star.wpts.length-1].wpt;
+    // Global rule: if APP TRANS entry exists in STAR wpts/transLegs, truncate starExit to that point
+    var _appHasTrans=!!(app&&fms.arrTrans&&app.transLegs&&app.transLegs[fms.arrTrans]);
+    if(_appHasTrans){
+      var _appTransEntry=app.transLegs[fms.arrTrans][0].wpt;
+      // Check in STAR transition legs
+      var _allStarWpts=[];
+      if(fms.arrStarTrans&&star.transLegs&&star.transLegs[fms.arrStarTrans]){
+        _allStarWpts=star.transLegs[fms.arrStarTrans].map(function(w){return w.wpt;});
+      }
+      _allStarWpts=_allStarWpts.concat(star.wpts.map(function(w){return w.wpt;}));
+      var _truncIdx=_allStarWpts.indexOf(_appTransEntry);
+      if(_truncIdx>=0){starExit=_appTransEntry;}
+    }
     var starViaDisp=fms.arrStar+(fms.arrStarTrans?"."+fms.arrStarTrans:"");
     fms.routeLegs.splice(insertPos,0,{via:fms.arrStar,_viaDisp:starViaDisp,to:starExit,_star:true});
     insertPos++;
-    // VECTORS after STAR if procedure ends with vectors (e.g., BOXUM7)
-    if(star.vectors&&app){
+    // VECTORS after STAR if procedure ends with vectors
+    // Skip if: manual closure exists, OR APP with transition bridges the gap
+    if(star.vectors&&!_hasManualRwy&&!_hasManualAirport&&!_appHasTrans){
       fms.routeLegs.splice(insertPos,0,{via:"(VECTORS)",to:"",_star:true,isVectors:true});
       insertPos++;
+      // DISC between STAR exit and APP if no transition bridges them
+      if(app&&app.ifWpt&&starExit!==app.ifWpt){
+        fms.routeLegs.splice(insertPos,0,{via:"DISCONTINUITY",to:"",_disc:true,_starDisc:true});
+        insertPos++;
+      }
     }
   }
-  // 4) APPR TRANS → APP IF waypoint
-  if(app&&app.type==="APP"&&app.ifWpt){
+  // Advance insertPos past _legsBypass entries (LEGS page bypass legs go before APPR/APP/MISSED)
+  while(insertPos<fms.routeLegs.length&&fms.routeLegs[insertPos]._legsBypass)insertPos++;
+  // 4) APPR TRANS → APP IF waypoint — skip if approach bypassed, or if no trans defined
+  if(app&&app.type==="APP"&&app.ifWpt&&!_hasManualRwy&&!_hasManualAirport&&fms.arrTrans){
     fms.routeLegs.splice(insertPos,0,{via:"APPR TRANS",to:app.ifWpt,_appTrans:true});
     insertPos++;
   }
-  // 5) APP → runway
-  if(app&&app.type==="APP"&&app.wpts&&app.wpts.length){
+  // 5) APP → runway — skip if approach bypassed
+  if(app&&app.type==="APP"&&app.wpts&&app.wpts.length&&!_hasManualRwy&&!_hasManualAirport){
     var appRwy=app.wpts[app.wpts.length-1].wpt;
     var appName=fms.arrApp||"";
     fms.routeLegs.splice(insertPos,0,{via:appName,to:appRwy,_app:true});
     insertPos++;
   }
-  // 6) MISSED APPR or DIRECT→DEST (if user replaced missed)
+  // 6) MISSED APPR — skip if manual leg goes to airport (no runway = no missed approach)
   if(fms._replaceMissed){
-    // User replaced MISSED APPR with destination/waypoint
     fms.routeLegs.splice(insertPos,0,{via:"DIRECT",to:fms._replaceMissed,_dest:true});
     insertPos++;
     delete fms._replaceMissed;
-  } else {
+  } else if(!_hasManualAirport){
     var missedSrc=(app&&app.missedApproach)?app.missedApproach:(db&&db.missedApproach?db.missedApproach:null);
     if(missedSrc&&missedSrc.length){
       var missedFix="";
@@ -20605,10 +20724,19 @@ function updateRouteLegs(fms){
       }
     }
   }
-  // 7) DIRECT → DEST — only if no APP selected
-  if(fms.dest&&!app&&!fms._replaceMissed){
-    fms.routeLegs.splice(insertPos,0,{via:"DIRECT",to:fms.dest,_dest:true});
-    insertPos++;
+  // 7) When APP is selected, remove:
+  //   a) _afterStar placeholders (DISC + DIRECT DEST from manual airport entry)
+  //   b) manual legs to destination airport (Method A temp closure, e.g., DIRECT CYYZ)
+  //   c) manual legs to runway (approach bypass, e.g., DIRECT RW05)
+  // STAR-only: these entries stay (e.g., temp CYYZ closure for vectors STAR)
+  if(app){
+    fms.routeLegs=fms.routeLegs.filter(function(l){
+      if(l._afterStar) return false;
+      if(l._legsBypass) return true; // Preserve LEGS page bypass — takes priority
+      if(l._manual&&l.to&&AIRPORT_DB[l.to]) return false;
+      if(l._manual&&l.to&&/^RW\d/.test(l.to)) return false;
+      return true;
+    });
   }
 }
 function updateRouteForSid(fms){updateRouteLegs(fms);}
@@ -20966,7 +21094,7 @@ function cduPageData(fms) {
         {dl:"<INDEX",dr:"ROUTE>",dlc:C.cyan,drc:C.cyan},
       ],sep:5};
     })(),
-    RTE_1: {title:fms.execLight&&fms.phase==="ACTIVE"?"MOD RTE 1":(fms.phase==="ACTIVE"?"ACT RTE 1":"RTE 1"),titleSub:`1/${Math.max(2,Math.floor(fms.routeLegs.length/5)+2)}`, rows:[
+    RTE_1: {title:fms.execLight&&fms.phase==="ACTIVE"?"MOD RTE 1":(fms.phase==="ACTIVE"?"ACT RTE 1":"RTE 1"),titleSub:`1/${Math.max(2,Math.floor(fms.routeLegs.filter(function(l){return !l.isVectors;}).length/5)+2)}`, rows:[
       {tl:"ORIGIN",tr:"DEST",dl:fms.origin||"▯▯▯▯",dr:fms.dest||"▯▯▯▯",dlc:fms.origin?C.green:C.cyan,drc:fms.dest?C.green:C.cyan,dlBg:true,drBg:true},
       {tl:"RUNWAY",tr:"FLT NO",dl:fms.runway||"-----",dr:fms.fltNo||"----------",dlc:fms.runway?C.green:C.cyan,drc:fms.fltNo?C.green:C.cyan,dlBg:true,drBg:true},
       {tl:"ROUTE",tr:"CO ROUTE",dl:fms.phase==="ACTIVE"?"<REPORT":"<REQUEST",dr:fms.coRoute||"----------",dlc:C.cyan,drc:C.cyan,drBg:true},
@@ -20978,9 +21106,11 @@ function cduPageData(fms) {
       {dl:fms.execLight?"<ERASE":"<RTE 2",dr:fms.phase==="ACTIVE"?"PERF INIT>":(fms.origin&&fms.dest&&!fms.execLight?"ACTIVATE>":"PERF INIT>"),dlc:C.cyan,drc:C.cyan},
     ],sep:fms.phase==="ACTIVE"?4:5,helpMsg:fms.helpMsg},
     RTE_1_2: (()=>{
+      // Filter out (VECTORS) entries — they only show on LEGS page, not RTE page
+      const rteDisplayLegs = fms.routeLegs.filter(function(l){return !l.isVectors;});
       const startIdx = (fms.rtePage - 2) * 5;
-      const totalPages = Math.max(2, Math.floor(fms.routeLegs.length / 5) + 2);
-      const legsSlice = fms.routeLegs.slice(startIdx, startIdx + 5);
+      const totalPages = Math.max(2, Math.floor(rteDisplayLegs.length / 5) + 2);
+      const legsSlice = rteDisplayLegs.slice(startIdx, startIdx + 5);
       const rows = [];
       for(let i=0; i<5; i++) {
         const leg = legsSlice[i];
@@ -22416,7 +22546,8 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
               s.routeLegs[idx]={...s.routeLegs[idx],to:inputTo};
             }
             // FCOM 11.42.2: Airport ICAO → DISC at current row, DIRECT/airport pushed after
-            if(AIRPORT_DB[inputTo]&&!(s.routeLegs[idx]&&s.routeLegs[idx]._disc)){
+            // Skip DISC creation if editing an existing manual leg (e.g., replacing RWxx with airport)
+            if(AIRPORT_DB[inputTo]&&!(s.routeLegs[idx]&&s.routeLegs[idx]._disc)&&!(s.routeLegs[idx]&&s.routeLegs[idx]._manual)){
               // Current row becomes DISC; DIRECT/airport goes to next position
               // _afterStar flag tells updateRouteLegs to insert STAR/APP before these entries
               var _airportLeg={via:"DIRECT",to:inputTo,_manual:true,_afterStar:true};
@@ -22672,14 +22803,37 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
               }
               if(existsAfter>=0){
                 // Wpt exists after DISC → remove DISC + all legs between DISC and that wpt
-                // This connects the route: before-DISC → inputWpt (no discontinuity)
-                legs.splice(idx,existsAfter-idx);
+                // Also remove preceding (VECTORS) if present
+                if(idx>0&&legs[idx-1].isVectors){
+                  legs.splice(idx-1,existsAfter-idx+1);
+                } else {
+                  legs.splice(idx,existsAfter-idx);
+                }
+                // Sync: if target is runway or airport, add manual leg + clear APP (bypass)
+                // FCOM 11.31.36: bypassing approach waypoints on LEGS page deselects approach
+                if(/^RW\d/.test(inputWpt)||AIRPORT_DB[inputWpt]){
+                  s.arrApp="";s.arrTrans="";s.arrAppAct=false;
+                  s.routeLegs.push({via:"DIRECT",to:inputWpt,_manual:true,_legsBypass:true});
+                  updateRouteLegs(s);s.computedLegs=buildLegs(s);
+                }
                 s.scratchpad="";if(s.phase==="ACTIVE")s.execLight=true;s.helpMsg="";
               } else {
-                // Wpt does NOT exist in route → insert wpt at DISC position, move DISC one down
+                // Wpt does NOT exist in route → replace DISC with new waypoint
                 const newLeg={wpt:inputWpt,crs:"---°",dist:"---",spdAlt:"",pred:"",via:"DIRECT",inserted:true};
-                legs.splice(idx,0,newLeg);
-                // DISC stays at idx+1 (moved down by one)
+                // FCOM 11.40.25: If DISC follows (VECTORS), remove (VECTORS) + DISC, insert DIRECT leg
+                // This is Method A closure for vectors-terminating STAR
+                if(idx>0&&legs[idx-1].isVectors){
+                  legs.splice(idx-1,2,newLeg); // remove (VECTORS) + DISC, insert new leg
+                } else {
+                  legs.splice(idx,0,newLeg);
+                  // DISC stays at idx+1 (moved down by one)
+                }
+                // Sync to routeLegs: add manual leg + clear APP (bypass)
+                if(AIRPORT_DB[inputWpt]||/^RW\d/.test(inputWpt)){
+                  s.arrApp="";s.arrTrans="";s.arrAppAct=false;
+                  s.routeLegs.push({via:"DIRECT",to:inputWpt,_manual:true,_legsBypass:true});
+                  updateRouteLegs(s);s.computedLegs=buildLegs(s);
+                }
                 s.scratchpad="";if(s.phase==="ACTIVE")s.execLight=true;s.helpMsg="";
               }
             }
@@ -22728,6 +22882,19 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
                   }
                 }
                 s.routeLegs=newRL;
+                // FCOM 11.31.36: bypassing approach waypoints deselects approach
+                if(/^RW\d/.test(inputWpt)||AIRPORT_DB[inputWpt]){
+                  s.arrApp="";s.arrTrans="";s.arrAppAct=false;
+                }
+                // If inputWpt is a runway (approach bypassed), add manual DIRECT→RWxx
+                if(/^RW\d/.test(inputWpt)){
+                  s.routeLegs.push({via:"DIRECT",to:inputWpt,_manual:true,_legsBypass:true});
+                }
+                // If inputWpt is an airport, add manual DIRECT→airport
+                else if(AIRPORT_DB[inputWpt]){
+                  s.routeLegs.push({via:"DIRECT",to:inputWpt,_manual:true,_legsBypass:true});
+                }
+                updateRouteLegs(s);s.computedLegs=buildLegs(s);
                 s.scratchpad="";if(s.phase==="ACTIVE")s.execLight=true;s.helpMsg="";s._legsRteSynced=true;
               } else {
                 // ── Add Waypoint (FCOM 11.42.2) ──
@@ -23345,7 +23512,7 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
 
   const handlePrev = ()=>setFms(p=>{
     if(p.page==="TOREF2")return{...p,page:p.pendingUplink?"TOREF_UPLINK":"TOREF1"};
-    if(p.page==="RTE_1"){const mx=Math.max(2,Math.floor(p.routeLegs.length/5)+2);return{...p,page:"RTE_1_2",rtePage:mx};}
+    if(p.page==="RTE_1"){const _rl1=p.routeLegs.filter(function(l){return !l.isVectors;});const mx=Math.max(2,Math.floor(_rl1.length/5)+2);return{...p,page:"RTE_1_2",rtePage:mx};}
     if(p.page==="RTE_1_2"&&p.rtePage<=2)return{...p,page:"RTE_1",rtePage:1};
     if(p.page==="RTE_1_2"&&p.rtePage>2)return{...p,rtePage:p.rtePage-1};
     if(p.page==="RTE_2"){const mx2=Math.max(2,Math.floor((p.rte2Legs||[]).length/5)+2);return{...p,page:"RTE_2_2",rte2Page:mx2};}
@@ -23376,7 +23543,7 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
     if(p.page==="POS_REF_3")return{...p,page:"POS_REF_4"};
     if(p.page==="POS_REF_4")return{...p,page:"POS_INIT"};
     if(p.page==="RTE_1")return{...p,page:"RTE_1_2",rtePage:2};
-    if(p.page==="RTE_1_2"){const mx=Math.floor(p.routeLegs.length/5)+2;if(p.rtePage<mx)return{...p,rtePage:p.rtePage+1};}
+    if(p.page==="RTE_1_2"){const _rl1n=p.routeLegs.filter(function(l){return !l.isVectors;});const mx=Math.floor(_rl1n.length/5)+2;if(p.rtePage<mx)return{...p,rtePage:p.rtePage+1};}
     if(p.page==="LEGS"){var cl=p.computedLegs||[];var legLen=cl.length||(p.routeLegs.length+2);var mx=Math.max(1,Math.ceil(legLen/5));if(legLen>0&&legLen%5===0)mx++;if(p.legsPage<mx)return{...p,legsPage:p.legsPage+1};return{...p,legsPage:1};}
     if(p.page==="RTE_DATA"){var cl2=p.computedLegs||[];var rl=cl2.filter(function(l){return !l.isRwy;});var mx2=Math.max(1,Math.ceil(rl.length/5));if(p.legsPage<mx2)return{...p,legsPage:p.legsPage+1};}
     if(p.page==="PROGRESS")return{...p,progPage:p.progPage<4?p.progPage+1:1};
@@ -23539,6 +23706,8 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
             var db=FLIGHT_DB[fltKey];if(!db)return null;
             var fltNo=fltKey;var origin=db.origin;var dest=db.dest;var rwy=db.runway;
             var rteLegs=db.route.map(function(r){return{via:r.via,to:r.to};});
+            // Preset uses pre-built RTE legs (static, not affected by updateRouteLegs changes)
+            var presetRL=db.presetRteLegs?db.presetRteLegs.map(function(r){return Object.assign({},r);}):rteLegs;
             var sid=db.sid;var star=db.star;var app=db.approach;var appTr=db.appTrans;
             var grWt=db.grWt||"0";var fuel=db.fuel||"0";var zfw=db.zfw||"0";
             var reserves=db.reserves||"9.0";var crzAlt=db.crzAlt||"FL310";var ci=db.costIndex||"50";
@@ -23551,7 +23720,7 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
             var intx=db.intx||"FULL "+rwy;
             var oIata=iataMap[origin]||"";var aprtDisp=oIata?origin+" / "+oIata:origin;
             var base={fltNo:fltNo,origin:origin,dest:dest,runway:rwy,depRwy:rwy,
-              routeLegs:rteLegs,depSid:sid,depSidAct:true,depTrans:db.sidTrans||"",phase:"ACTIVE",
+              routeLegs:phase==="setup"?presetRL:rteLegs,depSid:sid,depSidAct:true,depTrans:db.sidTrans||"",phase:"ACTIVE",
               grWt:grWt,fuel:fuel,zfw:zfw,reserves:reserves,crzAlt:crzAlt,costIndex:ci,
               efbInit:true};
             if(phase==="setup"){
@@ -23603,13 +23772,14 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
               return React.createElement('button', { key: ph, onClick: isDisabled?undefined:function(){
                 if(pi===0){
                   var p1=buildPreset(fltKey,"setup");
-                  if(p1){updateRouteLegs(p1);p1.computedLegs=buildLegs(p1);setFms(p1);setMfdMode("CDU");}
+                  // Preset uses pre-built routeLegs — skip updateRouteLegs to avoid dynamic modification
+                  if(p1){p1.computedLegs=buildLegs(p1);setFms(p1);setMfdMode("CDU");}
                 } else if(pi===1){
                   var p2=buildPreset(fltKey,"bfrto");
-                  if(p2){updateRouteLegs(p2);p2.computedLegs=buildLegs(p2);setFms(p2);setMfdMode("CDU");}
+                  if(p2){p2.computedLegs=buildLegs(p2);setFms(p2);setMfdMode("CDU");}
                 } else {
                   var p3=buildPreset(fltKey,"cruise");
-                  if(p3){updateRouteLegs(p3);p3.computedLegs=buildLegs(p3);setFms(p3);setMfdMode("CDU");}
+                  if(p3){p3.computedLegs=buildLegs(p3);setFms(p3);setMfdMode("CDU");}
                 }
               }, style: {flex:1,padding:"3px 2px",background:isDisabled?"#1a1a1a":phaseColors[pi],color:isDisabled?"#444":"#ccc",border:"1px solid "+(isDisabled?"#333":"#555"),borderRadius:3,fontSize:14,fontWeight:"bold",cursor:isDisabled?"default":"pointer",fontFamily:M,lineHeight:1.1,textAlign:"center",whiteSpace:"nowrap",display:"flex",flexDirection:"column",alignItems:"center",gap:1,opacity:isDisabled?0.4:1},},
                 React.createElement('span', null, ph),
@@ -23654,7 +23824,7 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
 function MFKKeypad({fms,setFms,mfdMode,setMfdMode}) {
   const handlePrev=()=>setFms(p=>{
     if(p.page==="TOREF2")return{...p,page:p.pendingUplink?"TOREF_UPLINK":"TOREF1"};
-    if(p.page==="RTE_1"){const mx=Math.max(2,Math.floor(p.routeLegs.length/5)+2);return{...p,page:"RTE_1_2",rtePage:mx};}
+    if(p.page==="RTE_1"){const _rl1=p.routeLegs.filter(function(l){return !l.isVectors;});const mx=Math.max(2,Math.floor(_rl1.length/5)+2);return{...p,page:"RTE_1_2",rtePage:mx};}
     if(p.page==="RTE_1_2"&&p.rtePage<=2)return{...p,page:"RTE_1",rtePage:1};
     if(p.page==="RTE_1_2"&&p.rtePage>2)return{...p,rtePage:p.rtePage-1};
     if(p.page==="RTE_2"){const mx2=Math.max(2,Math.floor((p.rte2Legs||[]).length/5)+2);return{...p,page:"RTE_2_2",rte2Page:mx2};}
@@ -23679,7 +23849,7 @@ function MFKKeypad({fms,setFms,mfdMode,setMfdMode}) {
   const handleNext=()=>setFms(p=>{
     if(p.page==="TOREF1"||p.page==="TOREF_UPLINK")return{...p,page:"TOREF2"};
     if(p.page==="RTE_1")return{...p,page:"RTE_1_2",rtePage:2};
-    if(p.page==="RTE_1_2"){const mx=Math.floor(p.routeLegs.length/5)+2;if(p.rtePage<mx)return{...p,rtePage:p.rtePage+1};}
+    if(p.page==="RTE_1_2"){const _rl1n=p.routeLegs.filter(function(l){return !l.isVectors;});const mx=Math.floor(_rl1n.length/5)+2;if(p.rtePage<mx)return{...p,rtePage:p.rtePage+1};}
     if(p.page==="RTE_2")return{...p,page:"RTE_2_2",rte2Page:2};
     if(p.page==="RTE_2_2"){const mx2r=Math.floor((p.rte2Legs||[]).length/5)+2;if((p.rte2Page||1)<mx2r)return{...p,rte2Page:(p.rte2Page||1)+1};}
     if(p.page==="LEGS"){var cl=p.computedLegs||[];var legLen=cl.length||(p.routeLegs.length+2);var mx=Math.max(1,Math.ceil(legLen/5));if(legLen>0&&legLen%5===0)mx++;if(p.legsPage<mx)return{...p,legsPage:p.legsPage+1};return{...p,legsPage:1};}
