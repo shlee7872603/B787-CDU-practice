@@ -19271,8 +19271,10 @@ const FLIGHT_DB = {
       {via:"Y889",to:"PUTER"},
       {via:"A590",to:"HAMND"},
       {via:"DIRECT",to:"ELLAM"},
+      {via:"DIRECT",to:"FERNO"},
       {via:"DIRECT",to:"TADIS"},
       {via:"DIRECT",to:"OTNIK"},
+      {via:"BOXUM7",_viaDisp:"BOXUM7.OTNIK",to:"DERLI",_star:true},
     ],
     legs:[
       {wpt:"RW33L", crs:"334°", dist:"",    spdAlt:"",           pred:"",          isRwy:true},
@@ -19300,6 +19302,7 @@ const FLIGHT_DB = {
       {wpt:"PASRO",crs:"040°", dist:"",    spdAlt:"",           pred:".780/FL310", via:"A590"},
       {wpt:"HAMND",crs:"040°", dist:"",    spdAlt:"",           pred:".780/FL310", via:"A590"},
       {wpt:"ELLAM",crs:"045°", dist:"",    spdAlt:"",           pred:".780/FL310", via:"DIRECT"},
+      {wpt:"FERNO",crs:"048°", dist:"",    spdAlt:"",           pred:".780/FL310", via:"DIRECT"},
       {wpt:"TADIS",crs:"050°", dist:"",    spdAlt:"",           pred:".780/FL310", via:"DIRECT"},
       {wpt:"OTNIK",crs:"055°", dist:"",    spdAlt:"",           pred:".780/FL310", via:"DIRECT"},
     ],
@@ -19810,7 +19813,7 @@ function buildLegs(fms){
   // Enroute — GLOBAL RULE: dynamically expand routeLegs via AIRWAY_DB
   // Process enroute + _manual + _disc entries in order (exclude STAR/APP/etc)
   var rl=fms.routeLegs||[];
-  var processRL=rl.filter(function(l){return !l._star&&!l._app&&!l._appTrans&&!l._sid&&!l._missed;});
+  var processRL=rl.filter(function(l){return !l._star&&!l._app&&!l._appTrans&&!l._sid&&!l._missed&&!l._dest;});
   var prevTo=sid?sid.exit||"":"";
   var lastEnrouteTo=prevTo; // Track last enroute TO for DISC recovery
 
@@ -19981,75 +19984,46 @@ function syncRouteLegsFromLegs(fms){
 
 // ═══════ [FUNC] updateRouteLegs for RTE page display ═══════
 function updateRouteLegs(fms){
-  // 1) Strip existing SID/STAR/APP/APPR TRANS/DISC tags — enroute and manual DISC untouched
-  fms.routeLegs=fms.routeLegs.filter(function(l){return !l._star && !l._app && !(l._disc&&!l._manual) && !l._appTrans && !l._sid && !l._missed;});
-  // 2) SID: if routeLegs has enroute, update first leg VIA. If empty, add SID leg.
+  // 1) Strip existing SID/STAR/DEST/DISC tags — enroute and manual DISC untouched
+  fms.routeLegs=fms.routeLegs.filter(function(l){return !l._star && !l._dest && !(l._disc&&!l._manual) && !l._sid;});
+  // 2) SID: prepend SID leg before route legs (not replacing first leg)
   var sid=NAV_DATA[fms.depSid];
   if(sid){
-    if(fms.routeLegs.length){
-      fms.routeLegs[0]={via:fms.depSid,to:sid.exit};
-    } else {
-      fms.routeLegs.push({via:fms.depSid,to:sid.exit,_sid:true});
+    var sidViaDisp=fms.depSid+(fms.depTrans?"."+fms.depTrans:"");
+    // Remove any existing SID entry at front to avoid duplicates
+    if(fms.routeLegs.length&&fms.routeLegs[0].via===fms.depSid&&fms.routeLegs[0].to===sid.exit){
+      fms.routeLegs.shift();
+    }
+    fms.routeLegs.unshift({via:fms.depSid,_viaDisp:sidViaDisp,to:sid.exit,_sid:true});
+    // After unshift, if next leg's TO equals SID exit, it's a duplicate — remove it
+    if(fms.routeLegs.length>1&&fms.routeLegs[1].to===sid.exit&&!fms.routeLegs[1]._manual){
+      fms.routeLegs.splice(1,1);
     }
   }
-  // Resolve APP early so STAR can use APP transition for exit truncation
-  var appKey=(fms.arrApp||"").replace(/\s/g,"");
-  var app=NAV_DATA[appKey];
   // Find insert position: before _afterStar entries (manual airport entries placed after STAR)
   var insertPos=fms.routeLegs.length;
   for(var asi=0;asi<fms.routeLegs.length;asi++){
     if(fms.routeLegs[asi]._afterStar){insertPos=asi;break;}
   }
-  // 3) STAR — VIA=STAR_NAME / TO=exit fix (last wpt). DISC check uses last non-_afterStar entry
+  // 3) STAR — only add if last route wpt matches STAR entry (seamless connection)
   var star=NAV_DATA[fms.arrStar];
   if(star&&star.type==="STAR"){
     var lastLeg=insertPos>0?fms.routeLegs[insertPos-1]:null;
     var lastTo=lastLeg?lastLeg.to:"";
-    // Use transition entry fix if selected, otherwise common route entry
     var starEntry=(fms.arrStarTrans&&star.transLegs&&star.transLegs[fms.arrStarTrans])?
       star.transLegs[fms.arrStarTrans][0].wpt:star.wpts[0].wpt;
     var starExit=star.wpts[star.wpts.length-1].wpt;
-    // If APP transition entry fix exists in STAR, truncate STAR exit there
-    if(fms.arrTrans&&app&&app.transLegs&&app.transLegs[fms.arrTrans]){
-      var atEntry=app.transLegs[fms.arrTrans][0].wpt;
-      for(var si=0;si<star.wpts.length;si++){if(star.wpts[si].wpt===atEntry){starExit=atEntry;break;}}
-    }
-    if(lastTo&&starEntry&&lastTo!==starEntry&&!(lastLeg&&lastLeg._disc)){
-      fms.routeLegs.splice(insertPos,0,{via:"DISCONTINUITY",to:"",_disc:true});
+    // Only show STAR on RTE if route connects seamlessly AND has explicit transition
+    if(lastTo&&lastTo===starEntry&&fms.arrStarTrans){
+      var starViaDisp=fms.arrStar+(fms.arrStarTrans?"."+fms.arrStarTrans:"");
+      fms.routeLegs.splice(insertPos,0,{via:fms.arrStar,_viaDisp:starViaDisp,to:starExit,_star:true});
       insertPos++;
     }
-    fms.routeLegs.splice(insertPos,0,{via:fms.arrStar,to:starExit,_star:true});
-    insertPos++;
   }
-  // 3.5) APPR TRANS — FCOM 11.40.23: VIA=APPR TRANS / TO=first APP wpt
-  if(fms.arrTrans&&app&&app.trans){
-    var appTransTo=app.ifWpt||app.wpts[0].wpt;
-    fms.routeLegs.splice(insertPos,0,{via:"APPR TRANS",to:appTransTo,_appTrans:true});
+  // 4) DIRECT → DEST — final destination entry
+  if(fms.dest){
+    fms.routeLegs.splice(insertPos,0,{via:"DIRECT",to:fms.dest,_dest:true});
     insertPos++;
-  }
-  // 4) APP — FCOM 11.40.23: VIA=APP name, TO=runway (last wpt)
-  // No DISC when APPR TRANS bridges STAR→APP
-  if(app&&app.type==="APP"){
-    var appRwy=app.wpts[app.wpts.length-1].wpt;
-    var prevLeg2=insertPos>0?fms.routeLegs[insertPos-1]:null;
-    var prevTo2=prevLeg2?prevLeg2.to:"";
-    if(!fms.arrTrans){
-      var appStartWpt=app.wpts[0].wpt;
-      if(prevTo2&&appStartWpt&&prevTo2!==appStartWpt&&!prevLeg2._disc){
-        fms.routeLegs.splice(insertPos,0,{via:"DISCONTINUITY",to:"",_disc:true});
-        insertPos++;
-      }
-    }
-    fms.routeLegs.splice(insertPos,0,{via:appKey,to:appRwy,_app:true});
-    insertPos++;
-    // 5) MISSED APPROACH — VIA=MISSED APPR / TO=last missed approach fix (hold fix)
-    var missedSrc2=(app&&app.missedApproach)?app.missedApproach:null;
-    if(!missedSrc2){var fltKey=(fms.fltNo||"").toUpperCase();var db=FLIGHT_DB[fltKey];if(db&&db.missedApproach)missedSrc2=db.missedApproach;}
-    if(missedSrc2&&missedSrc2.length){
-      var lastMissed=missedSrc2.filter(function(m){return !m.isHold;});
-      var missedFix=lastMissed.length?lastMissed[lastMissed.length-1].wpt:"";
-      if(missedFix){fms.routeLegs.splice(insertPos,0,{via:"MISSED APPR",to:missedFix,_missed:true});insertPos++;}
-    }
   }
 }
 function updateRouteForSid(fms){updateRouteLegs(fms);}
@@ -20428,8 +20402,8 @@ function cduPageData(fms) {
           tlFull:i===0?null:"ROUTE  DISCONTINUITY",tlFullBg:"transparent",tlFullColor:C.white,
           dl:"□□□□□",dr:"-----",dlc:C.white,drc:C.white,dlBg:true,drBg:true,tlc:C.white,trc:C.dim});
         else if(leg) rows.push({tl:i===0?"VIA":"",tr:i===0?"TO":"",
-          dl:leg.via||"DIRECT",dr:leg.to||(leg.via?"-----":""),dlBg:true,drBg:true,
-          dlc:leg._star||leg._app||leg._appTrans||leg._sid||leg._missed?C.cyan:C.green,drc:leg._star||leg._app||leg._appTrans||leg._sid||leg._missed?C.cyan:leg.to?C.green:C.white,
+          dl:leg._viaDisp||leg.via||"DIRECT",dr:leg.to||(leg.via?"-----":""),dlBg:true,drBg:true,
+          dlc:leg._star||leg._sid||leg._dest?C.cyan:C.green,drc:leg._star||leg._sid||leg._dest?C.cyan:leg.to?C.green:C.white,
           tlc:C.dim,trc:C.dim});
         else rows.push({tl:i===0&&!legsSlice.length?"VIA":"",tr:i===0&&!legsSlice.length?"TO":"",
           dl:"-----",dr:"▯▯▯▯▯",dlc:C.cyan,drc:C.cyan,dlBg:true,drBg:true,tlc:C.dim,trc:C.dim});
@@ -20459,8 +20433,8 @@ function cduPageData(fms) {
           tlFull:i===0?null:"ROUTE  DISCONTINUITY",tlFullBg:"transparent",tlFullColor:C.white,
           dl:"□□□□□",dr:"-----",dlc:C.white,drc:C.white,dlBg:true,drBg:true,tlc:C.white,trc:C.dim});
         else if(leg) rows.push({tl:i===0?"VIA":"",tr:i===0?"TO":"",
-          dl:leg.via||"DIRECT",dr:leg.to||(leg.via?"-----":""),dlBg:true,drBg:true,
-          dlc:leg._star||leg._app||leg._appTrans||leg._sid||leg._missed?C.cyan:C.green,drc:leg._star||leg._app||leg._appTrans||leg._sid||leg._missed?C.cyan:leg.to?C.green:C.white,
+          dl:leg._viaDisp||leg.via||"DIRECT",dr:leg.to||(leg.via?"-----":""),dlBg:true,drBg:true,
+          dlc:leg._star||leg._sid||leg._dest?C.cyan:C.green,drc:leg._star||leg._sid||leg._dest?C.cyan:leg.to?C.green:C.white,
           tlc:C.dim,trc:C.dim});
         else rows.push({tl:i===0&&!legsSlice.length?"VIA":"",tr:i===0&&!legsSlice.length?"TO":"",
           dl:"-----",dr:"▯▯▯▯▯",dlc:C.cyan,drc:C.cyan,dlBg:true,drBg:true,tlc:C.dim,trc:C.dim});
@@ -21067,7 +21041,7 @@ function cduPageData(fms) {
       } else if(selSid&&!selRwy){
         // ═══ SID selected — show sel SID + RWY list ═══
         rows.push({tl:titleRow,
-          dl:selSid+sidTag(selSid),dlc:C.green,
+          dl:selSid+(fms.depTrans?"."+fms.depTrans:"")+sidTag(selSid),dlc:C.green,
           dr:rwys[0]||"",drc:C.white});
         if(hasTrans){
           rows.push({tl:"TRANS",tlc:C.dim,dl:(sidNav.trans[0]||"---"),dlc:C.white,dr:rwys[1]||"",drc:C.white});
@@ -21092,7 +21066,7 @@ function cduPageData(fms) {
           var bSid=sids[bi]||"";
           var bRwy=rwys[bi]||"";
           var bRow={
-            dl:bSid===selSid?selSid+sidTag(selSid):bSid,
+            dl:bSid===selSid?selSid+(fms.depTrans?"."+fms.depTrans:"")+sidTag(selSid):bSid,
             dlc:bSid===selSid?C.green:C.white,
             dr:bRwy===selRwy?rwyTag(selRwy)+" "+bRwy:bRwy,
             drc:bRwy===selRwy?C.green:C.white};
@@ -21105,7 +21079,7 @@ function cduPageData(fms) {
         var sNavB=selSid?NAV_DATA[selSid]:null;
         var hasTransB=sNavB&&sNavB.trans&&sNavB.trans.length>0;
         rows.push({tl:titleRow,
-          dl:selSid+sidTag(selSid),dlc:C.green,
+          dl:selSid+(fms.depTrans?"."+fms.depTrans:"")+sidTag(selSid),dlc:C.green,
           dr:rwyTag(selRwy)+" "+selRwy,drc:C.green});
         if(hasTransB){
           rows.push({tl:"TRANS",tlc:C.dim,dl:(sNavB.trans[0]||"---"),dlc:C.white});
@@ -21156,7 +21130,7 @@ function cduPageData(fms) {
         var sNav1=NAV_DATA[selStar];
         var sTransArr1=sNav1&&sNav1.trans?sNav1.trans:[];
         rows.push({tl:titleRow,
-          dl:selStar+lTag(selStar,starAct),dlc:C.green,
+          dl:selStar+(fms.arrStarTrans?"."+fms.arrStarTrans:"")+lTag(selStar,starAct),dlc:C.green,
           dr:apps[0]||"",drc:apps[0]?C.white:C.dim});
         if(sTransArr1.length>0){
           for(var sti=0;sti<3;sti++){
@@ -21199,7 +21173,7 @@ function cduPageData(fms) {
           var aStar=stars[ai]||"";
           var aApp=apps[ai]||"";
           var aRow={
-            dl:aStar===selStar?selStar+lTag(selStar,starAct):aStar,
+            dl:aStar===selStar?selStar+(fms.arrStarTrans?"."+fms.arrStarTrans:"")+lTag(selStar,starAct):aStar,
             dlc:aStar===selStar?C.green:(aStar?C.white:C.dim),
             dr:aApp.replace(/\s/g,"")===selApp?rTag(selApp,appAct)+aApp:aApp,
             drc:aApp.replace(/\s/g,"")===selApp?C.green:(aApp?C.white:C.dim)};
@@ -21215,7 +21189,7 @@ function cduPageData(fms) {
         var aNavB=NAV_DATA[(selApp||"").replace(/\s/g,"")];
         var aTransArrB=aNavB&&aNavB.trans?aNavB.trans:[];
         rows.push({tl:titleRow,
-          dl:selStar+lTag(selStar,starAct),dlc:C.green,
+          dl:selStar+(fms.arrStarTrans?"."+fms.arrStarTrans:"")+lTag(selStar,starAct),dlc:C.green,
           dr:rTag(selApp,appAct)+selApp,drc:C.green});
         // Show STAR TRANS on left, APP TRANS on right
         var maxTrans=Math.max(sTransSel.length,fms.arrTrans?1:aTransArrB.length);
@@ -21663,11 +21637,31 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
               s.helpMsg="ROUTE DATA RECEIVED";
             } else if(s.fltNo) { s.helpMsg="NO ROUTE IN DATABASE"; }
           }
-          // L5: LOAD → enroute legs only (SID/STAR/APP selected via DEP/ARR)
+          // L5: LOAD → flight plan route (per-flight DB, includes ARR if applicable)
           if(side==="L"&&num===5&&s.rteUplinkPending){
             const db=FLIGHT_DB[(s.fltNo||"").toUpperCase()];
             if(db){
-              s.routeLegs=[...db.route];
+              s.routeLegs=db.route.map(function(l){return Object.assign({},l);});
+              // Prepend DIRECT → SID exit (and base wpt if sidTrans exists)
+              if(db.sid){
+                var _sidNav=NAV_DATA[db.sid];
+                if(_sidNav&&_sidNav.exit){
+                  if(db.sidTrans&&_sidNav.wpts&&_sidNav.wpts.length>=2){
+                    var _baseWpt=_sidNav.wpts[_sidNav.wpts.length-2];
+                    if(_baseWpt&&_baseWpt.wpt&&!_baseWpt.isRwy){
+                      s.routeLegs.unshift({via:"DIRECT",to:_sidNav.exit});
+                      s.routeLegs.unshift({via:"DIRECT",to:_baseWpt.wpt});
+                    } else {
+                      s.routeLegs.unshift({via:"DIRECT",to:_sidNav.exit});
+                    }
+                  } else {
+                    s.routeLegs.unshift({via:"DIRECT",to:_sidNav.exit});
+                    if(s.routeLegs.length>1&&s.routeLegs[1].to===_sidNav.exit){
+                      s.routeLegs.splice(1,1);
+                    }
+                  }
+                }
+              }
               s.fuel=db.fuel;s.reserves=db.reserves;
               s.rteUplinkPending=false;
               s.computedLegs=buildLegs(s);
@@ -21700,9 +21694,9 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
         // DELETE on L1-L5 or R1-R5: remove the routeLeg at that position
         if((side==="L"||side==="R")&&num>=1&&num<=5&&sp==="DELETE"){
           const idx=startIdx+(num-1);
-          if(idx<s.routeLegs.length&&!s.routeLegs[idx]._star&&!s.routeLegs[idx]._app&&!s.routeLegs[idx]._missed){
+          if(idx<s.routeLegs.length&&!s.routeLegs[idx]._star&&!s.routeLegs[idx]._app&&!s.routeLegs[idx]._missed&&!s.routeLegs[idx]._dest){
             s.routeLegs.splice(idx,1);
-            s.routeLegs=s.routeLegs.filter(function(l){return l.via||l.to||l._star||l._app||l._disc||l._appTrans||l._sid||l._missed;});
+            s.routeLegs=s.routeLegs.filter(function(l){return l.via||l.to||l._star||l._app||l._disc||l._appTrans||l._sid||l._missed||l._dest;});
             if(s.phase==="ACTIVE")s.execLight=true;
             updateRouteLegs(s);s.computedLegs=buildLegs(s);
           }
@@ -22090,7 +22084,7 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
                 for(var ri=0;ri<s.routeLegs.length;ri++){
                   var rl=s.routeLegs[ri];
                   if(remainingWpts.has(rl.to)){newRL.push(rl);}
-                  else if(!rl._star&&!rl._app&&!rl._appTrans&&!rl._disc&&!rl._missed){
+                  else if(!rl._star&&!rl._app&&!rl._appTrans&&!rl._disc&&!rl._missed&&!rl._dest){
                     // TO removed — check if inputWpt is on this airway
                     var awyWpts=AIRWAY_DB[rl.via];
                     if(awyWpts&&awyWpts.indexOf(inputWpt)>=0){
@@ -22869,11 +22863,11 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
         )
       )
       /* Message area — Phase preset buttons (touch enabled) */
-      , React.createElement('div', { style: {flex:"3 1 0",padding:"6px 8px",borderTop:"1px solid #333",minHeight:0,display:"flex",alignItems:"center",pointerEvents:"auto"},}
+      , React.createElement('div', { style: {padding:"4px 8px",marginTop:"auto",borderTop:"1px solid #333",display:"flex",alignItems:"center",pointerEvents:"auto"},}
         , (function(){
-          var phases=["INITIAL","CDU SETUP","BFR T/O","CRUISE"];
-          var phaseDescs=["FMS Reset","RTE DEP/ARR\nPERF Done","T/O REF\nComplete","Enroute"];
-          var phaseColors=["#334","#336","#353","#533"];
+          var phases=["CDU SETUP","BFR T/O","CRUISE"];
+          var phaseDescs=["RTE DEP/ARR PERF Done","T/O REF Complete","Enroute"];
+          var phaseColors=["#336","#353","#533"];
           var mkCk=function(upTo){var ck={};var counts=[10,8,6,5,3];for(var ci=0;ci<upTo;ci++){for(var ii=0;ii<counts[ci];ii++)ck[ci+"-"+ii]=true;}return ck;};
           var iataMap={"RJFF":"FUK","RKSI":"ICN","RKES":"CJU","RKSS":"GMP","RJTT":"HND","RJAA":"NRT","CYYZ":"YYZ","KBUF":"BUF","CYOW":"YOW","CYHM":"YHM"};
           /* Helper: build preset FMS state from FLIGHT_DB for any flight */
@@ -22893,11 +22887,12 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
             var intx=db.intx||"FULL "+rwy;
             var oIata=iataMap[origin]||"";var aprtDisp=oIata?origin+" / "+oIata:origin;
             var base={fltNo:fltNo,origin:origin,dest:dest,runway:rwy,depRwy:rwy,
-              routeLegs:rteLegs,depSid:sid,depSidAct:true,phase:"ACTIVE",
+              routeLegs:rteLegs,depSid:sid,depSidAct:true,depTrans:db.sidTrans||"",phase:"ACTIVE",
               grWt:grWt,fuel:fuel,zfw:zfw,reserves:reserves,crzAlt:crzAlt,costIndex:ci,
               efbInit:true};
             if(phase==="setup"){
               return Object.assign({},initFMS(),base,{eicasScenario:3,page:"PERF_INIT",
+                arrStar:star,arrStarAct:true,arrStarTrans:db.starTrans||"",arrApp:app,arrAppAct:true,arrTrans:appTr,
                 chkl:{tab:"NORMAL",clIdx:1,cur:0,ck:mkCk(1),ovrd:{},menuMode:false},
                 efbPerf:{aprt:"",rwy:"",intx:"",cond:"",wind:"",oat:"",qnh:"",rtg:"OPTIMUM",ic:"NO",atm:"MAX",flap:"OPTIMUM",aiEng:"ENG AUTO",icing:"NO",rtl:"20/30",tow:"",zfw:"",cg:cg,calcDone:false,sentToFmc:false,calcV1:"",calcVR:"",calcV2:"",calcFlap:"",calcThrust:"",calcAccelHt:"",calcDTO:"",calcSelTemp:"",calcVref30:"",calcRwyIntx:"",calcTOGW:""}});
             }
@@ -22910,7 +22905,7 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
                 cg:cg,trim:trimVal,thrustMode:bThrMode,selOat:db.perfSelTemp||"",togw:bfrtoGrWt,
                 toN1:(db.perfDTO||"")+"%",eoAccelHt:(db.perfAccelHt||"")+"FT",
                 wind:db.wind?db.wind.replace("/","°/")+"KT":"",
-                arrStar:star,arrStarAct:true,arrApp:app,arrAppAct:true,arrTrans:appTr,
+                arrStar:star,arrStarAct:true,arrStarTrans:db.starTrans||"",arrApp:app,arrAppAct:true,arrTrans:appTr,
                 eicasScenario:7,page:"TOREF1",
                 chkl:{tab:"NORMAL",clIdx:3,cur:0,ck:mkCk(3),ovrd:{},menuMode:false},
                 efbPerf:{aprt:aprtDisp,rwy:rwy,intx:intx,cond:db.cond||"DRY",wind:db.wind||"",oat:db.oat||"",qnh:db.qnh||"1013",rtg:"OPTIMUM",ic:"NO",atm:"MAX",flap:"OPTIMUM",aiEng:"ENG AUTO",icing:"NO",rtl:"20/30",tow:bTogwLbs,zfw:zfwLbs,cg:cg,calcDone:true,sentToFmc:true,calcV1:db.perfV1||"",calcVR:db.perfVR||"",calcV2:db.perfV2||"",calcFlap:db.perfFlap||"",calcThrust:db.perfThrust||"",calcAccelHt:db.perfAccelHt||"",calcDTO:db.perfDTO||"",calcSelTemp:db.perfSelTemp||"",calcVref30:db.perfVref30||"",calcRwyIntx:intx,calcTOGW:bTogwLbs}});
@@ -22927,7 +22922,7 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
                 cg:cg,trim:trimVal,thrustMode:cThrMode,selOat:db.perfSelTemp||"",togw:bfrtoGrWt,
                 toN1:(db.perfDTO||"")+"%",eoAccelHt:(db.perfAccelHt||"")+"FT",
                 wind:db.wind?db.wind.replace("/","°/")+"KT":"",
-                arrStar:star,arrStarAct:true,arrApp:app,arrAppAct:true,arrTrans:appTr,
+                arrStar:star,arrStarAct:true,arrStarTrans:db.starTrans||"",arrApp:app,arrAppAct:true,arrTrans:appTr,
                 eicasScenario:8,page:"CRZ",
                 chkl:{tab:"NORMAL",clIdx:5,cur:0,ck:mkCk(5),ovrd:{},menuMode:false},
                 efbPerf:{aprt:aprtDisp,rwy:rwy,intx:intx,cond:db.cond||"DRY",wind:db.wind||"",oat:db.oat||"",qnh:db.qnh||"1013",rtg:"OPTIMUM",ic:"NO",atm:"MAX",flap:"OPTIMUM",aiEng:"ENG AUTO",icing:"NO",rtl:"20/30",tow:crzTogwLbs,zfw:zfwLbs,cg:cg,calcDone:true,sentToFmc:true,calcV1:db.perfV1||"",calcVR:db.perfVR||"",calcV2:db.perfV2||"",calcFlap:db.perfFlap||"",calcThrust:db.perfThrust||"",calcAccelHt:db.perfAccelHt||"",calcDTO:db.perfDTO||"",calcSelTemp:db.perfSelTemp||"",calcVref30:db.perfVref30||"",calcRwyIntx:intx,calcTOGW:crzTogwLbs}});
@@ -22938,24 +22933,23 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
           var noCruiseFlts=[];
           return React.createElement('div', { style: {display:"flex",gap:"3px",width:"100%"},}
             , phases.map(function(ph,pi){
-              var fltKey=(fms.fltNo||"KAL781").toUpperCase();
-              if(!FLIGHT_DB[fltKey])fltKey="KAL781";
-              var isDisabled=(pi>0 && noPresetFlts.indexOf(fltKey)>=0)||(pi===3 && noCruiseFlts.indexOf(fltKey)>=0);
+              var fltKey=(fms.fltNo||"").toUpperCase();
+              var hasValidFlt=fltKey!==""&&!!FLIGHT_DB[fltKey];
+              var isDisabled=!hasValidFlt||(noPresetFlts.indexOf(fltKey)>=0)||(pi===2 && noCruiseFlts.indexOf(fltKey)>=0);
               return React.createElement('button', { key: ph, onClick: isDisabled?undefined:function(){
-                if(pi===0){setFms(initFMS());setMfdMode("CDU");}
-                else if(pi===1){
+                if(pi===0){
                   var p1=buildPreset(fltKey,"setup");
                   if(p1){updateRouteLegs(p1);p1.computedLegs=buildLegs(p1);setFms(p1);setMfdMode("CDU");}
-                } else if(pi===2){
+                } else if(pi===1){
                   var p2=buildPreset(fltKey,"bfrto");
                   if(p2){updateRouteLegs(p2);p2.computedLegs=buildLegs(p2);setFms(p2);setMfdMode("CDU");}
                 } else {
                   var p3=buildPreset(fltKey,"cruise");
                   if(p3){updateRouteLegs(p3);p3.computedLegs=buildLegs(p3);setFms(p3);setMfdMode("CDU");}
                 }
-              }, style: {flex:1,padding:"6px 2px",background:isDisabled?"#1a1a1a":phaseColors[pi],color:isDisabled?"#444":"#ccc",border:"1px solid "+(isDisabled?"#333":"#555"),borderRadius:3,fontSize:16,fontWeight:"bold",cursor:isDisabled?"default":"pointer",fontFamily:M,lineHeight:1.2,textAlign:"center",whiteSpace:"pre-line",display:"flex",flexDirection:"column",alignItems:"center",gap:3,opacity:isDisabled?0.4:1},},
+              }, style: {flex:1,padding:"3px 2px",background:isDisabled?"#1a1a1a":phaseColors[pi],color:isDisabled?"#444":"#ccc",border:"1px solid "+(isDisabled?"#333":"#555"),borderRadius:3,fontSize:14,fontWeight:"bold",cursor:isDisabled?"default":"pointer",fontFamily:M,lineHeight:1.1,textAlign:"center",whiteSpace:"nowrap",display:"flex",flexDirection:"column",alignItems:"center",gap:1,opacity:isDisabled?0.4:1},},
                 React.createElement('span', null, ph),
-                React.createElement('span', {style:{fontSize:10,color:"#aaa",fontWeight:"normal",lineHeight:1.3,whiteSpace:"pre-line",letterSpacing:0.5}}, phaseDescs[pi])
+                React.createElement('span', {style:{fontSize:9,color:"#aaa",fontWeight:"normal",lineHeight:1.1,whiteSpace:"nowrap",letterSpacing:0.3}}, phaseDescs[pi])
               );
             })
           );
@@ -26094,7 +26088,7 @@ var SYNC_KEYS=["phase","origin","dest","fltNo","coRoute","runway","refAirport",
   "appLandRef","appGsOn","appWindCorr","appFlapSpd","appGwEntered",
   "rwyWind","slopeCond","toN1","togw",
   "depSid","depRwy","depTrans","depEoSid","depSidAct",
-  "arrStar","arrApp","arrTrans","arrRwy","arrStarAct","arrAppAct",
+  "arrStar","arrStarTrans","arrApp","arrTrans","arrRwy","arrStarAct","arrAppAct",
   "routeLegs","rtePage","computedLegs",
   "eicasScenario","eicasCxd","execLight",
   "rte2Origin","rte2Dest","rte2FltNo","rte2Runway","rte2CoRoute","rte2Legs","rte2Page","rte2UplinkPending",
@@ -26313,35 +26307,76 @@ function B787Cockpit(){
     )
   );};
   if(splash) return(React.createElement('div', {style:{width:"100%",minHeight:"100vh",background:"#000",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",fontFamily:M,padding:20}},
-    React.createElement('div', {style:{maxWidth:600,width:"100%"}},
+    React.createElement('div', {style:{maxWidth:900,width:"100%"}},
       React.createElement('div', {style:{textAlign:"center",marginBottom:30}},
         React.createElement('div', {style:{color:"#00cccc",fontSize:33,fontWeight:"bold",letterSpacing:4,marginBottom:4}}, "B787 DREAMLINER"),
         React.createElement('div', {style:{color:"#aaa",fontSize:14,letterSpacing:2}}, "COCKPIT PROCEDURE SIMULATOR"),
         React.createElement('div', {style:{color:"#777",fontSize:14,marginTop:4}}, "FOR TRAINING PURPOSE ONLY"),
-        React.createElement('div', {style:{color:"#00bb00",fontSize:11,marginTop:12,letterSpacing:1}}, "v2.13.0 \u00a0|\u00a0 by SH Lee \u00a0 s.lee@koreanair.com"),
+        React.createElement('div', {style:{color:"#00bb00",fontSize:11,marginTop:12,letterSpacing:1}}, "v2.14.0 \u00a0|\u00a0 by SH Lee \u00a0 s.lee@koreanair.com"),
         React.createElement('div', {style:{color:"#888",fontSize:11,marginTop:6}}, "\uc624\ub958\uac00 \uc788\uc744 \uc2dc \uc704 \uba54\uc77c\ub85c \uc54c\ub824\uc8fc\uc2dc\uae30 \ubc14\ub78d\ub2c8\ub2e4.")
       ),
-      React.createElement('div', {style:{borderTop:"1px solid #333",borderBottom:"1px solid #333",padding:"14px 0",marginBottom:16}},
-        React.createElement(ChkRow, {checked:ckIPad,onToggle:function(){setCkIPad(function(p){return!p;});}},
-          React.createElement('div', {style:{color:"#00cccc",fontSize:17,fontWeight:"bold",marginBottom:8,letterSpacing:1}}, "PATCH NOTES v2.13.0"),
-          React.createElement('div', {style:{color:"#aaa",fontSize:14,fontWeight:"bold",lineHeight:1.8}},
-            React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginBottom:2}}, "v2.13.0"),
-            React.createElement('div', null, "\u2022 \uc5f0\uc18d \ube44\ud589 SIM (8.5NM/min) · PLN STEP \uc810\ud504 · Direct-to \uacbd\ub85c \ucd94\uc801"),
-            React.createElement('div', null, "\u2022 PLN RANGE \uc904 \uc778/\uc544\uc6c3 · RTE DISC \uac1c\uc120 · COMM \ud638\ubc84 \uc218\uc815"),
-            React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginTop:8,marginBottom:2}}, "v2.12.0"),
-            React.createElement('div', null, "\u2022 SIM \uae30\ubc18 (VNAV \ud2b8\ub9ac\uac70 · WPT \uc810\ud504 · PROGRESS \uc5f0\ub3d9)"),
-            React.createElement('div', null, "\u2022 PHASE PRESET · KAL073/074 \ub370\uc774\ud130 · KAL782 CRUISE"),
+      React.createElement('div', {style:{display:"flex",gap:20,borderTop:"1px solid #333",borderBottom:"1px solid #333",padding:"14px 0",marginBottom:16}},
+        React.createElement('div', {style:{flex:1,minWidth:0}},
+          React.createElement('div', {style:{marginBottom:14}},
+            React.createElement(ChkRow, {checked:ckIPad,onToggle:function(){setCkIPad(function(p){return!p;});}},
+              React.createElement('div', {style:{color:"#00cccc",fontSize:17,fontWeight:"bold",marginBottom:8,letterSpacing:1}}, "PATCH NOTES v2.14.0"),
+              React.createElement('div', {style:{color:"#aaa",fontSize:14,fontWeight:"bold",lineHeight:1.8}},
+                React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginBottom:2}}, "v2.14.0"),
+                React.createElement('div', null, "\u2022 RTE REQUEST/LOAD: \ud3b8\uba85\ubcc4 FLT PLAN \uacbd\ub85c \ub85c\ub4dc (SID\u2192DIRECT, ARR \ub370\uc774\ud130 \uae30\ubc18)"),
+                React.createElement('div', null, "\u2022 RTE \ud504\ub9ac\uc14b: SID \uc911\ubcf5 \uc81c\uac70 · STAR \ud45c\uc2dc \uc870\uac74 \uac1c\uc120"),
+                React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginTop:8,marginBottom:2}}, "v2.13.0"),
+                React.createElement('div', null, "\u2022 \uc5f0\uc18d \ube44\ud589 SIM (8.5NM/min) · PLN STEP \uc810\ud504 · Direct-to \uacbd\ub85c \ucd94\uc801"),
+                React.createElement('div', null, "\u2022 PLN RANGE \uc904 \uc778/\uc544\uc6c3 · RTE DISC \uac1c\uc120 · COMM \ud638\ubc84 \uc218\uc815"),
+                React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginTop:8,marginBottom:2}}, "v2.12.0"),
+                React.createElement('div', null, "\u2022 SIM \uae30\ubc18 (VNAV \ud2b8\ub9ac\uac70 · WPT \uc810\ud504 · PROGRESS \uc5f0\ub3d9)"),
+                React.createElement('div', null, "\u2022 PHASE PRESET · KAL073/074 \ub370\uc774\ud130 · KAL782 CRUISE"),
+              )
+            )
+          ),
+          React.createElement('div', {style:{borderTop:"1px solid #333",paddingTop:14}},
+            React.createElement(ChkRow, {checked:ckSync,onToggle:function(){setCkSync(function(p){return!p;});}},
+              React.createElement('div', {style:{color:"#00cccc",fontSize:17,fontWeight:"bold",marginBottom:8,letterSpacing:1}}, "SYNC (Dual CDU) ", React.createElement('span', {style:{color:"#aaa",fontSize:13,fontWeight:"normal"}}, "(\uae30\uae30\uac04 FMS, CHKL \uc2e4\uc2dc\uac04 \uacf5\uc720)")),
+              React.createElement('div', {style:{color:"#aaa",fontSize:14,lineHeight:1.8}},
+                React.createElement('div', null, React.createElement('span', {style:{color:"#fff"}}, "1. "), "\uc0ac\uc6a9\ud560 \uae30\uae30\ub4e4\uc5d0\uc11c \uac01\uac01 START"),
+                React.createElement('div', null, React.createElement('span', {style:{color:"#fff"}}, "2. "), "\ud55c\ucabd \uae30\uae30\uc5d0\uc11c CDU \uc88c\uce21 \uc0c1\ub2e8 ", React.createElement('span', {style:{color:"#00e800",fontWeight:"bold"}}, "SYNC"), " \ubc84\ud2bc \ud074\ub9ad \u2192 ", React.createElement('span', {style:{color:"#00e800"}}, "\ubc29 \ub9cc\ub4e4\uae30")),
+                React.createElement('div', null, React.createElement('span', {style:{color:"#fff"}}, "3. "), "\ud654\uba74\uc5d0 \ud45c\uc2dc\ub41c ", React.createElement('span', {style:{color:"#ffcc00",fontWeight:"bold"}}, "4\uc790\ub9ac \ucf54\ub4dc"), "\ub97c \uc0c1\ub300 \uae30\uae30\uc5d0 \uc785\ub825 \u2192 ", React.createElement('span', {style:{color:"#00e800"}}, "\ubc29 \ucc38\uc5ec")),
+                React.createElement('div', null, React.createElement('span', {style:{color:"#fff"}}, "4. "), "\uc5f0\uacb0 \uc644\ub8cc \u2014 CDU \uc785\ub825\uac12\uc774 \uc2e4\uc2dc\uac04 \ub3d9\uae30\ud654\ub429\ub2c8\ub2e4")
+              )
+            )
           )
-        )
-      ),
-      React.createElement('div', {style:{borderBottom:"1px solid #333",padding:"0 0 14px",marginBottom:16}},
-        React.createElement(ChkRow, {checked:ckSync,onToggle:function(){setCkSync(function(p){return!p;});}},
-          React.createElement('div', {style:{color:"#00cccc",fontSize:17,fontWeight:"bold",marginBottom:8,letterSpacing:1}}, "SYNC (Dual CDU) ", React.createElement('span', {style:{color:"#aaa",fontSize:13,fontWeight:"normal"}}, "(\uae30\uae30\uac04 FMS, CHKL \uc2e4\uc2dc\uac04 \uacf5\uc720)")),
-          React.createElement('div', {style:{color:"#aaa",fontSize:14,lineHeight:1.8}},
-            React.createElement('div', null, React.createElement('span', {style:{color:"#fff"}}, "1. "), "\uc0ac\uc6a9\ud560 \uae30\uae30\ub4e4\uc5d0\uc11c \uac01\uac01 START"),
-            React.createElement('div', null, React.createElement('span', {style:{color:"#fff"}}, "2. "), "\ud55c\ucabd \uae30\uae30\uc5d0\uc11c CDU \uc88c\uce21 \uc0c1\ub2e8 ", React.createElement('span', {style:{color:"#00e800",fontWeight:"bold"}}, "SYNC"), " \ubc84\ud2bc \ud074\ub9ad \u2192 ", React.createElement('span', {style:{color:"#00e800"}}, "\ubc29 \ub9cc\ub4e4\uae30")),
-            React.createElement('div', null, React.createElement('span', {style:{color:"#fff"}}, "3. "), "\ud654\uba74\uc5d0 \ud45c\uc2dc\ub41c ", React.createElement('span', {style:{color:"#ffcc00",fontWeight:"bold"}}, "4\uc790\ub9ac \ucf54\ub4dc"), "\ub97c \uc0c1\ub300 \uae30\uae30\uc5d0 \uc785\ub825 \u2192 ", React.createElement('span', {style:{color:"#00e800"}}, "\ubc29 \ucc38\uc5ec")),
-            React.createElement('div', null, React.createElement('span', {style:{color:"#fff"}}, "4. "), "\uc5f0\uacb0 \uc644\ub8cc \u2014 CDU \uc785\ub825\uac12\uc774 \uc2e4\uc2dc\uac04 \ub3d9\uae30\ud654\ub429\ub2c8\ub2e4")
+        ),
+        React.createElement('div', {style:{width:340,flexShrink:0}},
+          React.createElement('div', {style:{color:"#00cccc",fontSize:15,fontWeight:"bold",marginBottom:8,letterSpacing:1}}, "EICAS SCENARIO TRIGGER"),
+          React.createElement('table', {style:{width:"100%",borderCollapse:"collapse",fontSize:13,fontFamily:M}},
+            React.createElement('thead', null,
+              React.createElement('tr', {style:{borderBottom:"1px solid #555"}},
+                React.createElement('th', {style:{color:"#888",padding:"3px 6px",textAlign:"center",width:28}}, "#"),
+                React.createElement('th', {style:{color:"#888",padding:"3px 6px",textAlign:"left"}}, "State"),
+                React.createElement('th', {style:{color:"#888",padding:"3px 6px",textAlign:"left"}}, "Trigger")
+              )
+            ),
+            React.createElement('tbody', null,
+              [
+                [1,"Cockpit Entry","FMS \ub9ac\uc14b (\ucd08\uae30\uac12)"],
+                [2,"Boarding Complete","Accept EFB data"],
+                [3,"Welcome Ann. Done","LOADSHEET Accept"],
+                [4,"Before Pushback","PREFLIGHT CHKL \uc644\ub8cc"],
+                [5,"ENG Start/APU OFF","BFR START CHKL \uc644\ub8cc"],
+                [6,"GRD Equip Cleared","S5 \ud6c4 2.5s \uc790\ub3d9\uc804\ud658"],
+                [7,"Taxiing","BFR TAXI CHKL \uc644\ub8cc"],
+                [8,"After Takeoff","BFR TAKEOFF CHKL \uc644\ub8cc"],
+                [9,"After Landing",""],
+                [10,"APU Started",""],
+                [11,"Parking Brake Set",""],
+                [12,"ENG Shutdown",""],
+                [13,"Seatbelts OFF",""],
+                [14,"All Door Manual",""]
+              ].map(function(r){return React.createElement('tr', {key:r[0],style:{borderBottom:"1px solid #222"}},
+                React.createElement('td', {style:{color:"#00e800",padding:"2px 6px",textAlign:"center",fontWeight:"bold"}}, r[0]),
+                React.createElement('td', {style:{color:"#ccc",padding:"2px 6px",whiteSpace:"nowrap"}}, r[1]),
+                React.createElement('td', {style:{color:r[2]?"#aaa":"#555",padding:"2px 6px",fontStyle:r[2]?"normal":"italic"}}, r[2]||"PREV/NEXT")
+              );})
+            )
           )
         )
       ),
