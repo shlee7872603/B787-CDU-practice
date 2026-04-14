@@ -19350,9 +19350,10 @@ const FLIGHT_DB = {
     ],
     legs:[
       {wpt:"RW33R", crs:"334°", dist:"",    spdAlt:"",           pred:"",          isRwy:true},
-      {wpt:"GOTIM",crs:"336°", dist:"15NM",spdAlt:"5000",       pred:"250/ 5000", via:"IKLEN3"},
-      {wpt:"IKLEN",crs:"336°", dist:"10NM",spdAlt:"",           pred:"250/ 8000", via:"IKLEN3"},
-      {wpt:"TONNY",crs:"347°", dist:"8NM", spdAlt:"FL180",      pred:"250/FL180", via:"IKLEN3"},
+      {wpt:"2100",  crs:"327°", dist:"",    spdAlt:"2100",       pred:"250/ 2100", via:"IKLEN3",isAlt:true},
+      {wpt:"(VECTORS)",crs:"340°",dist:"",  spdAlt:"",           pred:"",          via:"IKLEN3",isVectors:true},
+      {wpt:"IKLEN",crs:"336°", dist:"",     spdAlt:"",           pred:"250/ 8000", via:"IKLEN3"},
+      {wpt:"TONNY",crs:"347°", dist:"8NM",  spdAlt:"FL180",     pred:"250/FL180", via:"IKLEN3"},
       {wpt:"YYB",  crs:"345°", dist:"",    spdAlt:"",           pred:".780/FL340", via:"DIRECT"},
       {wpt:"GRAMP",crs:"340°", dist:"",    spdAlt:"",           pred:".780/FL340", via:"DIRECT"},
       {wpt:"VETRO",crs:"335°", dist:"",    spdAlt:"",           pred:".780/FL340", via:"DIRECT"},
@@ -19451,23 +19452,18 @@ var GATE_DB = {
 const NAV_DATA = {
   // ═══ RJFF SIDs ═══
   HAKAT5:{type:"SID",rwy:"34R",exit:"DGC",wpts:[
-    {wpt:"RW34R",crs:"338°",dist:"",spdAlt:"",pred:"",isRwy:true},
     {wpt:"DGC",crs:"338°",dist:"12NM",spdAlt:"",pred:"250/ 5000"}]},
   TOGIK2:{type:"SID",rwy:"34R",exit:"TOGIK",wpts:[
-    {wpt:"RW34R",crs:"338°",dist:"",spdAlt:"",pred:"",isRwy:true},
     {wpt:"FUKUE",crs:"310°",dist:"8NM",spdAlt:"",pred:"250/ 3000"},
     {wpt:"TOGIK",crs:"325°",dist:"18NM",spdAlt:"",pred:"250/ 5000"}]},
   OGUNI5:{type:"SID",rwy:"34R",exit:"OGUNI",wpts:[
-    {wpt:"RW34R",crs:"338°",dist:"",spdAlt:"",pred:"",isRwy:true},
     {wpt:"FF341",crs:"338°",dist:"6NM",spdAlt:"",pred:"250/ 2000"},
     {wpt:"OGUNI",crs:"010°",dist:"22NM",spdAlt:"",pred:"250/ 5000"}]},
   YAMEK7:{type:"SID",rwy:"34R",exit:"YAMEK",wpts:[
-    {wpt:"RW34R",crs:"338°",dist:"",spdAlt:"",pred:"",isRwy:true},
     {wpt:"FF342",crs:"338°",dist:"5NM",spdAlt:"",pred:"250/ 2000"},
     {wpt:"YAMEK",crs:"355°",dist:"20NM",spdAlt:"",pred:"250/ 5000"}]},
   // ═══ RKSI SIDs ═══
   OSPO2C:{type:"SID",rwy:"15R",exit:"OSPOT",wpts:[
-    {wpt:"RW15R",crs:"150°",dist:"",spdAlt:"",pred:"",isRwy:true},
     {wpt:"CG050",crs:"140°",dist:"7.7NM",spdAlt:"5000B",pred:"250/ 5000B"},
     {wpt:"CG100",crs:"170°",dist:"6.4NM",spdAlt:"10000B",pred:"250/10000B"},
     {wpt:"CG101",crs:"095°",dist:"12.5NM",spdAlt:"",pred:"250/10000"},
@@ -19476,7 +19472,6 @@ const NAV_DATA = {
     {wpt:"CG200",crs:"157°",dist:"10NM",spdAlt:"FL200A",pred:".780/FL200A"},
     {wpt:"OSPOT",crs:"129°",dist:"10.4NM",spdAlt:"FL230A",pred:".780/FL230A"}]},
   EGOB2C:{type:"SID",rwy:"15R",exit:"EGOBA",wpts:[
-    {wpt:"RW15R",crs:"150°",dist:"",spdAlt:"",pred:"",isRwy:true},
     {wpt:"CG050",crs:"140°",dist:"7.7NM",spdAlt:"5000B",pred:"250/ 5000B"},
     {wpt:"CG100",crs:"170°",dist:"6.4NM",spdAlt:"10000B",pred:"250/10000B"},
     {wpt:"CG101",crs:"095°",dist:"12.5NM",spdAlt:"",pred:"250/10000"},
@@ -19485,7 +19480,6 @@ const NAV_DATA = {
     {wpt:"EGOBA",crs:"044°",dist:"10NM",spdAlt:"",pred:".780/FL230"}]},
   // ═══ RKSI SIDs RWY 33L/R (Jeppesen 20-3E, EGOBA 2E / OSPOT 2E) ═══
   OSPO2E:{type:"SID",rwy:"33R",exit:"OSPOT",wpts:[
-    {wpt:"RW33R",crs:"334°",dist:"",spdAlt:"",pred:"",isRwy:true},
     {wpt:"EG020",crs:"334°",dist:"5.6NM",spdAlt:"",pred:"230/ 2000"},
     {wpt:"EG040",crs:"079°",dist:"5.2NM",spdAlt:"230KT/4000A",pred:"230/ 4000A"},
     {wpt:"ASIDI",crs:"119°",dist:"5.0NM",spdAlt:"5500A",pred:"250/ 5500A"},
@@ -19494,7 +19488,6 @@ const NAV_DATA = {
     {wpt:"EG160",crs:"152°",dist:"7.0NM",spdAlt:"FL160A",pred:".780/FL160A"},
     {wpt:"OSPOT",crs:"180°",dist:"20NM",spdAlt:"FL210A",pred:".780/FL210A"}]},
   EGOB2E:{type:"SID",rwy:"33R",exit:"EGOBA",wpts:[
-    {wpt:"RW33R",crs:"334°",dist:"",spdAlt:"",pred:"",isRwy:true},
     {wpt:"EG020",crs:"334°",dist:"5.6NM",spdAlt:"",pred:"230/ 2000"},
     {wpt:"EG040",crs:"079°",dist:"5.2NM",spdAlt:"230KT/4000A",pred:"230/ 4000A"},
     {wpt:"ASIDI",crs:"119°",dist:"5.0NM",spdAlt:"5500A",pred:"250/ 5500A"},
@@ -19657,11 +19650,11 @@ const NAV_DATA = {
     {wpt:"FF341",crs:"338°",dist:"5NM",spdAlt:"",pred:"Vapp/ 1400"},
     {wpt:"RW34R",crs:"338°",dist:"4NM",spdAlt:"",pred:"Vref+5",isDest:true}]},
   // ═══ CYYZ SIDs ═══
-  IKLEN3:{type:"SID",rwy:"05",exit:"TONNY",wpts:[
-    {wpt:"RW05",crs:"057°",dist:"",spdAlt:"",pred:"",isRwy:true},
-    {wpt:"GOTIM",crs:"336°",dist:"15NM",spdAlt:"5000",pred:"250/ 5000"},
-    {wpt:"IKLEN",crs:"336°",dist:"10.3NM",spdAlt:"",pred:"250/ 8000"},
-    {wpt:"TONNY",crs:"347°",dist:"8.0NM",spdAlt:"",pred:"250/FL180"}]},
+  IKLEN3:{type:"SID",rwy:"33R",exit:"TONNY",wpts:[
+    {wpt:"2100",crs:"327°",dist:"",spdAlt:"2100",pred:"250/ 2100",isAlt:true},
+    {wpt:"(VECTORS)",crs:"340°",dist:"",spdAlt:"",pred:"",isVectors:true},
+    {wpt:"IKLEN",crs:"336°",dist:"",spdAlt:"",pred:"250/ 8000"},
+    {wpt:"TONNY",crs:"347°",dist:"8.0NM",spdAlt:"FL180",pred:"250/FL180"}]},
   // ═══ CYYZ STARs ═══
   BOXUM7:{type:"STAR",entry:"BOXUM",trans:["OTNIK","TUDAN","IRKIM"],vectors:true,wpts:[
     {wpt:"BOXUM",crs:"138°",dist:"",spdAlt:"FL190",pred:".780/FL190"},
@@ -19804,10 +19797,10 @@ function buildLegs(fms){
   var enrLookup={};
   (ENROUTE_LEGS[fltKey]||[]).forEach(function(w){enrLookup[w.wpt]=w;});
 
-  // SID
+  // SID (skip RWY — first leg of SID is first fix, not runway)
   var sid=NAV_DATA[fms.depSid];
   if(sid&&sid.type==="SID"){
-    legs=legs.concat(sid.wpts.map(function(w){return Object.assign({},w,{via:fms.depSid});}));
+    legs=legs.concat(sid.wpts.filter(function(w){return !w.isRwy;}).map(function(w){return Object.assign({},w,{via:fms.depSid});}));
   }
 
   // Enroute — GLOBAL RULE: dynamically expand routeLegs via AIRWAY_DB
@@ -20942,6 +20935,24 @@ function cduPageData(fms) {
         allLegs=[{wpt:fms.origin,crs:"---°",dist:"",spdAlt:"",pred:"",isRwy:true}];
         fms.routeLegs.forEach(l=>allLegs.push({wpt:l.to,crs:"---°",dist:"---NM",spdAlt:"",pred:""}));
         allLegs.push({wpt:fms.dest,crs:"---°",dist:"---NM",spdAlt:"",pred:"",isDest:true});
+      }
+      // SIM sequencing: trim passed waypoints so LEGS page advances
+      if(fms.simActive&&fms.simLegIdx>0&&allLegs.length>0){
+        // Build pts list same as sim tick to find TO waypoint name
+        var _sPts=[];
+        if(fms.origin){var _soc=getWptLL(fms.origin);if(_soc)_sPts.push(fms.origin);}
+        for(var _si=0;_si<allLegs.length;_si++){var _sl=allLegs[_si];if(_sl.isDisc||_sl.isHold||_sl.isVectors||!_sl.wpt)continue;_sPts.push(_sl.wpt);}
+        if(fms.dest&&fms.dest!==fms.origin)_sPts.push(fms.dest);
+        var _fromWpt=_sPts[fms.simLegIdx]||"";
+        var _toWpt2=_sPts[fms.simLegIdx+1]||"";
+        // Find the FROM waypoint index in allLegs and trim everything before it
+        if(_fromWpt){
+          var _fromIdx=-1;
+          for(var _fi2=0;_fi2<allLegs.length;_fi2++){
+            if(allLegs[_fi2].wpt===_fromWpt&&!allLegs[_fi2].isDisc){_fromIdx=_fi2;break;}
+          }
+          if(_fromIdx>0) allLegs=allLegs.slice(_fromIdx);
+        }
       }
       const perPage=5;
       // FCOM 11.42.2: When L5 is full, next page activates with L1 blank for insertion
@@ -26312,16 +26323,16 @@ function B787Cockpit(){
         React.createElement('div', {style:{color:"#00cccc",fontSize:33,fontWeight:"bold",letterSpacing:4,marginBottom:4}}, "B787 DREAMLINER"),
         React.createElement('div', {style:{color:"#aaa",fontSize:14,letterSpacing:2}}, "COCKPIT PROCEDURE SIMULATOR"),
         React.createElement('div', {style:{color:"#777",fontSize:14,marginTop:4}}, "FOR TRAINING PURPOSE ONLY"),
-        React.createElement('div', {style:{color:"#00bb00",fontSize:11,marginTop:12,letterSpacing:1}}, "v2.14.0 \u00a0|\u00a0 by SH Lee \u00a0 s.lee@koreanair.com"),
+        React.createElement('div', {style:{color:"#00bb00",fontSize:11,marginTop:12,letterSpacing:1}}, "v2.13.1 \u00a0|\u00a0 by SH Lee \u00a0 s.lee@koreanair.com"),
         React.createElement('div', {style:{color:"#888",fontSize:11,marginTop:6}}, "\uc624\ub958\uac00 \uc788\uc744 \uc2dc \uc704 \uba54\uc77c\ub85c \uc54c\ub824\uc8fc\uc2dc\uae30 \ubc14\ub78d\ub2c8\ub2e4.")
       ),
       React.createElement('div', {style:{display:"flex",gap:20,borderTop:"1px solid #333",borderBottom:"1px solid #333",padding:"14px 0",marginBottom:16}},
         React.createElement('div', {style:{flex:1,minWidth:0}},
           React.createElement('div', {style:{marginBottom:14}},
             React.createElement(ChkRow, {checked:ckIPad,onToggle:function(){setCkIPad(function(p){return!p;});}},
-              React.createElement('div', {style:{color:"#00cccc",fontSize:17,fontWeight:"bold",marginBottom:8,letterSpacing:1}}, "PATCH NOTES v2.14.0"),
+              React.createElement('div', {style:{color:"#00cccc",fontSize:17,fontWeight:"bold",marginBottom:8,letterSpacing:1}}, "PATCH NOTES v2.13.1"),
               React.createElement('div', {style:{color:"#aaa",fontSize:14,fontWeight:"bold",lineHeight:1.8}},
-                React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginBottom:2}}, "v2.14.0"),
+                React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginBottom:2}}, "v2.13.1"),
                 React.createElement('div', null, "\u2022 RTE REQUEST/LOAD: \ud3b8\uba85\ubcc4 FLT PLAN \uacbd\ub85c \ub85c\ub4dc (SID\u2192DIRECT, ARR \ub370\uc774\ud130 \uae30\ubc18)"),
                 React.createElement('div', null, "\u2022 RTE \ud504\ub9ac\uc14b: SID \uc911\ubcf5 \uc81c\uac70 · STAR \ud45c\uc2dc \uc870\uac74 \uac1c\uc120"),
                 React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginTop:8,marginBottom:2}}, "v2.13.0"),
