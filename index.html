@@ -20215,28 +20215,31 @@ const NAV_DATA = {
   // ═══ CYYZ Approaches (Jeppesen 11-4, 11-10) ═══
   // ILS RWY 05 (Jeppesen 11-1) LOC ITX 109.7, CRS 057°
   // ILS RWY 05 (Jeppesen 11-1) LOC ITX 109.7, CRS 057°, GS 3.00°
-  // No APP TRANS — XIGAM is IF, DULPA is intermediate fix
+  // XIGAM = APP TRANS (IAF), DULPA = IF, KERPU = FAF
   // Missed: climb 1100' hdg 057°, left turn intercept R-013 YYZ to 3000', to AVTEK hold 193° L MAX230KT
-  ILS05:{type:"APP",ifWpt:"XIGAM",wpts:[
-    {wpt:"XIGAM",crs:"057°",dist:"",spdAlt:"3000",pred:"210/ 3000"},
-    {wpt:"DULPA",crs:"057°",dist:"4.4NM",spdAlt:"3000",pred:"210/ 3000"},
+  ILS05:{type:"APP",trans:["XIGAM"],ifWpt:"DULPA",wpts:[
+    {wpt:"DULPA",crs:"057°",dist:"",spdAlt:"3000",pred:"210/ 3000"},
     {wpt:"KERPU",crs:"057°",dist:"5.3NM",spdAlt:"2020",pred:"210/ 2020"},
     {wpt:"MOBOT",crs:"057°",dist:"2.7NM",spdAlt:"1130",pred:"180/ 1130"},
     {wpt:"RW05",crs:"057°",dist:"1.6NM",spdAlt:"",pred:"Vref+5",isDest:true}],
+    transLegs:{
+      XIGAM:[{wpt:"XIGAM",crs:"057°",dist:"",spdAlt:"3000",pred:"210/ 3000"},
+             {wpt:"DULPA",crs:"057°",dist:"4.4NM",spdAlt:"3000",pred:"210/ 3000"}]},
     missedApproach:[
       {wpt:"(1100)",crs:"057°",dist:"",spdAlt:"1100",pred:"",isAlt:true},
       {wpt:"(INTC)",crs:"013°",dist:"",spdAlt:"3000",pred:"",isIntc:true},
       {wpt:"AVTEK",crs:"013°",dist:"21NM",spdAlt:"3000",pred:"210/ 3000"},
       {wpt:"AVTEK",crs:"",dist:"",spdAlt:"3000",pred:"210/ 3000",isHold:true,holdCrs:"193°",holdTurn:"L",holdTime:"1.0MIN",holdSpd:"MAX230KT"}]},
-  // ILS RWY 23 (Jeppesen 11-6) LOC IYZ 111.5, CRS 237°
   // ILS RWY 23 (Jeppesen 11-6) LOC IYZ 111.5, CRS 237°, GS 3.00°
-  // No APP TRANS — NUDEK is IF
+  // NUDEK = APP TRANS (IAF), CALVY = IF, OMTOK = FAF
   // Missed: climb 1100' hdg 237°, right turn intercept R-287 YYZ to 3000', to IKDOT hold 107° R MAX230KT
-  ILS23:{type:"APP",ifWpt:"NUDEK",wpts:[
-    {wpt:"NUDEK",crs:"237°",dist:"",spdAlt:"3000",pred:"210/ 3000"},
-    {wpt:"CALVY",crs:"237°",dist:"4.2NM",spdAlt:"3000",pred:"210/ 3000"},
+  ILS23:{type:"APP",trans:["NUDEK"],ifWpt:"CALVY",wpts:[
+    {wpt:"CALVY",crs:"237°",dist:"",spdAlt:"3000",pred:"210/ 3000"},
     {wpt:"OMTOK",crs:"237°",dist:"5.4NM",spdAlt:"1970",pred:"180/ 1970"},
     {wpt:"RW23",crs:"237°",dist:"4.2NM",spdAlt:"",pred:"Vref+5",isDest:true}],
+    transLegs:{
+      NUDEK:[{wpt:"NUDEK",crs:"237°",dist:"",spdAlt:"3000",pred:"210/ 3000"},
+             {wpt:"CALVY",crs:"237°",dist:"4.2NM",spdAlt:"3000",pred:"210/ 3000"}]},
     missedApproach:[
       {wpt:"(1100)",crs:"237°",dist:"",spdAlt:"1100",pred:"",isAlt:true},
       {wpt:"(INTC)",crs:"287°",dist:"",spdAlt:"3000",pred:"",isIntc:true},
@@ -20440,7 +20443,7 @@ function buildLegs(fms){
   // Enroute — GLOBAL RULE: dynamically expand routeLegs via AIRWAY_DB
   // Process enroute + _manual + _disc entries in order (exclude STAR/APP/etc)
   var rl=fms.routeLegs||[];
-  var processRL=rl.filter(function(l){return !l._star&&!l._app&&!l._appTrans&&!l._sid&&!l._missed&&!l._dest&&!l._starDisc;});
+  var processRL=rl.filter(function(l){return !l._star&&!l._app&&!l._appTrans&&!l._sid&&!l._missed&&!l._dest;});
   var prevTo=sid?sid.exit||"":"";
   var lastEnrouteTo=prevTo; // Track last enroute TO for DISC recovery
 
@@ -20492,22 +20495,34 @@ function buildLegs(fms){
 
   // STAR — prepend transition legs if selected, then common wpts
   var star=NAV_DATA[fms.arrStar];
+  var appKey=(fms.arrApp||"").replace(/\s/g,"");
+  var app=NAV_DATA[appKey];
   if(star&&star.type==="STAR"){
     var starWpts=[];
     // Prepend STAR transition legs (OTNIK/TUDAN/IRKIM etc.)
     if(fms.arrStarTrans&&star.transLegs&&star.transLegs[fms.arrStarTrans]){
       var tLegs=star.transLegs[fms.arrStarTrans];
       starWpts=tLegs.map(function(w){return Object.assign({},w,{via:fms.arrStar});});
-      // Common wpts start after entry (skip BOXUM duplicate if last transLeg == first common wpt)
-      var lastTrans=starWpts[starWpts.length-1].wpt;
-      var commonStart=star.wpts[0].wpt;
-      if(lastTrans===commonStart){
-        starWpts=starWpts.concat(star.wpts.slice(1).map(function(w){return Object.assign({},w,{via:fms.arrStar});}));
+      if(!app&&!_blHasManualRwy&&!_blHasManualAirport){
+        // No APP: show only transition legs, ending at common entry (e.g., BOXUM)
+        // Don't append base procedure wpts
       } else {
-        starWpts=starWpts.concat(star.wpts.map(function(w){return Object.assign({},w,{via:fms.arrStar});}));
+        // APP selected or manual bypass: append base procedure
+        var lastTrans=starWpts[starWpts.length-1].wpt;
+        var commonStart=star.wpts[0].wpt;
+        if(lastTrans===commonStart){
+          starWpts=starWpts.concat(star.wpts.slice(1).map(function(w){return Object.assign({},w,{via:fms.arrStar});}));
+        } else {
+          starWpts=starWpts.concat(star.wpts.map(function(w){return Object.assign({},w,{via:fms.arrStar});}));
+        }
       }
     } else {
-      starWpts=star.wpts.map(function(w){return Object.assign({},w,{via:fms.arrStar});});
+      if(!app&&!_blHasManualRwy&&!_blHasManualAirport){
+        // No transition, no APP: show only base wpts up to common entry (first wpt)
+        starWpts=[Object.assign({},star.wpts[0],{via:fms.arrStar})];
+      } else {
+        starWpts=star.wpts.map(function(w){return Object.assign({},w,{via:fms.arrStar});});
+      }
     }
     var lastWpt=legs.length?legs[legs.length-1].wpt:"";
     var starEntry=starWpts[0].wpt;
@@ -20522,15 +20537,11 @@ function buildLegs(fms){
       legs=legs.concat(starWpts);
     }
     // VECTORS pseudo-leg: STAR ends with radar vectors before approach
-    // Skip if manual leg closes the vectors gap
-    if(star.vectors&&!_blHasManualRwy&&!_blHasManualAirport){
+    // Skip if manual leg closes the vectors gap, or if APP trans bridges
+    var _appHasTransBL=!!(app&&fms.arrTrans&&app.transLegs&&app.transLegs[fms.arrTrans]);
+    if(star.vectors&&!_blHasManualRwy&&!_blHasManualAirport&&!_appHasTransBL){
       legs.push({wpt:"(VECTORS)",isVectors:true,via:fms.arrStar});
-      // Auto-insert DISC after VECTORS when no APP or no APP transition bridges the gap
-      var _appKey2=(fms.arrApp||"").replace(/\s/g,"");
-      var _app2=NAV_DATA[_appKey2];
-      if(!_app2||!fms.arrTrans){
-        legs.push({wpt:"□□□□□",crs:"",dist:"",spdAlt:"",pred:"",isDisc:true});
-      }
+      // No DISC — APP legs connect directly after (VECTORS)
     }
     // If manual bypass, insert the manual leg directly after STAR exit
     if(_blHasManualRwy||_blHasManualAirport){
@@ -20546,8 +20557,6 @@ function buildLegs(fms){
   // APP — same merge logic, but skip DISC when APPR TRANS is set
   // Skip entirely if manual leg bypasses approach
   var _blSkipApp=_blHasManualRwy||_blHasManualAirport;
-  var appKey=(fms.arrApp||"").replace(/\s/g,"");
-  var app=NAV_DATA[appKey];
   if(app&&app.type==="APP"&&!_blSkipApp){
     var appWpts=app.wpts.map(function(w){return Object.assign({},w,{via:appKey});});
     // Prepend APP transition legs if available
@@ -20577,9 +20586,9 @@ function buildLegs(fms){
       // Auto-merge
       legs=legs.concat(appWpts.slice(1));
     } else if(lastW&&appEntry&&lastW!==appEntry){
-      // ROUTE DISCONTINUITY — APP entry doesn't match last waypoint
-      // Skip if last leg is already a DISC (e.g., from vectors STAR)
-      if(!legs[legs.length-1].isDisc){
+      // No DISC after (VECTORS) — APP legs connect directly
+      // DISC only if last leg is NOT (VECTORS)
+      if(!legs[legs.length-1].isVectors&&!legs[legs.length-1].isDisc){
         legs.push({wpt:"-----",isDisc:true,discFrom:lastW,discTo:appEntry});
       }
       legs=legs.concat(appWpts);
@@ -20665,40 +20674,45 @@ function updateRouteLegs(fms){
   var _hasManualRwy=fms.routeLegs.some(function(l){return l._manual&&!l._afterStar&&l.to&&/^RW\d/.test(l.to);});
   var _hasManualAirport=fms.routeLegs.some(function(l){return l._manual&&!l._afterStar&&l.to&&AIRPORT_DB[l.to];});
   if(star&&star.type==="STAR"){
-    var starExit=star.wpts[star.wpts.length-1].wpt;
-    // Global rule: if APP TRANS entry exists in STAR wpts/transLegs, truncate starExit to that point
     var _appHasTrans=!!(app&&fms.arrTrans&&app.transLegs&&app.transLegs[fms.arrTrans]);
-    if(_appHasTrans){
+    var starExit;
+    if(!app&&!_hasManualRwy&&!_hasManualAirport){
+      // No APP, no manual bypass: show only transition, exit at common entry (e.g., BOXUM)
+      starExit=star.wpts[0].wpt;
+    } else if(_appHasTrans){
+      // APP with transition: truncate STAR at APP trans entry point
       var _appTransEntry=app.transLegs[fms.arrTrans][0].wpt;
-      // Check in STAR transition legs
       var _allStarWpts=[];
       if(fms.arrStarTrans&&star.transLegs&&star.transLegs[fms.arrStarTrans]){
         _allStarWpts=star.transLegs[fms.arrStarTrans].map(function(w){return w.wpt;});
       }
       _allStarWpts=_allStarWpts.concat(star.wpts.map(function(w){return w.wpt;}));
       var _truncIdx=_allStarWpts.indexOf(_appTransEntry);
-      if(_truncIdx>=0){starExit=_appTransEntry;}
+      starExit=(_truncIdx>=0)?_appTransEntry:star.wpts[star.wpts.length-1].wpt;
+    } else {
+      // APP without transition: show full base procedure (runway variant)
+      starExit=star.wpts[star.wpts.length-1].wpt;
     }
     var starViaDisp=fms.arrStar+(fms.arrStarTrans?"."+fms.arrStarTrans:"");
-    fms.routeLegs.splice(insertPos,0,{via:fms.arrStar,_viaDisp:starViaDisp,to:starExit,_star:true});
-    insertPos++;
-    // VECTORS after STAR if procedure ends with vectors
-    // Skip if: manual closure exists, OR APP with transition bridges the gap
+    // Vectors STAR without APP trans: show TO as (VECTORS) on RTE page
+    var starTo=starExit;
     if(star.vectors&&!_hasManualRwy&&!_hasManualAirport&&!_appHasTrans){
-      fms.routeLegs.splice(insertPos,0,{via:"(VECTORS)",to:"",_star:true,isVectors:true});
-      insertPos++;
-      // DISC between STAR exit and APP if no transition bridges them
-      if(app&&app.ifWpt&&starExit!==app.ifWpt){
-        fms.routeLegs.splice(insertPos,0,{via:"DISCONTINUITY",to:"",_disc:true,_starDisc:true});
-        insertPos++;
-      }
+      starTo="(VECTORS)";
     }
+    fms.routeLegs.splice(insertPos,0,{via:fms.arrStar,_viaDisp:starViaDisp,to:starTo,_star:true});
+    insertPos++;
   }
   // Advance insertPos past _legsBypass entries (LEGS page bypass legs go before APPR/APP/MISSED)
   while(insertPos<fms.routeLegs.length&&fms.routeLegs[insertPos]._legsBypass)insertPos++;
-  // 4) APPR TRANS → APP IF waypoint — skip if approach bypassed, or if no trans defined
-  if(app&&app.type==="APP"&&app.ifWpt&&!_hasManualRwy&&!_hasManualAirport&&fms.arrTrans){
-    fms.routeLegs.splice(insertPos,0,{via:"APPR TRANS",to:app.ifWpt,_appTrans:true});
+  // 4) APPR TRANS / APP IF waypoint — skip if approach bypassed
+  if(app&&app.type==="APP"&&app.ifWpt&&!_hasManualRwy&&!_hasManualAirport){
+    if(fms.arrTrans){
+      // APP TRANS selected: show APPR TRANS row
+      fms.routeLegs.splice(insertPos,0,{via:"APPR TRANS",to:app.ifWpt,_appTrans:true});
+    } else {
+      // No APP TRANS: show ----- / ifWpt (direct connection from VECTORS to APP IF)
+      fms.routeLegs.splice(insertPos,0,{via:"-----",to:app.ifWpt,_appTrans:true});
+    }
     insertPos++;
   }
   // 5) APP → runway — skip if approach bypassed
@@ -21094,7 +21108,7 @@ function cduPageData(fms) {
         {dl:"<INDEX",dr:"ROUTE>",dlc:C.cyan,drc:C.cyan},
       ],sep:5};
     })(),
-    RTE_1: {title:fms.execLight&&fms.phase==="ACTIVE"?"MOD RTE 1":(fms.phase==="ACTIVE"?"ACT RTE 1":"RTE 1"),titleSub:`1/${Math.max(2,Math.floor(fms.routeLegs.filter(function(l){return !l.isVectors;}).length/5)+2)}`, rows:[
+    RTE_1: {title:fms.execLight&&fms.phase==="ACTIVE"?"MOD RTE 1":(fms.phase==="ACTIVE"?"ACT RTE 1":"RTE 1"),titleSub:`1/${Math.max(2,Math.floor(fms.routeLegs.length/5)+2)}`, rows:[
       {tl:"ORIGIN",tr:"DEST",dl:fms.origin||"▯▯▯▯",dr:fms.dest||"▯▯▯▯",dlc:fms.origin?C.green:C.cyan,drc:fms.dest?C.green:C.cyan,dlBg:true,drBg:true},
       {tl:"RUNWAY",tr:"FLT NO",dl:fms.runway||"-----",dr:fms.fltNo||"----------",dlc:fms.runway?C.green:C.cyan,drc:fms.fltNo?C.green:C.cyan,dlBg:true,drBg:true},
       {tl:"ROUTE",tr:"CO ROUTE",dl:fms.phase==="ACTIVE"?"<REPORT":"<REQUEST",dr:fms.coRoute||"----------",dlc:C.cyan,drc:C.cyan,drBg:true},
@@ -21106,11 +21120,9 @@ function cduPageData(fms) {
       {dl:fms.execLight?"<ERASE":"<RTE 2",dr:fms.phase==="ACTIVE"?"PERF INIT>":(fms.origin&&fms.dest&&!fms.execLight?"ACTIVATE>":"PERF INIT>"),dlc:C.cyan,drc:C.cyan},
     ],sep:fms.phase==="ACTIVE"?4:5,helpMsg:fms.helpMsg},
     RTE_1_2: (()=>{
-      // Filter out (VECTORS) entries — they only show on LEGS page, not RTE page
-      const rteDisplayLegs = fms.routeLegs.filter(function(l){return !l.isVectors;});
       const startIdx = (fms.rtePage - 2) * 5;
-      const totalPages = Math.max(2, Math.floor(rteDisplayLegs.length / 5) + 2);
-      const legsSlice = rteDisplayLegs.slice(startIdx, startIdx + 5);
+      const totalPages = Math.max(2, Math.floor(fms.routeLegs.length / 5) + 2);
+      const legsSlice = fms.routeLegs.slice(startIdx, startIdx + 5);
       const rows = [];
       for(let i=0; i<5; i++) {
         const leg = legsSlice[i];
@@ -22896,6 +22908,22 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
                 }
                 updateRouteLegs(s);s.computedLegs=buildLegs(s);
                 s.scratchpad="";if(s.phase==="ACTIVE")s.execLight=true;s.helpMsg="";s._legsRteSynced=true;
+              } else if(AIRPORT_DB[inputWpt]){
+                // ── DEST airport entry: truncate everything from idx onwards ──
+                // Remove (VECTORS) before idx if present
+                if(idx>0&&legs[idx-1].isVectors){
+                  legs.splice(idx-1); // remove (VECTORS) and everything after
+                } else {
+                  legs.splice(idx); // remove everything from idx
+                }
+                // Add airport as last leg
+                legs.push({wpt:inputWpt,crs:"---°",dist:"---",spdAlt:"",pred:"",via:"DIRECT",inserted:true});
+                // Clear APP, add manual leg
+                s.arrApp="";s.arrTrans="";s.arrAppAct=false;
+                s.routeLegs=syncRouteLegsFromLegs(s);
+                s.routeLegs.push({via:"DIRECT",to:inputWpt,_manual:true,_legsBypass:true});
+                updateRouteLegs(s);s.computedLegs=buildLegs(s);
+                s.scratchpad="";if(s.phase==="ACTIVE")s.execLight=true;s.helpMsg="";s._legsRteSynced=true;
               } else {
                 // ── Add Waypoint (FCOM 11.42.2) ──
                 // Insert new waypoint at idx, followed by ROUTE DISCONTINUITY
@@ -23512,7 +23540,7 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
 
   const handlePrev = ()=>setFms(p=>{
     if(p.page==="TOREF2")return{...p,page:p.pendingUplink?"TOREF_UPLINK":"TOREF1"};
-    if(p.page==="RTE_1"){const _rl1=p.routeLegs.filter(function(l){return !l.isVectors;});const mx=Math.max(2,Math.floor(_rl1.length/5)+2);return{...p,page:"RTE_1_2",rtePage:mx};}
+    if(p.page==="RTE_1"){const mx=Math.max(2,Math.floor(p.routeLegs.length/5)+2);return{...p,page:"RTE_1_2",rtePage:mx};}
     if(p.page==="RTE_1_2"&&p.rtePage<=2)return{...p,page:"RTE_1",rtePage:1};
     if(p.page==="RTE_1_2"&&p.rtePage>2)return{...p,rtePage:p.rtePage-1};
     if(p.page==="RTE_2"){const mx2=Math.max(2,Math.floor((p.rte2Legs||[]).length/5)+2);return{...p,page:"RTE_2_2",rte2Page:mx2};}
@@ -23543,7 +23571,7 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
     if(p.page==="POS_REF_3")return{...p,page:"POS_REF_4"};
     if(p.page==="POS_REF_4")return{...p,page:"POS_INIT"};
     if(p.page==="RTE_1")return{...p,page:"RTE_1_2",rtePage:2};
-    if(p.page==="RTE_1_2"){const _rl1n=p.routeLegs.filter(function(l){return !l.isVectors;});const mx=Math.floor(_rl1n.length/5)+2;if(p.rtePage<mx)return{...p,rtePage:p.rtePage+1};}
+    if(p.page==="RTE_1_2"){const mx=Math.floor(p.routeLegs.length/5)+2;if(p.rtePage<mx)return{...p,rtePage:p.rtePage+1};}
     if(p.page==="LEGS"){var cl=p.computedLegs||[];var legLen=cl.length||(p.routeLegs.length+2);var mx=Math.max(1,Math.ceil(legLen/5));if(legLen>0&&legLen%5===0)mx++;if(p.legsPage<mx)return{...p,legsPage:p.legsPage+1};return{...p,legsPage:1};}
     if(p.page==="RTE_DATA"){var cl2=p.computedLegs||[];var rl=cl2.filter(function(l){return !l.isRwy;});var mx2=Math.max(1,Math.ceil(rl.length/5));if(p.legsPage<mx2)return{...p,legsPage:p.legsPage+1};}
     if(p.page==="PROGRESS")return{...p,progPage:p.progPage<4?p.progPage+1:1};
@@ -23824,7 +23852,7 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
 function MFKKeypad({fms,setFms,mfdMode,setMfdMode}) {
   const handlePrev=()=>setFms(p=>{
     if(p.page==="TOREF2")return{...p,page:p.pendingUplink?"TOREF_UPLINK":"TOREF1"};
-    if(p.page==="RTE_1"){const _rl1=p.routeLegs.filter(function(l){return !l.isVectors;});const mx=Math.max(2,Math.floor(_rl1.length/5)+2);return{...p,page:"RTE_1_2",rtePage:mx};}
+    if(p.page==="RTE_1"){const mx=Math.max(2,Math.floor(p.routeLegs.length/5)+2);return{...p,page:"RTE_1_2",rtePage:mx};}
     if(p.page==="RTE_1_2"&&p.rtePage<=2)return{...p,page:"RTE_1",rtePage:1};
     if(p.page==="RTE_1_2"&&p.rtePage>2)return{...p,rtePage:p.rtePage-1};
     if(p.page==="RTE_2"){const mx2=Math.max(2,Math.floor((p.rte2Legs||[]).length/5)+2);return{...p,page:"RTE_2_2",rte2Page:mx2};}
@@ -23849,7 +23877,7 @@ function MFKKeypad({fms,setFms,mfdMode,setMfdMode}) {
   const handleNext=()=>setFms(p=>{
     if(p.page==="TOREF1"||p.page==="TOREF_UPLINK")return{...p,page:"TOREF2"};
     if(p.page==="RTE_1")return{...p,page:"RTE_1_2",rtePage:2};
-    if(p.page==="RTE_1_2"){const _rl1n=p.routeLegs.filter(function(l){return !l.isVectors;});const mx=Math.floor(_rl1n.length/5)+2;if(p.rtePage<mx)return{...p,rtePage:p.rtePage+1};}
+    if(p.page==="RTE_1_2"){const mx=Math.floor(p.routeLegs.length/5)+2;if(p.rtePage<mx)return{...p,rtePage:p.rtePage+1};}
     if(p.page==="RTE_2")return{...p,page:"RTE_2_2",rte2Page:2};
     if(p.page==="RTE_2_2"){const mx2r=Math.floor((p.rte2Legs||[]).length/5)+2;if((p.rte2Page||1)<mx2r)return{...p,rte2Page:(p.rte2Page||1)+1};}
     if(p.page==="LEGS"){var cl=p.computedLegs||[];var legLen=cl.length||(p.routeLegs.length+2);var mx=Math.max(1,Math.ceil(legLen/5));if(legLen>0&&legLen%5===0)mx++;if(p.legsPage<mx)return{...p,legsPage:p.legsPage+1};return{...p,legsPage:1};}
