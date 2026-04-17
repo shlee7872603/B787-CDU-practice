@@ -10,7 +10,7 @@
 <meta name="theme-color" content="#050505">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>B787 CDU Practice v2.13.4</title>
+<title>B787 CDU Practice v2.14.1</title>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js" crossorigin="anonymous" async></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js" crossorigin="anonymous" async></script>
 <style>*{margin:0;padding:0;box-sizing:border-box;-webkit-user-select:none;user-select:none}body{background:#050505;overflow-x:hidden}</style>
@@ -17240,6 +17240,14 @@ const WPT_COORDS = {
   "UHMA":{lat:64.7350,lon:177.7417},
   "ZYHB":{lat:45.6250,lon:126.2517},
   "RJCC":{lat:42.7750,lon:141.6917},
+  // ZBAA (Beijing Capital)
+  "ZBAA":{lat:40.0800,lon:116.5847},
+  "MUGLO":{lat:38.8500,lon:117.2000},
+  "AVBOX":{lat:40.5000,lon:115.4000},
+  "DUGEB":{lat:39.0000,lon:116.0000},
+  "DUMAP":{lat:40.0000,lon:115.5000},
+  "LULTA":{lat:39.7500,lon:116.8000},
+  "DXG":{lat:39.5000,lon:116.3500},
   // CYYZ (Toronto Pearson) — extracted via OCR from NAV CANADA CAP_04_en_20260319
   "AGNOB":{lat:44.201,lon:-77.502},
   "ALKUT":{lat:43.645,lon:-79.2295},
@@ -19466,6 +19474,11 @@ const AIRPORT_DB = {
     gates:{F62:"N43°40.8 W079°37.5",F64:"N43°40.7 W079°37.6",D32:"N43°40.5 W079°37.9"},
     depSids:["IKLEN3","IKLEN3_33L","IKLEN3_15","IKLEN3_05","IKLEN3_23","IKLEN3_24"],depRwys:["05","06L","06R","15L","15R","23","24L","24R","33L","33R"],
     arrStars:["BOXUM7"],arrApps:["ILS05","ILS23","RNAVZ05","RNAVX05","RNAVZ23","RNAVX23","ILSYYZ33R","ILSYYZ15L"]},
+  ZBAA:{
+    pos:"N40°04.8 E116°35.1",
+    gates:{T3E201:"N40°05.0 E116°35.5",T3E202:"N40°04.9 E116°35.4",T2E502:"N40°04.7 E116°35.3"},
+    depSids:["MUGL7X","MUGL9Z","MUGL7X_36R","MUGL5Y","MUGL9Z_36R"],depRwys:["01","18L","18R","19","36L","36R"],
+    arrStars:["AVBO6J","DUGE6J","DUMA2G","AVBO7X","AVBO8Y","DUGE5D","DUMA9Z"],arrApps:["ILSZ01","ILSY36R","ILSZ36R"]},
   CYZF:{pos:"N62°27.8 W114°26.4"},
   PANC:{pos:"N61°10.4 W149°59.9"},
   PAFA:{pos:"N64°48.9 W147°51.4"},
@@ -19487,6 +19500,10 @@ var ATIS_DB = {
   CYYZ:{
     DEP:"CYYZ DEP ATIS C xxxxZ\nDEP RWY 33L 33R\nWIND 310/12KT\nFEW250\nT 08 DP 02\nQNH 1023\nRWY 33L EXPECT IKLEN3 DEPARTURE\nRWY 33R EXPECT IKLEN3 DEPARTURE\nDEP FREQ 119.52\nBIRD ACTIVITY VICINITY OF AERODROME",
     ARR:"CYYZ ARR ATIS C xxxxZ\nEXP ILS APCH RWY 05\nEXP BOXUM7 ARRIVAL\nWIND 310/12KT\nFEW250\nT 08 DP 02\nQNH 1023\nBIRD ACTIVITY VICINITY OF AERODROME"
+  },
+  ZBAA:{
+    DEP:"ZBAA DEP ATIS A xxxxZ\nDEP RWY 36R\nWIND 350/8KT VIS 9999 FEW040\nT 12 DP 03\nQNH 1024\nTRANS ALT 9850\nEXPECT MUGLO DEPARTURE\nDEP FREQ 121.9\nCAUTION BIRD ACTIVITY",
+    ARR:"ZBAA ARR ATIS P xxxxZ\nEXP RNAV ILS DME Z RWY 36R\nEXP AVBOX OR DUGEB ARRIVAL\nWIND 350/8KT VIS 9999 FEW040\nT 12 DP 03\nQNH 1024\nTRANS LEVEL FL118\nCAUTION BIRD ACTIVITY\nSPEED MAX 280KT WITHIN BEIJING TMA MAX 210KT BELOW FL118"
   }
 };
 
@@ -19494,7 +19511,8 @@ var ATIS_DB = {
 var GATE_DB = {
   RKSI:{gate:"257",msg:function(flt,eta){return "GATE ASSIGNMENT\n"+flt+" ARR RKSI\nETA "+eta+"\nASSIGNED GATE 257\nTERMINAL 2 CONCOURSE A\nGROUND POWER AVAILABLE\nPAX BRIDGE 2L 3L\nBAGGAGE BELT 7\nREMARK: FOLLOW MARSHALLER";}},
   RJFF:{gate:"54",msg:function(flt,eta){return "GATE ASSIGNMENT\n"+flt+" ARR RJFF\nETA "+eta+"\nASSIGNED GATE 54\nINTERNATIONAL TERMINAL\nGROUND POWER AVAILABLE\nPAX BRIDGE 1L\nBAGGAGE BELT 3\nREMARK: EXPECT SPOT 54 NOSE IN";}},
-  CYYZ:{gate:"F62",msg:function(flt,eta){return "GATE ASSIGNMENT\n"+flt+" ARR CYYZ\nETA "+eta+"\nASSIGNED GATE F62\nTERMINAL 3\nGROUND POWER AVAILABLE\nPAX BRIDGE 1L 2L\nBAGGAGE BELT 12\nREMARK: FOLLOW MARSHALLER";}}
+  CYYZ:{gate:"F62",msg:function(flt,eta){return "GATE ASSIGNMENT\n"+flt+" ARR CYYZ\nETA "+eta+"\nASSIGNED GATE F62\nTERMINAL 3\nGROUND POWER AVAILABLE\nPAX BRIDGE 1L 2L\nBAGGAGE BELT 12\nREMARK: FOLLOW MARSHALLER";}},
+  ZBAA:{gate:"E201",msg:function(flt,eta){return "GATE ASSIGNMENT\n"+flt+" ARR ZBAA\nETA "+eta+"\nASSIGNED GATE E201\nTERMINAL 3\nGROUND POWER AVAILABLE\nPAX BRIDGE 1L 2L\nBAGGAGE BELT 15\nREMARK: FOLLOW MARSHALLER";}}
 };
 
 // ═══════ [DATA] NAV_DATA — SID/STAR/APP waypoints (FCOM 11.40.28) ═══════
@@ -20058,6 +20076,171 @@ const NAV_DATA = {
     {wpt:"FF340",crs:"338°",dist:"8NM",spdAlt:"2000",pred:"180/ 2000"},
     {wpt:"FF341",crs:"338°",dist:"5NM",spdAlt:"",pred:"Vapp/ 1400"},
     {wpt:"RW34R",crs:"338°",dist:"4NM",spdAlt:"",pred:"Vref+5",isDest:true}]},
+  // ═══ ZBAA SIDs (Jeppesen 10-3N1, 10-3N2, 26NOV25) ═══
+  // MUGLO 7X — RWY 01 (10-3N1)
+  MUGL7X:{type:"SID",rwy:"01",exit:"MUGLO",wpts:[
+    {wpt:"AA171",crs:"215°",dist:"10NM",spdAlt:"",pred:"250/ 760A"},
+    {wpt:"AA172",crs:"278°",dist:"12NM",spdAlt:"5910B/3940A",pred:"250/ 5000"},
+    {wpt:"AA173",crs:"126°",dist:"29NM",spdAlt:"7880A",pred:"250/ 7880A"},
+    {wpt:"AA176",crs:"157°",dist:"15NM",spdAlt:"FL187A",pred:".780/FL187A"},
+    {wpt:"AA157",crs:"101°",dist:"27NM",spdAlt:"",pred:".780/FL187"},
+    {wpt:"MUGLO",crs:"101°",dist:"34NM",spdAlt:"FL187A",pred:".780/FL187A"}]},
+  // MUGLO 9Z — RWY 36L (10-3N1)
+  MUGL9Z:{type:"SID",rwy:"36L",exit:"MUGLO",wpts:[
+    {wpt:"AA111",crs:"005°",dist:"5NM",spdAlt:"",pred:"250/ 530A"},
+    {wpt:"AA112",crs:"215°",dist:"10NM",spdAlt:"3940A",pred:"250/ 3940A"},
+    {wpt:"AA129",crs:"126°",dist:"15NM",spdAlt:"6890A",pred:"250/ 6890A"},
+    {wpt:"AA113",crs:"126°",dist:"12NM",spdAlt:"8860A",pred:"250/ 8860A"},
+    {wpt:"AA116",crs:"167°",dist:"11NM",spdAlt:"FL148A",pred:"250/FL148A"},
+    {wpt:"AA119",crs:"149°",dist:"14NM",spdAlt:"",pred:"280/FL170"},
+    {wpt:"DXG",crs:"149°",dist:"9NM",spdAlt:"FL197A",pred:".780/FL197A"},
+    {wpt:"AA139",crs:"101°",dist:"34NM",spdAlt:"",pred:".780/FL197"},
+    {wpt:"AA157",crs:"101°",dist:"27NM",spdAlt:"",pred:".780/FL187"},
+    {wpt:"MUGLO",crs:"101°",dist:"34NM",spdAlt:"FL187A",pred:".780/FL187A"}]},
+  // MUGLO 7X — RWY 36R (10-3N2) — requires 6.5% climb gradient
+  MUGL7X_36R:{type:"SID",rwy:"36R",exit:"MUGLO",wpts:[
+    {wpt:"AA131",crs:"001°",dist:"5NM",spdAlt:"3940A",pred:"250/ 3940A"},
+    {wpt:"AA152",crs:"200°",dist:"9NM",spdAlt:"6890B",pred:"250/ 5500"},
+    {wpt:"AA158",crs:"180°",dist:"10NM",spdAlt:"",pred:"250/ 7000"},
+    {wpt:"AA173",crs:"126°",dist:"29NM",spdAlt:"7880A",pred:"250/ 7880A"},
+    {wpt:"AA176",crs:"157°",dist:"15NM",spdAlt:"FL187A",pred:".780/FL187A"},
+    {wpt:"AA157",crs:"101°",dist:"27NM",spdAlt:"",pred:".780/FL187"},
+    {wpt:"MUGLO",crs:"101°",dist:"34NM",spdAlt:"FL187A",pred:".780/FL187A"}]},
+  // MUGLO 5Y — RWY 36R (10-3N2) — By ATC
+  MUGL5Y:{type:"SID",rwy:"36R",exit:"MUGLO",wpts:[
+    {wpt:"AA131",crs:"001°",dist:"5NM",spdAlt:"3940A",pred:"250/ 3940A"},
+    {wpt:"AA152",crs:"200°",dist:"9NM",spdAlt:"6890B",pred:"250/ 5500"},
+    {wpt:"AA158",crs:"180°",dist:"10NM",spdAlt:"",pred:"250/ 7000"},
+    {wpt:"AA155",crs:"168°",dist:"12NM",spdAlt:"",pred:"250/ 7500"},
+    {wpt:"LULTA",crs:"168°",dist:"10NM",spdAlt:"FL177B/7880A",pred:"280/ 7880A"},
+    {wpt:"AA156",crs:"149°",dist:"14NM",spdAlt:"",pred:".780/FL170"},
+    {wpt:"AA157",crs:"101°",dist:"27NM",spdAlt:"",pred:".780/FL187"},
+    {wpt:"MUGLO",crs:"101°",dist:"34NM",spdAlt:"FL187A",pred:".780/FL187A"}]},
+  // MUGLO 9Z — RWY 36R (10-3N2)
+  MUGL9Z_36R:{type:"SID",rwy:"36R",exit:"MUGLO",wpts:[
+    {wpt:"AA131",crs:"001°",dist:"5NM",spdAlt:"3940A",pred:"250/ 3940A"},
+    {wpt:"AA132",crs:"215°",dist:"10NM",spdAlt:"5910A",pred:"250/ 5910A"},
+    {wpt:"AA133",crs:"215°",dist:"12NM",spdAlt:"9850A",pred:"250/ 9850A"},
+    {wpt:"AA138",crs:"167°",dist:"11NM",spdAlt:"FL167A",pred:"280/FL167A"},
+    {wpt:"AA118",crs:"149°",dist:"14NM",spdAlt:"",pred:"280/FL180"},
+    {wpt:"DXG",crs:"149°",dist:"9NM",spdAlt:"FL197A",pred:".780/FL197A"},
+    {wpt:"AA139",crs:"101°",dist:"34NM",spdAlt:"",pred:".780/FL197"},
+    {wpt:"AA157",crs:"101°",dist:"27NM",spdAlt:"",pred:".780/FL187"},
+    {wpt:"MUGLO",crs:"101°",dist:"34NM",spdAlt:"FL187A",pred:".780/FL187A"}]},
+  // ═══ ZBAA STARs — RWY 18L/R, 19 (Jeppesen 10-2, 26NOV25) ═══
+  AVBO6J:{type:"STAR",entry:"AVBOX",wpts:[
+    {wpt:"AVBOX",crs:"",dist:"",spdAlt:"FL177B",pred:".780/FL167A"},
+    {wpt:"AA146",crs:"048°",dist:"44NM",spdAlt:"FL157A",pred:"280/FL157A"},
+    {wpt:"AA145",crs:"030°",dist:"22NM",spdAlt:"FL138A",pred:"280/FL138A"},
+    {wpt:"AA144",crs:"018°",dist:"14NM",spdAlt:"",pred:"250/10000"},
+    {wpt:"AA265",crs:"118°",dist:"13NM",spdAlt:"8860A",pred:"250/ 8860A"},
+    {wpt:"AA264",crs:"180°",dist:"8NM",spdAlt:"",pred:"210/ 7000"},
+    {wpt:"AA263",crs:"271°",dist:"5NM",spdAlt:"5910A",pred:"210/ 5910A"},
+    {wpt:"AA262",crs:"100°",dist:"6NM",spdAlt:"",pred:"210/ 5000"},
+    {wpt:"AA261",crs:"300°",dist:"6NM",spdAlt:"210KT/3940A",pred:"210/ 3940A"}]},
+  DUGE6J:{type:"STAR",entry:"DUGEB",wpts:[
+    {wpt:"DUGEB",crs:"",dist:"",spdAlt:"FL177B",pred:".780/FL167A"},
+    {wpt:"AA126",crs:"033°",dist:"29NM",spdAlt:"",pred:"280/FL157"},
+    {wpt:"AA248",crs:"095°",dist:"18NM",spdAlt:"",pred:"250/FL138"},
+    {wpt:"AA247",crs:"110°",dist:"8NM",spdAlt:"",pred:"250/10830"},
+    {wpt:"AA246",crs:"150°",dist:"10NM",spdAlt:"",pred:"250/10000"},
+    {wpt:"AA245",crs:"180°",dist:"9NM",spdAlt:"9850A",pred:"250/ 9850A"},
+    {wpt:"AA244",crs:"281°",dist:"7NM",spdAlt:"",pred:"210/ 8860"},
+    {wpt:"AA243",crs:"101°",dist:"8NM",spdAlt:"8860A",pred:"210/ 8860A"},
+    {wpt:"AA242",crs:"300°",dist:"8NM",spdAlt:"8860A",pred:"210/ 8860A"},
+    {wpt:"AA241",crs:"271°",dist:"6NM",spdAlt:"210KT/4930A",pred:"210/ 4930A"}]},
+  DUMA2G:{type:"STAR",entry:"DUMAP",wpts:[
+    {wpt:"DUMAP",crs:"",dist:"",spdAlt:"FL177B",pred:".780/FL167A"},
+    {wpt:"AA147",crs:"301°",dist:"10NM",spdAlt:"",pred:"280/FL167"},
+    {wpt:"AA146",crs:"048°",dist:"44NM",spdAlt:"FL157A",pred:"280/FL157A"},
+    {wpt:"AA145",crs:"030°",dist:"22NM",spdAlt:"FL138A",pred:"280/FL138A"},
+    {wpt:"AA144",crs:"018°",dist:"14NM",spdAlt:"",pred:"250/10000"},
+    {wpt:"AA265",crs:"118°",dist:"13NM",spdAlt:"8860A",pred:"250/ 8860A"},
+    {wpt:"AA264",crs:"180°",dist:"8NM",spdAlt:"",pred:"210/ 7000"},
+    {wpt:"AA263",crs:"271°",dist:"5NM",spdAlt:"5910A",pred:"210/ 5910A"},
+    {wpt:"AA262",crs:"100°",dist:"6NM",spdAlt:"",pred:"210/ 5000"},
+    {wpt:"AA261",crs:"300°",dist:"6NM",spdAlt:"210KT/3940A",pred:"210/ 3940A"}]},
+  // ═══ ZBAA STARs — RWY 01, 36L/R (Jeppesen 10-2A, 26NOV25) ═══
+  AVBO7X:{type:"STAR",entry:"AVBOX",wpts:[
+    {wpt:"AVBOX",crs:"",dist:"",spdAlt:"FL177B",pred:".780/FL167A"},
+    {wpt:"AA124",crs:"091°",dist:"20NM",spdAlt:"FL138A",pred:"280/FL138A"},
+    {wpt:"AA122",crs:"091°",dist:"15NM",spdAlt:"7880A",pred:"250/ 7880A"}]},
+  AVBO8Y:{type:"STAR",entry:"AVBOX",wpts:[
+    {wpt:"AVBOX",crs:"",dist:"",spdAlt:"FL177B",pred:".780/FL167A"},
+    {wpt:"AA146",crs:"048°",dist:"44NM",spdAlt:"FL157A",pred:"280/FL157A"},
+    {wpt:"AA145",crs:"030°",dist:"22NM",spdAlt:"FL138A",pred:"280/FL138A"},
+    {wpt:"AA144",crs:"018°",dist:"14NM",spdAlt:"",pred:"250/10000"},
+    {wpt:"AA143",crs:"271°",dist:"5NM",spdAlt:"6890B",pred:"210/ 6890B"},
+    {wpt:"AA142",crs:"100°",dist:"6NM",spdAlt:"",pred:"210/ 5500"},
+    {wpt:"AA141",crs:"300°",dist:"6NM",spdAlt:"210KT/4930A",pred:"210/ 4930A"}]},
+  DUGE5D:{type:"STAR",entry:"DUGEB",wpts:[
+    {wpt:"DUGEB",crs:"",dist:"",spdAlt:"FL177B",pred:".780/FL157A"},
+    {wpt:"AA126",crs:"033°",dist:"29NM",spdAlt:"FL157A",pred:"280/FL157A"},
+    {wpt:"AA125",crs:"091°",dist:"15NM",spdAlt:"",pred:"250/FL138"},
+    {wpt:"AA122",crs:"091°",dist:"15NM",spdAlt:"7880A",pred:"250/ 7880A"}]},
+  DUMA9Z:{type:"STAR",entry:"DUMAP",wpts:[
+    {wpt:"DUMAP",crs:"",dist:"",spdAlt:"FL177B",pred:".780/FL167A"},
+    {wpt:"AA147",crs:"301°",dist:"10NM",spdAlt:"",pred:"280/FL167"},
+    {wpt:"AA146",crs:"048°",dist:"44NM",spdAlt:"FL157A",pred:"280/FL157A"},
+    {wpt:"AA145",crs:"030°",dist:"22NM",spdAlt:"FL138A",pred:"280/FL138A"},
+    {wpt:"AA144",crs:"018°",dist:"14NM",spdAlt:"",pred:"250/10000"},
+    {wpt:"AA143",crs:"271°",dist:"5NM",spdAlt:"6890B",pred:"210/ 6890B"},
+    {wpt:"AA142",crs:"100°",dist:"6NM",spdAlt:"",pred:"210/ 5500"},
+    {wpt:"AA141",crs:"300°",dist:"6NM",spdAlt:"210KT/4930A",pred:"210/ 4930A"}]},
+  // ═══ ZBAA Approaches (Jeppesen 11-1, 11-11, 26NOV25) ═══
+  // ILS DME Z RWY 01 — LOC INJ 108.5, CRS 001°, GS 3.00°
+  // DA(H): 347'(247') CAT I, 184'(100') CAT II, Apt Elev 116', Rwy Elev 84'
+  // Trans level: FL118, Trans alt: 9850'
+  ILSZ01:{type:"APP",trans:["AA141","AA122"],ifWpt:"AA420",wpts:[
+    {wpt:"AA420",crs:"001°",dist:"",spdAlt:"3940A",pred:"210/ 3940"},
+    {wpt:"CI01Z",crs:"001°",dist:"6.2NM",spdAlt:"1970A",pred:"180/ 1970"},
+    {wpt:"FI01Z",crs:"001°",dist:"11.2NM",spdAlt:"1970A",pred:"180/ 1970"},
+    {wpt:"RW01",crs:"001°",dist:"5.2NM",spdAlt:"",pred:"Vref+5",isDest:true}],
+    transLegs:{
+      AA141:[{wpt:"AA141",crs:"",dist:"",spdAlt:"210KT/4930A",pred:"210/ 4930"},
+             {wpt:"AA420",crs:"271°",dist:"5.4NM",spdAlt:"3940A",pred:"210/ 3940"}],
+      AA122:[{wpt:"AA122",crs:"",dist:"",spdAlt:"7880",pred:"250/ 7880"},
+             {wpt:"AA420",crs:"001°",dist:"10NM",spdAlt:"3940A",pred:"210/ 3940"}]
+    },
+    missedApproach:[
+      {wpt:"AA497",crs:"001°",dist:"",spdAlt:"760A",pred:"V2+15/ 760A"},
+      {wpt:"PEK",crs:"100°",dist:"11.2NM",spdAlt:"3940",pred:"250/ 3940"},
+      {wpt:"PEK",crs:"",dist:"",spdAlt:"3940",pred:"250/ 3940",isHold:true,holdCrs:"119°",holdTurn:"R",holdTime:"1.0MIN"}]},
+  // ILS DME Z RWY 36R — LOC IQU 111.55, CRS 001°, GS 3.00°
+  // DA(H): 298'(200') CAT I, RA 108' CAT II, RA 50' CAT IIIA, Apt Elev 116', Rwy Elev 98'
+  ILSZ36R:{type:"APP",trans:["AA122","AA141"],ifWpt:"AA492",wpts:[
+    {wpt:"AA492",crs:"001°",dist:"",spdAlt:"5910A",pred:"210/ 5910"},
+    {wpt:"CI36R",crs:"001°",dist:"9.3NM",spdAlt:"2960A",pred:"210/ 2960"},
+    {wpt:"FI3RZ",crs:"001°",dist:"4.9NM",spdAlt:"2960A",pred:"180/ 2960"},
+    {wpt:"RW36R",crs:"001°",dist:"8.7NM",spdAlt:"",pred:"Vref+5",isDest:true}],
+    transLegs:{
+      AA122:[{wpt:"AA122",crs:"",dist:"",spdAlt:"210KT/8860",pred:"210/ 8860"},
+             {wpt:"AA492",crs:"001°",dist:"10NM",spdAlt:"5910A",pred:"210/ 5910"}],
+      AA141:[{wpt:"AA141",crs:"",dist:"",spdAlt:"4930",pred:"210/ 4930"},
+             {wpt:"AA122",crs:"181°",dist:"10NM",spdAlt:"8860",pred:"250/ 8860"},
+             {wpt:"AA492",crs:"001°",dist:"10NM",spdAlt:"5910A",pred:"210/ 5910"}]
+    },
+    missedApproach:[
+      {wpt:"AA131",crs:"001°",dist:"",spdAlt:"2960A",pred:"V2+15/ 2960A"},
+      {wpt:"AA13A",crs:"091°",dist:"5NM",spdAlt:"",pred:"250/ 4000"},
+      {wpt:"PEK",crs:"181°",dist:"8NM",spdAlt:"5910",pred:"250/ 5910"},
+      {wpt:"PEK",crs:"",dist:"",spdAlt:"5910",pred:"250/ 5910",isHold:true,holdCrs:"119°",holdTurn:"R",holdTime:"1.0MIN"}]},
+  // RNAV ILS DME Y RWY 36R — LOC IQU 111.55, CRS 001°, GS 3.00°
+  // DA(H): 298'(200') CAT I, RA 108' CAT II, RA 50' CAT IIIA, Apt Elev 116', Rwy Elev 98'
+  ILSY36R:{type:"APP",trans:["AA141"],ifWpt:"AA492",wpts:[
+    {wpt:"AA492",crs:"001°",dist:"",spdAlt:"4930",pred:"210/ 4930"},
+    {wpt:"CI36R",crs:"001°",dist:"9.3NM",spdAlt:"1970",pred:"180/ 1970"},
+    {wpt:"FI3RY",crs:"001°",dist:"8.0NM",spdAlt:"1970",pred:"180/ 1970"},
+    {wpt:"RW36R",crs:"001°",dist:"5.2NM",spdAlt:"",pred:"Vref+5",isDest:true}],
+    transLegs:{
+      AA141:[{wpt:"AA141",crs:"",dist:"",spdAlt:"210KT/4930",pred:"210/ 4930"},
+             {wpt:"AA492",crs:"271°",dist:"6.2NM",spdAlt:"4930",pred:"210/ 4930"}]
+    },
+    missedApproach:[
+      {wpt:"AA131",crs:"001°",dist:"",spdAlt:"2960A",pred:"V2+15/ 2960A"},
+      {wpt:"AA13A",crs:"091°",dist:"5NM",spdAlt:"",pred:"210/ 5910"},
+      {wpt:"PEK",crs:"181°",dist:"8NM",spdAlt:"5910",pred:"250/ 5910"},
+      {wpt:"PEK",crs:"",dist:"",spdAlt:"5910",pred:"250/ 5910",isHold:true,holdCrs:"119°",holdTurn:"R",holdTime:"1.0MIN"}]},
   // ═══ CYYZ SIDs (Jeppesen 10-3E/10-3E1) ═══
   // IKLEN3 — runway-specific initial climb, all end IKLEN→TONNY
   IKLEN3:{type:"SID",rwy:"33R",exit:"TONNY",wpts:[
@@ -20471,6 +20654,9 @@ function buildLegs(fms){
     var to=leg.to;
     // Skip SID row (updateRouteLegs overwrites routeLegs[0] with SID name)
     if(sid&&via===fms.depSid){prevTo=to;lastEnrouteTo=to;continue;}
+    // Dedup: skip if enroute leg's destination matches last leg already in list
+    // (e.g., SID exit OSPOT followed by DIRECT→OSPOT in routeLegs)
+    if(legs.length>0&&legs[legs.length-1].wpt===to&&!leg._disc){prevTo=to;lastEnrouteTo=to;continue;}
     if(via!=="DIRECT"&&AIRWAY_DB[via]){
       // Airway: expand all intermediate waypoints via getAirwayWaypoints
       var awWpts=getAirwayWaypoints(via,prevTo,to);
@@ -20651,12 +20837,29 @@ function updateRouteLegs(fms){
   var sid=NAV_DATA[fms.depSid];
   if(sid){
     var sidViaDisp=fms.depSid+(fms.depTrans?"."+fms.depTrans:"");
-    if(fms.routeLegs.length&&fms.routeLegs[0].via===fms.depSid&&fms.routeLegs[0].to===sid.exit){
-      fms.routeLegs.shift();
+    // Detect if SID was split by LEGS modifications (e.g. waypoint insertion mid-SID)
+    // In that case syncRouteLegsFromLegs already produced multiple SID groups — don't auto-prepend
+    var sidSplit=false;
+    if(fms.routeLegs.length&&fms.routeLegs[0].via===fms.depSid&&fms.routeLegs[0].to!==sid.exit){
+      // First entry is SID but doesn't reach exit → SID was split
+      sidSplit=true;
     }
-    fms.routeLegs.unshift({via:fms.depSid,_viaDisp:sidViaDisp,to:sid.exit,_sid:true});
-    if(fms.routeLegs.length>1&&fms.routeLegs[1].to===sid.exit&&!fms.routeLegs[1]._manual){
-      fms.routeLegs.splice(1,1);
+    if(!sidSplit){
+      // Normal case: single SID entry
+      if(fms.routeLegs.length&&fms.routeLegs[0].via===fms.depSid&&fms.routeLegs[0].to===sid.exit){
+        fms.routeLegs.shift();
+      }
+      fms.routeLegs.unshift({via:fms.depSid,_viaDisp:sidViaDisp,to:sid.exit,_sid:true});
+      if(fms.routeLegs.length>1&&fms.routeLegs[1].to===sid.exit&&!fms.routeLegs[1]._manual){
+        fms.routeLegs.splice(1,1);
+      }
+    } else {
+      // SID split: add _viaDisp to all sync-generated SID entries for proper display
+      for(var si=0;si<fms.routeLegs.length;si++){
+        if(fms.routeLegs[si].via===fms.depSid&&!fms.routeLegs[si]._manual){
+          fms.routeLegs[si]._viaDisp=sidViaDisp;
+        }
+      }
     }
   }
   // Find insert position: before _afterStar or _legsBypass entries
@@ -20937,8 +21140,16 @@ const initFMS = () => ({
   fuelSel:"TOTALIZER",
   // COMM field state (direct MFK input)
   commFields:{},commScratchpad:"",
-  // OFFSET state (FCOM 11.42.19)
-  offsetDist:"",offsetStart:"",offsetEnd:"",offsetSlopStart:"",offsetSlopEnd:"",
+  // OFFSET state (FCOM 11.42.19-21, pp.1897-1899)
+  offsetDist:"",offsetStart:"",offsetEnd:"",
+  offsetActive:false,          // true when offset is EXEC'd and active
+  slopOn:false,                // #4: SLOP OFFSET toggle (default OFF)
+  slopDist:"R 1.0",           // #6: SLOP OFFSET DIST (default R 1.0 NM)
+  slopDistEntered:false,       // #6: true when manually entered (large font)
+  slopStartNow:false,         // #5: true when NOW> pressed (SLOP executing)
+  slopStartEntered:false,      // #7: true when manually entered start wpt
+  slopEndEntered:false,        // #8: true when manually entered end wpt
+  offsetSlopStart:"",offsetSlopEnd:"",
   pendingUplink:null, // FCOM 11.40.44: pending TAKEOFF REF UPLINK data
   auxMsgs:[], auxBlink:false, // AUX Display message queue & tab blink
   dclMsg:null, // DCL clearance message (shared between COMM and AUX)
@@ -20949,6 +21160,7 @@ const initFMS = () => ({
   // CRZ page state (FCOM 11.42.22)
   crzSpdMode:"ECON",crzSelSpd:"",crzN1:"",stepTo:"",
   // ── SIM (flight simulation) state ──
+  directToMod:false,intcCrsToVal:null,intcCrsFromVal:null,intcCrsWpt:"",abeamPtsSelected:false,rteCopyDone:false,
   simActive:false,simLegIdx:0,simLat:0,simLon:0,simHdg:0,
   simFuelUsed:0,simTimeMin:0,simGS:510,
   // DES page state (FCOM 11.43.2)
@@ -21468,11 +21680,13 @@ function cduPageData(fms) {
       const wx=(db||{}).wx||{wind:"---/--"};
       const legs=fms.computedLegs||[];
       // SIM-aware: TO/NEXT waypoints based on simLegIdx
+      // In MOD state, aircraft follows ACT route (snapshot), so use snapshot legs for TO/NEXT
+      var _progLegs=(fms.execLight&&fms._snapshot&&fms._snapshot.computedLegs)?fms._snapshot.computedLegs:legs;
       var _simIdx=fms.simActive?(fms.simLegIdx||0):0;
-      // Build pts list same way as ND
+      // Build pts list same way as ND (using ACT legs when MOD)
       var _simPts=[];
       if(fms.origin){var _oc=getWptLL(fms.origin);if(_oc)_simPts.push({name:fms.origin,lat:_oc.lat,lon:_oc.lon});}
-      for(var _li=0;_li<legs.length;_li++){var _l=legs[_li];if(_l.isDisc||_l.isHold||!_l.wpt)continue;var _ll=getWptLL(_l.wpt);if(_ll)_simPts.push({name:_l.wpt,lat:_ll.lat,lon:_ll.lon});}
+      for(var _li=0;_li<_progLegs.length;_li++){var _l=_progLegs[_li];if(_l.isDisc||_l.isHold||!_l.wpt)continue;var _ll=getWptLL(_l.wpt);if(_ll)_simPts.push({name:_l.wpt,lat:_ll.lat,lon:_ll.lon});}
       if(fms.dest&&fms.dest!==fms.origin){var _dc=getWptLL(fms.dest);if(_dc)_simPts.push({name:fms.dest,lat:_dc.lat,lon:_dc.lon});}
       const toWpt=fms.simActive?(_simPts[_simIdx+1]||{}).name||"---":(legs[1]||{}).wpt||(fms.routeLegs[0]||{}).to||"---";
       const nextWpt=fms.simActive?(_simPts[_simIdx+2]||{}).name||"---":(legs[2]||{}).wpt||(fms.routeLegs[1]||{}).to||"---";
@@ -21749,7 +21963,40 @@ function cduPageData(fms) {
         });
       });
       while(rows.length<5) rows.push({});
-      rows.push({dl:fms.execLight?"<ERASE":"<RTE 2 LEGS",dr:"RTE DATA>",dlc:C.cyan,drc:C.cyan});
+      // ── FCOM 11.42.8-12: INTC CRS TO/FROM — modify rows when directToMod on page 1 ──
+      if(fms.directToMod && pg===1){
+        // R1: show dashes
+        if(rows[0]) rows[0].dr="----------";
+        if(rows[0]) rows[0].drc=C.white;
+        // R3: ABEAM PTS prompt (removed after INTC CRS confirmed)
+        if(fms.intcCrsToVal===null && fms.intcCrsFromVal===null){
+          if(rows.length>2){
+            rows[2].dr=fms.abeamPtsSelected?"SELECTED":"ABEAM PTS>";
+            rows[2].drc=fms.abeamPtsSelected?C.white:C.cyan;
+          }
+          // R4: RTE COPY prompt
+          if(rows.length>3){
+            rows[3].dr=fms.rteCopyDone?"COMPLETE":"RTE COPY>";
+            rows[3].drc=fms.rteCopyDone?C.white:C.cyan;
+          }
+        }
+      }
+      // Row 6: INTC CRS title and course value when directToMod
+      var row6Title="";
+      var row6Dr="RTE DATA>";
+      var row6Drc=C.cyan;
+      if(fms.directToMod && pg===1){
+        if(fms.intcCrsFromVal!==null){
+          row6Title="INTC CRS FROM";
+          row6Dr=String(fms.intcCrsFromVal).padStart(3,"0")+"°>";
+          row6Drc=C.cyan;
+        } else {
+          row6Title="INTC CRS TO";
+          row6Dr=fms.intcCrsToVal!==null?(String(fms.intcCrsToVal).padStart(3,"0")+"°>"):"□□□°>";
+          row6Drc=C.cyan;
+        }
+      }
+      rows.push({tl:row6Title,dl:fms.execLight?"<ERASE":"<RTE 2 LEGS",dr:row6Dr,dlc:C.cyan,drc:row6Drc,tlc:C.white});
       return {title:fms.execLight&&fms.phase==="ACTIVE"?"MOD RTE 1 LEGS":(fms.phase==="ACTIVE"?"ACT RTE 1 LEGS":"RTE 1 LEGS"),titleSub:`${pg}/${totalPages}`,rows,sep:5};
     })(),
     DEP_ARR:{title:"DEP/ARR INDEX",subtitle:fms.phase==="ACTIVE"?"RTE 1 (ACT)":"RTE 1",rows:[
@@ -22161,17 +22408,130 @@ function cduPageData(fms) {
        dlc:C.green,drc:fms.appWindCorr?C.green:C.cyan,drBg:true},
       {dl:"<INDEX",dr:"THRUST LIM>",dlc:C.cyan,drc:C.cyan},
     ],sep:5};})(),
-    OFFSET:{title:fms.phase==="ACTIVE"?"ACT LATERAL OFFSET":"LATERAL OFFSET",rows:[
-      {tl:"OFFSET DIST",tr:"SLOP OFFSET",
-       dl:fms.offsetDist||"-----",dr:"ON    OFF>",dlc:fms.offsetDist?C.green:C.cyan,drc:C.green},
-      {tl:"START WAYPOINT",tr:"START SLOP",
-       dl:fms.offsetStart||"-------",dr:"NOW>",dlc:fms.offsetStart?C.green:C.cyan,drc:C.cyan},
-      {tl:"END WAYPOINT",tr:"SLOP OFFSET DIST",
-       dl:fms.offsetEnd||"-------",dr:"R 1.0",dlc:fms.offsetEnd?C.green:C.cyan,drc:C.cyan},
-      {tr:"SLOP START WAYPOINT",dr:fms.offsetSlopStart||"-----",drc:C.cyan},
-      {tr:"SLOP END WAYPOINT",dr:fms.offsetSlopEnd||"-----",drc:C.cyan},
-      {dr:"RTE 1>",drc:C.cyan},
-    ],sep:5},
+    // ═══ LATERAL OFFSET (FCOM 11.42.19 — 11.42.21, pp.1897-1899) ═══
+    //
+    // FCOM 11.42.19 #1 (1L): OFFSET DIST
+    //   Valid entries are L or R followed by XX.X, or XX.X followed by L or R
+    //   (XX.X is 0.1 to 99.0 NM, in 0.1 NM increments).
+    //   Entry of a valid offset distance displays START WAYPOINT in 2L
+    //   and END WAYPOINT in 3L line titles.
+    //   When executed and no start waypoint entered, offset displays on the ND
+    //   as a dashed magenta line from the current position. ND displays a 30°
+    //   entry path to and exit path from the offset.
+    //   Blank when no active route or no offset-able legs in the active route.
+    //
+    // FCOM 11.42.20 #2 (2L): START WAYPOINT
+    //   Displays box or dash prompts depending on mandatory or optional entry.
+    //   Valid entries are waypoints in the active, modified, or pending active route.
+    //   Blank when no active route, no offsetable legs, or start waypoint is sequenced.
+    //
+    // FCOM 11.42.20 #3 (3L): END WAYPOINT
+    //   Displays dashes when able to enter a valid end waypoint.
+    //   FMC calculated end point displays when valid direction/distance entered in 1L,
+    //   and no entered or uplinked end waypoint exists.
+    //   Blank when no active route or no offsetable legs in the active route.
+    //
+    // FCOM 11.42.20 #4 (1R): SLOP OFFSET
+    //   Displays a toggle selection ON-OFF.
+    //   Default is OFF in large font green; ON displays in small font white.
+    //   Selection reverses color and font size.
+    //
+    // FCOM 11.42.21 #5 (2R): START SLOP / END SLOP
+    //   Line title displays START SLOP when SLOP not active;
+    //   displays END SLOP when SLOP is active.
+    //   Displays NOW> when SLOP OFFSET is ON, an offset is not active,
+    //   the active leg is offsetable, and a MOD SLOP offset does not exist.
+    //   Select → modifies page, displays the SLOP offset as white dashed line on ND.
+    //   Line title and data line display in cyan when NOW displays without a ">".
+    //
+    // FCOM 11.42.21 #6 (3R): SLOP OFFSET DIST
+    //   Displays default distance in small font white when no value entered.
+    //   Manual entry displays in large font.
+    //   Valid entries: X.X (0.1 to 2.0 NM).
+    //   Displays in magenta when the active flight plan segment is part of the
+    //   SLOP offset and SLOP OFFSET is ON.
+    //
+    // FCOM 11.42.21 #7 (4R): SLOP START WAYPOINT
+    //   Displays dashes when START SLOP NOW> is in 2R and no default or entered
+    //   SLOP START waypoint exists.
+    //   Small font white when default gateway waypoint exists and not manually entered.
+    //   Manual entry displays in large font.
+    //
+    // FCOM 11.42.21 #8 (5R): SLOP END WAYPOINT
+    //   Displays dashes when no gateway waypoint exists in the flight plan,
+    //   START SLOP NOW> is in 2R, and no entered SLOP START or END waypoint exists.
+    //   Default gateway end waypoint in small font white when no manual entry.
+    //
+    OFFSET:(function(){
+      var hasOff=!!fms.offsetDist;
+      var slopActive=fms.slopStartNow;
+      // #4 (1R): SLOP OFFSET toggle — build as React element for dual font/color
+      //   FCOM: "Default is OFF in large font green; ON displays in small font white.
+      //          Selection reverses color and font size."
+      var slopToggle=React.createElement('span',{style:{display:"inline-flex",alignItems:"baseline",gap:0}},
+        React.createElement('span',{style:{
+          color:fms.slopOn?C.green:C.white,
+          fontSize:fms.slopOn?"28px":"20px",
+          fontFamily:M,fontWeight:"bold",letterSpacing:"1.5px"
+        }},"ON"),
+        React.createElement('span',{style:{color:C.white,fontSize:"28px",fontFamily:M}},"    "),
+        React.createElement('span',{style:{
+          color:fms.slopOn?C.white:C.green,
+          fontSize:fms.slopOn?"20px":"28px",
+          fontFamily:M,fontWeight:"bold",letterSpacing:"1.5px"
+        }},"OFF")
+      );
+      // #5 (2R): START SLOP / END SLOP
+      //   Title=START SLOP when not active; END SLOP when active.
+      //   Data=NOW> when SLOP ON, offset not active, leg offsetable.
+      //   Cyan when NOW without ">" (active state).
+      var slop2Rtitle=slopActive?"END SLOP":"START SLOP";
+      var slop2Rdata=fms.slopOn?(slopActive?"NOW":"NOW>"):"";
+      var slop2Rc=slopActive?C.cyan:C.cyan;
+      // #6 (3R): SLOP OFFSET DIST
+      //   Default=small white; manual entry=large font; magenta when active SLOP segment.
+      var slopDc=slopActive?C.magenta:(fms.slopDistEntered?C.green:C.white);
+      // Use cyan for small font (leverages CDU isSmall logic), green for large
+      if(!fms.slopDistEntered&&!slopActive)slopDc=C.cyan;
+      // #7 (4R): SLOP START WAYPOINT
+      //   Small white default; manual entry=large. Use cyan for small rendering.
+      var slop7c=fms.slopStartEntered?C.green:C.cyan;
+      // #8 (5R): SLOP END WAYPOINT
+      var slop8c=fms.slopEndEntered?C.green:C.cyan;
+      return {title:(fms.offsetActive?"ACT ":"")+"LATERAL OFFSET",rows:[
+        // Row 1: 1L=OFFSET DIST, 1R=SLOP OFFSET (ON/OFF toggle)
+        {tl:"OFFSET DIST",tr:"SLOP OFFSET",
+         dl:fms.offsetDist||"-----",
+         dr:slopToggle,
+         dlc:fms.offsetDist?C.green:C.cyan,
+         drc:C.green},
+        // Row 2: 2L=START WAYPOINT (appears after offset dist entered), 2R=START/END SLOP
+        {tl:hasOff?"START WAYPOINT":"",
+         tr:fms.slopOn?slop2Rtitle:"",
+         dl:hasOff?(fms.offsetStart||"-------"):"",
+         dr:fms.slopOn?slop2Rdata:"",
+         dlc:fms.offsetStart?C.green:C.cyan,
+         drc:slop2Rc},
+        // Row 3: 3L=END WAYPOINT (appears after offset dist entered), 3R=SLOP OFFSET DIST
+        {tl:hasOff?"END WAYPOINT":"",
+         tr:fms.slopOn?"SLOP OFFSET DIST":"",
+         dl:hasOff?(fms.offsetEnd||"-------"):"",
+         dr:fms.slopOn?(fms.slopDist||"R 1.0"):"",
+         dlc:fms.offsetEnd?C.green:C.cyan,
+         drc:slopDc},
+        // Row 4: 4R=SLOP START WAYPOINT
+        {tr:fms.slopOn?"SLOP START WAYPOINT":"",
+         dr:fms.slopOn?(fms.offsetSlopStart||"-----"):"",
+         drc:slop7c},
+        // Row 5: 5R=SLOP END WAYPOINT
+        {tr:fms.slopOn?"SLOP END WAYPOINT":"",
+         dr:fms.slopOn?(fms.offsetSlopEnd||"-----"):"",
+         drc:slop8c},
+        // Row 6: 6L=<ERASE (when data exists), 6R=RTE 1>
+        {dl:fms.offsetDist||fms.offsetStart||fms.offsetEnd?"<ERASE":"",
+         dr:"RTE 1>",dlc:C.cyan,drc:C.cyan},
+      ],sep:5};
+    })(),
     // ═══ POS REF 2/4 (FCOM 11.40.8) ═══
     POS_REF:(()=>{
       // FCOM 11.40.11: POS REF 2/4 — FMC, IRU, GPS-IRU, RADIO positions
@@ -22344,6 +22704,11 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
   const handleLSK = useCallback((side,num) => {
     setFms(prev => {
       const s={...prev},sp=s.scratchpad,p=s.page;
+      // ── Pre-modification snapshot: save BEFORE any changes so ND can show active vs modified route ──
+      var _preModSnap=null;
+      if(s.phase==="ACTIVE"&&!s.execLight){
+        _preModSnap={depSid:s.depSid,depRwy:s.depRwy,depTrans:s.depTrans,arrStar:s.arrStar,arrApp:s.arrApp,arrTrans:s.arrTrans,arrStarTrans:s.arrStarTrans,routeLegs:JSON.parse(JSON.stringify(s.routeLegs||[])),computedLegs:JSON.parse(JSON.stringify(s.computedLegs||[]))};
+      }
       const go=pg=>{s.page=pg;};const set=f=>{if(sp==="DELETE"){s[f]="";s.scratchpad="";}else if(sp){s[f]=sp;s.scratchpad="";}else if(s[f]&&s[f]!=="---"){s.scratchpad=String(s[f]);}};
       if(p==="INIT_REF"){if(side==="L"){const t=["","IDENT","POS_INIT","PERF_INIT","THRUST_LIM","TOREF1","APPROACH_REF"];if(t[num])go(t[num]);}if(side==="R"&&num===1)go("NAV_DATA");if(side==="R"&&num===2)go("ALTN");if(side==="R"&&num===3)go("OFFSET");if(side==="R"&&num===6)go("INIT_REF");}
       else if(p==="IDENT"){if(side==="L"&&num===6)go("INIT_REF");if(side==="R"&&num===6)go("POS_INIT");}
@@ -22793,8 +23158,21 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
         let origFirstWpt=null;
         for(let i=0;i<legs.length;i++){if(!legs[i].isRwy&&!legs[i].isDisc&&legs[i].wpt){origFirstWpt=legs[i].wpt;break;}}
 
+        // ═══ FCOM 11.42.8-10: R3 ABEAM PTS, R4 RTE COPY (directToMod only, page 1) ═══
+        if(s.directToMod && s.legsPage===1 && s.intcCrsToVal===null && s.intcCrsFromVal===null){
+          if(side==="R"&&num===3){
+            s.abeamPtsSelected=true;
+          }
+          if(side==="R"&&num===4){
+            // Copy active route to inactive route (simplified)
+            s.rte2Legs=JSON.parse(JSON.stringify(s.routeLegs||[]));
+            s.rte2Origin=s.origin||"";s.rte2Dest=s.dest||"";
+            s.rteCopyDone=true;
+          }
+        }
+
         // ═══ FCOM 11.42.5-6: R1-R5 — Copy waypoint name to scratchpad ═══
-        if(side==="R"&&num>=1&&num<=5){
+        if(side==="R"&&num>=1&&num<=5 && !(s.directToMod && s.legsPage===1 && (num===3||num===4) && s.intcCrsToVal===null && s.intcCrsFromVal===null)){
           if(idx<legs.length&&!legs[idx].isDisc&&legs[idx].wpt){
             s.scratchpad=legs[idx].wpt;
           }
@@ -22804,7 +23182,37 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
         if(side==="L"&&num>=1&&num<=5&&sp&&sp!=="DELETE"){
           const inputWpt=sp.toUpperCase();
 
-          if(idx<legs.length){
+          // ── FCOM 11.42.11-12: INTC CRS FROM — detect WPT+CRS format at L1 ──
+          if(num===1 && s.phase==="ACTIVE"){
+            var _intcFromMatch=inputWpt.match(/^([A-Z]{2,5})(\d{3})$/);
+            var _intcPPMatch=inputWpt.match(/^P\/P(\d{3})$/);
+            if(_intcFromMatch || _intcPPMatch){
+              var _fromCrs=_intcFromMatch?parseInt(_intcFromMatch[2]):parseInt(_intcPPMatch[1]);
+              var _fromWptName=_intcFromMatch?_intcFromMatch[1]:"P/P";
+              if(_fromCrs>=0 && _fromCrs<=360){
+                // Check that the waypoint exists in the route or is P/P
+                var _wptValid=_fromWptName==="P/P";
+                if(!_wptValid){
+                  for(var _fi=0;_fi<legs.length;_fi++){
+                    if(!legs[_fi].isDisc&&legs[_fi].wpt===_fromWptName){_wptValid=true;break;}
+                  }
+                  if(!_wptValid && getWptLL(_fromWptName)) _wptValid=true;
+                }
+                if(_wptValid){
+                  var _crsStr=String(_fromCrs).padStart(3,"0");
+                  // Insert conditional waypoint at L1
+                  var _condLeg={wpt:"("+_crsStr+")",crs:_crsStr+"°",dist:"",spdAlt:"",pred:"",isConditional:true,inserted:true};
+                  var _discLeg={wpt:"□□□□□",crs:"",dist:"",spdAlt:"",pred:"",isDisc:true};
+                  legs.splice(0,0,_condLeg,_discLeg);
+                  s.directToMod=true;s.intcCrsFromVal=_fromCrs;s.intcCrsToVal=null;s.intcCrsWpt=_fromWptName;s.abeamPtsSelected=false;s.rteCopyDone=false;
+                  s.routeLegs=syncRouteLegsFromLegs(s);updateRouteLegs(s);
+                  s.scratchpad="";s.execLight=true;s.helpMsg="";s._legsRteSynced=true;
+                }
+              }
+            }
+          }
+
+          if(idx<legs.length && !s._legsRteSynced){
             // --- Target is a DISC row (□□□□□) → Remove Discontinuity (FCOM 11.42.7) ---
             if(legs[idx].isDisc){
               // Check if inputWpt exists later in legs (after DISC)
@@ -22876,23 +23284,10 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
                   legs.splice(idx,1);
                 }
                 // ── Sync routeLegs → RTE page (FCOM 11.42.5-6) ──
-                var remainingWpts=new Set();
-                for(var rw=0;rw<legs.length;rw++){if(!legs[rw].isRwy&&!legs[rw].isDest&&!legs[rw].isDisc)remainingWpts.add(legs[rw].wpt);}
-                // Update routeLegs: if a leg's TO was removed but inputWpt is on same airway, update TO
-                var newRL=[];
-                for(var ri=0;ri<s.routeLegs.length;ri++){
-                  var rl=s.routeLegs[ri];
-                  if(remainingWpts.has(rl.to)){newRL.push(rl);}
-                  else if(!rl._star&&!rl._app&&!rl._appTrans&&!rl._disc&&!rl._missed&&!rl._dest){
-                    // TO removed — check if inputWpt is on this airway
-                    var awyWpts=AIRWAY_DB[rl.via];
-                    if(awyWpts&&awyWpts.indexOf(inputWpt)>=0){
-                      newRL.push(Object.assign({},rl,{to:inputWpt}));
-                    }
-                    // else: routeLeg dropped (wpt completely gone)
-                  }
-                }
-                s.routeLegs=newRL;
+                // Use syncRouteLegsFromLegs to rebuild routeLegs from the modified computedLegs.
+                // IMPORTANT: Do NOT call buildLegs() here — it would rebuild computedLegs from scratch
+                // (re-adding SID/STAR/APP wpts), which completely undoes the splice modification above.
+                s.routeLegs=syncRouteLegsFromLegs(s);
                 // FCOM 11.31.36: bypassing approach waypoints deselects approach
                 if(/^RW\d/.test(inputWpt)||AIRPORT_DB[inputWpt]){
                   s.arrApp="";s.arrTrans="";s.arrAppAct=false;
@@ -22905,7 +23300,19 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
                 else if(AIRPORT_DB[inputWpt]){
                   s.routeLegs.push({via:"DIRECT",to:inputWpt,_manual:true,_legsBypass:true});
                 }
-                updateRouteLegs(s);s.computedLegs=buildLegs(s);
+                updateRouteLegs(s);
+                // ── FCOM 11.42.8: Set directToMod when Direct To at L1 (idx=0) ──
+                if(idx===0 && s.phase==="ACTIVE"){
+                  s.directToMod=true;s.intcCrsToVal=null;s.intcCrsFromVal=null;s.intcCrsWpt=inputWpt;s.abeamPtsSelected=false;s.rteCopyDone=false;
+                  // Compute default course from prev wpt (or origin) to target
+                  var _prevW=null;
+                  if(legs.length>0&&!legs[0].isDisc) _prevW=legs[0].wpt;
+                  if(!_prevW) _prevW=s.origin;
+                  if(_prevW){
+                    var _calcCrs=computeLegCrsDist(_prevW,inputWpt);
+                    // Do not auto-set intcCrsToVal — leave null so □□□°> shows until user enters course
+                  }
+                }
                 s.scratchpad="";if(s.phase==="ACTIVE")s.execLight=true;s.helpMsg="";s._legsRteSynced=true;
               } else if(AIRPORT_DB[inputWpt]){
                 // ── DEST airport entry: truncate everything from idx onwards ──
@@ -22921,7 +23328,8 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
                 s.arrApp="";s.arrTrans="";s.arrAppAct=false;
                 s.routeLegs=syncRouteLegsFromLegs(s);
                 s.routeLegs.push({via:"DIRECT",to:inputWpt,_manual:true,_legsBypass:true});
-                updateRouteLegs(s);s.computedLegs=buildLegs(s);
+                // Do NOT call buildLegs — keep modified computedLegs intact
+                updateRouteLegs(s);
                 s.scratchpad="";if(s.phase==="ACTIVE")s.execLight=true;s.helpMsg="";s._legsRteSynced=true;
               } else {
                 // ── Add Waypoint (FCOM 11.42.2) ──
@@ -22937,7 +23345,7 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
             }
           }
           // Beyond last leg — append
-          else if(idx>=legs.length){
+          else if(idx>=legs.length && !s._legsRteSynced){
             const newLeg={wpt:inputWpt,crs:"---°",dist:"---",spdAlt:"",pred:"",via:"DIRECT",inserted:true};
             const disc={wpt:"□□□□□",crs:"",dist:"",spdAlt:"",pred:"",isDisc:true};
             legs.splice(legs.length,0,newLeg,disc);
@@ -22984,10 +23392,45 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
               if(!s.arrAppAct){s.arrApp="";s.arrTrans="";}
             }
             s.execLight=false;
+            // ── Clear INTC CRS state on ERASE ──
+            s.directToMod=false;s.intcCrsToVal=null;s.intcCrsFromVal=null;s.intcCrsWpt="";s.abeamPtsSelected=false;s.rteCopyDone=false;
             if(s._snapshot&&s._snapshot.computedLegs){s.computedLegs=JSON.parse(JSON.stringify(s._snapshot.computedLegs));}else{updateRouteLegs(s);s.computedLegs=buildLegs(s);}
           }
         }
-        if(side==="R"&&num===6)go("RTE_DATA");
+        // ═══ FCOM 11.42.8-10: R6 — INTC CRS TO/FROM course entry ═══
+        if(side==="R"&&num===6){
+          if(s.directToMod && s.legsPage===1){
+            var _spCrs=sp?sp.trim():"";
+            if(_spCrs && /^\d{1,3}$/.test(_spCrs)){
+              var _crsVal=parseInt(_spCrs);
+              if(_crsVal>=0 && _crsVal<=360){
+                if(s.intcCrsFromVal!==null){
+                  s.intcCrsFromVal=_crsVal;
+                } else {
+                  s.intcCrsToVal=_crsVal;
+                }
+                s.scratchpad="";
+              }
+            } else if(!_spCrs){
+              // Empty scratchpad: confirm current course or navigate to RTE DATA if no directToMod course
+              if(s.intcCrsToVal!==null || s.intcCrsFromVal!==null){
+                // Course already set — confirm (no additional action needed, EXEC will finalize)
+              } else {
+                // No course set — compute default from route
+                var _defPrevW=null;
+                if(legs.length>0&&!legs[0].isDisc)_defPrevW=legs[0].wpt;
+                if(!_defPrevW)_defPrevW=s.origin;
+                var _defToW=s.intcCrsWpt||"";
+                if(_defPrevW&&_defToW){
+                  var _defCalc=computeLegCrsDist(_defPrevW,_defToW);
+                  if(_defCalc) s.intcCrsToVal=parseInt(_defCalc.crs);
+                }
+              }
+            }
+          } else {
+            go("RTE_DATA");
+          }
+        }
       }
       else if(p==="RTE_DATA"){
         // FCOM 11.42.42: Route Data page
@@ -23332,10 +23775,99 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
         if(side==="R"&&num===6){/* LAT/LON toggle */}
       }
       else if(p==="OFFSET"){
-        // FCOM 11.42.19: L1 offset dist entry (e.g. L10.5, R5.0)
-        if(side==="L"&&num===1&&sp){s.offsetDist=sp.toUpperCase();s.scratchpad="";if(s.phase==="ACTIVE")s.execLight=true;}
-        if(side==="L"&&num===2&&sp){s.offsetStart=sp.toUpperCase();s.scratchpad="";if(s.phase==="ACTIVE")s.execLight=true;}
-        if(side==="L"&&num===3&&sp){s.offsetEnd=sp.toUpperCase();s.scratchpad="";if(s.phase==="ACTIVE")s.execLight=true;}
+        // ═══ LATERAL OFFSET handler (FCOM 11.42.19-21, pp.1897-1899) ═══
+        //
+        // FCOM 11.42.19 #1 (1L): OFFSET DIST entry
+        //   Valid entries: L or R followed by XX.X, or XX.X followed by L or R
+        //   (0.1 to 99.0 NM in 0.1 increments). DELETE clears.
+        //   Entry of valid offset distance displays START WAYPOINT (2L) and END WAYPOINT (3L).
+        if(side==="L"&&num===1){
+          if(sp==="DELETE"){s.offsetDist="";s.offsetStart="";s.offsetEnd="";s.scratchpad="";if(s.phase==="ACTIVE")s.execLight=true;}
+          else if(sp){
+            var od=sp.toUpperCase();
+            // Accept both "L10.5" and "10.5L" formats
+            if(/^[LR]\d/.test(od)||/\d[LR]$/.test(od)){
+              s.offsetDist=od;s.scratchpad="";if(s.phase==="ACTIVE")s.execLight=true;
+            } else{s.scratchpad="INVALID ENTRY";}
+          }
+        }
+        // FCOM 11.42.20 #2 (2L): START WAYPOINT
+        //   Valid entries are waypoints in the active, modified, or pending active route.
+        //   Only functional when offset dist has been entered.
+        if(side==="L"&&num===2&&s.offsetDist){
+          if(sp==="DELETE"){s.offsetStart="";s.scratchpad="";if(s.phase==="ACTIVE")s.execLight=true;}
+          else if(sp){s.offsetStart=sp.toUpperCase();s.scratchpad="";if(s.phase==="ACTIVE")s.execLight=true;}
+        }
+        // FCOM 11.42.20 #3 (3L): END WAYPOINT
+        //   Displays dashes when able to enter a valid end waypoint.
+        //   Only functional when offset dist has been entered.
+        if(side==="L"&&num===3&&s.offsetDist){
+          if(sp==="DELETE"){s.offsetEnd="";s.scratchpad="";if(s.phase==="ACTIVE")s.execLight=true;}
+          else if(sp){s.offsetEnd=sp.toUpperCase();s.scratchpad="";if(s.phase==="ACTIVE")s.execLight=true;}
+        }
+        // L6: <ERASE — clears all offset data
+        if(side==="L"&&num===6&&(s.offsetDist||s.offsetStart||s.offsetEnd)){
+          s.offsetDist="";s.offsetStart="";s.offsetEnd="";
+          s.offsetActive=false;
+          if(s.phase==="ACTIVE")s.execLight=true;
+        }
+        // FCOM 11.42.20 #4 (1R): SLOP OFFSET toggle
+        //   Default OFF in large green; ON in small white. Selection reverses.
+        if(side==="R"&&num===1){
+          s.slopOn=!s.slopOn;
+          if(!s.slopOn){
+            // Turning OFF clears SLOP execution state
+            s.slopStartNow=false;s.offsetSlopStart="";s.offsetSlopEnd="";
+            s.slopStartEntered=false;s.slopEndEntered=false;
+          }
+        }
+        // FCOM 11.42.21 #5 (2R): START SLOP / END SLOP
+        //   Title=START SLOP when not active, END SLOP when active.
+        //   NOW> when SLOP ON, offset not active, active leg is offsetable.
+        //   Select → modifies page, SLOP offset displays as white dashed line on ND.
+        if(side==="R"&&num===2&&s.slopOn){
+          if(!s.slopStartNow){
+            // START SLOP: NOW> pressed
+            s.slopStartNow=true;
+            // Auto-fill SLOP START WAYPOINT with nearest route waypoint
+            var cl=s.computedLegs||[];var si2=s.simActive?s.simLegIdx:0;
+            if(cl[si2]&&cl[si2].wpt)s.offsetSlopStart=cl[si2].wpt;
+            if(s.phase==="ACTIVE")s.execLight=true;
+          } else {
+            // END SLOP: NOW pressed (cancel SLOP)
+            s.slopStartNow=false;s.offsetSlopStart="";s.offsetSlopEnd="";
+            s.slopStartEntered=false;s.slopEndEntered=false;
+            if(s.phase==="ACTIVE")s.execLight=true;
+          }
+        }
+        // FCOM 11.42.21 #6 (3R): SLOP OFFSET DIST
+        //   Valid entries: X.X (0.1 to 2.0 NM). Manual entry = large font.
+        if(side==="R"&&num===3&&s.slopOn){
+          if(sp&&sp!=="DELETE"){
+            var sv=parseFloat(sp);
+            if(!isNaN(sv)&&sv>=0.1&&sv<=2.0){
+              s.slopDist="R "+sv.toFixed(1);s.slopDistEntered=true;s.scratchpad="";
+            } else{s.scratchpad="INVALID ENTRY";}
+          } else if(sp==="DELETE"){
+            s.slopDist="R 1.0";s.slopDistEntered=false;s.scratchpad="";
+          } else {
+            // No scratchpad: toggle R 1.0 ↔ R 2.0 (convenience)
+            s.slopDist=(s.slopDist==="R 1.0")?"R 2.0":"R 1.0";
+          }
+        }
+        // FCOM 11.42.21 #7 (4R): SLOP START WAYPOINT
+        //   Manual entry displays in large font. Dashes when no default exists.
+        if(side==="R"&&num===4&&s.slopOn){
+          if(sp==="DELETE"){s.offsetSlopStart="";s.slopStartEntered=false;s.scratchpad="";}
+          else if(sp){s.offsetSlopStart=sp.toUpperCase();s.slopStartEntered=true;s.scratchpad="";}
+        }
+        // FCOM 11.42.21 #8 (5R): SLOP END WAYPOINT
+        //   Manual entry displays in large font.
+        if(side==="R"&&num===5&&s.slopOn){
+          if(sp==="DELETE"){s.offsetSlopEnd="";s.slopEndEntered=false;s.scratchpad="";}
+          else if(sp){s.offsetSlopEnd=sp.toUpperCase();s.slopEndEntered=true;s.scratchpad="";}
+        }
+        // R6: RTE 1>
         if(side==="R"&&num===6)go("RTE_1");
       }
       // [HDL] FIX
@@ -23508,6 +24040,10 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
         setTimeout(function(){if(CUR.posAt)CUR.posAt(_nextIdx);},150);
       }
       if(s._skipCopy)delete s._skipCopy;
+      // ── If execLight just turned ON, save pre-modification snapshot for ND dual-route display ──
+      if(s.execLight&&!prev.execLight&&_preModSnap){
+        s._snapshot=_preModSnap;
+      }
       return s;
     });
   },[setFms]);
@@ -23521,10 +24057,15 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
       rtePage:cmd==="RTE"?_rteStartPage:p.rtePage,
       legsPage:cmd==="LEGS"?1:p.legsPage,
       progPage:cmd==="PROG"?1:p.progPage,
-      helpMsg:""};if(dest!=="PROGRESS")n.progDestWpt="";return n;});
+      helpMsg:""};if(dest!=="PROGRESS")n.progDestWpt="";
+      // ── Clear directToMod when navigating away from LEGS ──
+      if(dest!=="LEGS"){n.directToMod=false;n.intcCrsToVal=null;n.intcCrsFromVal=null;n.intcCrsWpt="";n.abeamPtsSelected=false;n.rteCopyDone=false;}
+      return n;});
   },[setFms,setMfdMode]);
 
-  const handleExec = useCallback(()=>setFms(p=>{if(!p.execLight)return p;var n={...p,execLight:false,phase:p.origin&&p.dest?"ACTIVE":p.phase};if(p.depSid)n.depSidAct=true;if(p.arrStar)n.arrStarAct=true;if(p.arrApp)n.arrAppAct=true;if(n.computedLegs)n.computedLegs.forEach(function(l){delete l.inserted;});n._snapshot={depSid:n.depSid,depRwy:n.depRwy,depTrans:n.depTrans,arrStar:n.arrStar,arrApp:n.arrApp,arrTrans:n.arrTrans,routeLegs:JSON.parse(JSON.stringify(n.routeLegs)),computedLegs:JSON.parse(JSON.stringify(n.computedLegs||[]))};
+  const handleExec = useCallback(()=>setFms(p=>{if(!p.execLight)return p;var n={...p,execLight:false,phase:p.origin&&p.dest?"ACTIVE":p.phase};if(p.depSid)n.depSidAct=true;if(p.arrStar)n.arrStarAct=true;if(p.arrApp)n.arrAppAct=true;if(n.computedLegs)n.computedLegs.forEach(function(l){delete l.inserted;});
+    // ── FCOM 11.42.8-12: Clear INTC CRS state on EXEC ──
+    n.directToMod=false;n.intcCrsToVal=null;n.intcCrsFromVal=null;n.intcCrsWpt="";n.abeamPtsSelected=false;n.rteCopyDone=false;n._snapshot={depSid:n.depSid,depRwy:n.depRwy,depTrans:n.depTrans,arrStar:n.arrStar,arrApp:n.arrApp,arrTrans:n.arrTrans,routeLegs:JSON.parse(JSON.stringify(n.routeLegs)),computedLegs:JSON.parse(JSON.stringify(n.computedLegs||[]))};
     // After EXEC with simActive: find closest waypoint in new route to current position
     if(n.simActive&&n.simLat){
       var _legs=n.computedLegs||[];var _pts=[];
@@ -23924,7 +24465,7 @@ function MFKKeypad({fms,setFms,mfdMode,setMfdMode}) {
     }
     return React.createElement('button', { onClick: ()=>hk(l), style: {width:"43px",height:"41px",borderRadius:"3px",background:hi?"#3a3a3a":"linear-gradient(180deg,#3a3a3a 0%,#2a2a2a 100%)",color:C.white,border:hi?"2px solid #88cccc":"1px solid #555",fontSize:"14px",fontWeight:"bold",cursor:"pointer",fontFamily:M,boxShadow:"0 1px 3px rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,255,255,0.1)"},}, l);
   };
-  const MBtn=({l,a})=>(React.createElement('button', { onClick: ()=>{if(l==="CHKL"){/* Issue2: if already in CHKL and all complete, return */if(mfdMode==="CHKL"){var CL2=CUR.CHECKLISTS||[];var _allCL=CL2.length>0&&CL2.every(function(cl2,ci2){return cl2.items.every(function(_it3,ii3){var _ck=(fms.chkl||{}).ck||{};var _ov=(fms.chkl||{}).ovrd||{};if(_ov[ci2+"-"+ii3])return true;if(_it3.t==="closed")return true;return!!_ck[ci2+"-"+ii3];});});if(_allCL){setFms(function(p){return{...p,returnFromChkl:true};});return;}}setFms(function(p){var c=Object.assign({},p.chkl||{tab:"NORMAL",clIdx:0,cur:0,ck:{},ovrd:{},menuMode:false});var CL=CUR.CHECKLISTS||[];if(CL.length>0&&CL[c.clIdx]){var _allDone=CL[c.clIdx].items.every(function(_it,ii){if(c.ovrd[c.clIdx+"-"+ii])return true;if(_it.t==="closed")return true;return!!c.ck[c.clIdx+"-"+ii];});if(_allDone){var _found=false;for(var _i=0;_i<CL.length;_i++){var _done=CL[_i].items.every(function(_it2,ii2){if(c.ovrd[_i+"-"+ii2])return true;if(_it2.t==="closed")return true;return!!c.ck[_i+"-"+ii2];});if(!_done){c.clIdx=_i;c.cur=0;c.menuMode=false;_found=true;break;}}if(!_found)c.menuMode=true;}}return Object.assign({},p,{cursorIdx:null,prevMfdMode:mfdMode,prevPage:p.page,chkl:c});});setMfdMode(l);}else{setMfdMode(l);if(l==="COMM")setFms(function(p){return Object.assign({},p,{cursorIdx:null});});}}, style: {width:"55px",height:"28px",borderRadius:"3px",position:"relative",background:a?"#2a2a2a":"#3a3a3a",color:C.white,border:a?"2px solid #fff":"1px solid #555",fontSize:"16px",fontWeight:"bold",cursor:"pointer",fontFamily:M,boxShadow:a?"0 0 4px rgba(255,255,255,0.3)":"0 1px 3px rgba(0,0,0,0.4)"},}
+  const MBtn=({l,a})=>(React.createElement('button', { onClick: ()=>{if(l==="CHKL"){/* Toggle: if already in CHKL, return to previous screen */if(mfdMode==="CHKL"){setFms(function(p){return{...p,returnFromChkl:true};});return;}setFms(function(p){var c=Object.assign({},p.chkl||{tab:"NORMAL",clIdx:0,cur:0,ck:{},ovrd:{},menuMode:false});var CL=CUR.CHECKLISTS||[];if(CL.length>0&&CL[c.clIdx]){var _allDone=CL[c.clIdx].items.every(function(_it,ii){if(c.ovrd[c.clIdx+"-"+ii])return true;if(_it.t==="closed")return true;return!!c.ck[c.clIdx+"-"+ii];});if(_allDone){var _found=false;for(var _i=0;_i<CL.length;_i++){var _done=CL[_i].items.every(function(_it2,ii2){if(c.ovrd[_i+"-"+ii2])return true;if(_it2.t==="closed")return true;return!!c.ck[_i+"-"+ii2];});if(!_done){c.clIdx=_i;c.cur=0;c.menuMode=false;_found=true;break;}}if(!_found)c.menuMode=true;}}return Object.assign({},p,{cursorIdx:null,prevMfdMode:mfdMode,prevPage:p.page,chkl:c});});setMfdMode(l);}else{setMfdMode(l);if(l==="COMM")setFms(function(p){return Object.assign({},p,{cursorIdx:null});});}}, style: {width:"55px",height:"28px",borderRadius:"3px",position:"relative",background:a?"#2a2a2a":"#3a3a3a",color:C.white,border:a?"2px solid #fff":"1px solid #555",fontSize:"16px",fontWeight:"bold",cursor:"pointer",fontFamily:M,boxShadow:a?"0 0 4px rgba(255,255,255,0.3)":"0 1px 3px rgba(0,0,0,0.4)"},}
     , l));
   // Move DOM cursor to LSK position AND set cursorIdx
   function jumpCursor(idx){if(CUR.hoverEl)CUR.hoverEl.style.outline="none";CUR.hoverKey=null;CUR.hoverEl=null;CUR.set(function(p){var n=Object.assign({},p,{cursorIdx:idx});if(idx>=100&&idx<200)n.chkl=Object.assign({},p.chkl,{cur:idx-100});return n;});setTimeout(function(){positionCursorAt(idx);},120);}
@@ -24974,7 +25515,7 @@ function ChecklistView({fms,setFms}){
       )
       /* Bottom command keys (FCOM 10.50.1) */
       , React.createElement('div', { style: {display:"flex",gap:2,padding:"4px 6px",borderTop:"1px solid #444"},}
-        , React.createElement(CmdKey, { l: "NORMAL", cmd: "0", onClick: allDone?()=>{const ni=clIdx+1<CHECKLISTS.length?clIdx+1:0;setClIdx(ni);setCur(0);setFms(p=>{var es=p.eicasScenario;if(clIdx===1)es=4;else if(clIdx===2){es=5;setTimeout(function(){setFms(function(pp){return{...pp,eicasScenario:6};});},2500);}else if(clIdx===3)es=7;else if(clIdx===4)es=8;return{...p,cursorIdx:null,returnFromChkl:true,eicasScenario:es,eicasCxd:[]};});}:goNextIncomplete,})
+        , React.createElement(CmdKey, { l: "NORMAL", cmd: "0", onClick: allDone?()=>{const ni=clIdx+1<CHECKLISTS.length?clIdx+1:0;setClIdx(ni);setCur(0);setFms(p=>{var es=p.eicasScenario;if(clIdx===1)es=4;else if(clIdx===2){es=5;setTimeout(function(){setFms(function(pp){return{...pp,eicasScenario:6};});},2500);}else if(clIdx===3)es=7;else if(clIdx===4)es=8;return{...p,cursorIdx:null,eicasScenario:es,eicasCxd:[]};});}:goNextIncomplete,})
         , React.createElement(CmdKey, { l: "ITEM\nOVRD", cmd: "1", onClick: itemOverride,})
         , React.createElement(CmdKey, { l: "NOTES", cmd: "2",})
         , React.createElement(CmdKey, { l: "CHKL\nOVRD", cmd: "3", onClick: ()=>{items.forEach((_,ii)=>{setOvrd(o=>({...o,[`${clIdx}-${ii}`]:true}));});setCur(items.length);},})
@@ -25724,18 +26265,46 @@ function NDView({fms,setFms,hideControls}){
     var NC={mag:"#ff00ff",grn:"#00ff00",wht:"#e0e0e0",cyn:"#00cccc",amb:"#ffaa00",red:"#ff0000"};
     ctx.fillStyle="#000";ctx.fillRect(0,0,W,H);
 
-    // ═══ Gather route waypoints ═══
+    // ═══ Gather route waypoints with constraint data (FCOM 10.40.13) ═══
     var legs=fms.computedLegs||[];
     var pts=[];
-    if(fms.origin){var oc=getWptLL(fms.origin);if(oc)pts.push({name:fms.origin,lat:oc.lat,lon:oc.lon,isAprt:true,isOrig:true});}
+    if(fms.origin){var oc=getWptLL(fms.origin);if(oc)pts.push({name:fms.origin,lat:oc.lat,lon:oc.lon,isAprt:true,isOrig:true,alt:"",spd:"",isFaf:false});}
+    var _pendingDisc=false; // Track DISC for ND route line break
     for(var i=0;i<legs.length;i++){
       var lg=legs[i];
-      if(lg.isDisc||lg.isHold||lg.isVectors||lg.isMissed)continue;
+      if(lg.isDisc){_pendingDisc=true;continue;}
+      if(lg.isHold||lg.isVectors||lg.isMissed)continue;
       var wn=lg.wpt;if(!wn||wn.match(/^RW\d/))continue;
       var ll=getWptLL(wn);
-      if(ll)pts.push({name:wn,lat:ll.lat,lon:ll.lon,via:lg.via||"",isAprt:false});
+      if(ll){
+        // FCOM 10.40.16: Extract altitude/speed constraint from spdAlt or pred
+        var altStr="",spdStr="",isFaf=false;
+        var sa=lg.spdAlt||"";var pr=lg.pred||"";
+        // Parse altitude from spdAlt (e.g. "210KT/4930A", "3940A", "FL350")
+        if(sa){
+          var saMatch=sa.match(/(\d{3,5})(A|B)?$/);
+          if(saMatch){altStr=saMatch[1];if(saMatch[2])altStr+=saMatch[2];}
+          if(sa.match(/^FL\d/))altStr=sa;
+          // Parse speed
+          var spMatch=sa.match(/^(\d{3})KT/)||sa.match(/^K?(\d{3})/);
+          if(spMatch&&parseInt(spMatch[1])<=350)spdStr=spMatch[1];
+        }
+        if(!altStr&&pr){
+          var prParts=pr.split("/");
+          if(prParts.length===2&&prParts[1].trim()){
+            var altP=prParts[1].trim().replace(/[AB]/g,"");
+            if(/^\d{3,5}$/.test(altP))altStr=altP;
+          }
+        }
+        // Detect FAF (Final Approach Fix)
+        if(wn.match(/^FI/)||lg.isFaf)isFaf=true;
+        var ptEntry={name:wn,lat:ll.lat,lon:ll.lon,via:lg.via||"",isAprt:false,alt:altStr,spd:spdStr,isFaf:isFaf};
+        // Mark route break: DISC occurred before this waypoint
+        if(_pendingDisc){ptEntry._discBefore=true;_pendingDisc=false;}
+        pts.push(ptEntry);
+      }
     }
-    if(fms.dest){var dc=getWptLL(fms.dest);if(dc&&(pts.length===0||pts[pts.length-1].name!==fms.dest))pts.push({name:fms.dest,lat:dc.lat,lon:dc.lon,isAprt:true,isDest:true});}
+    if(fms.dest){var dc=getWptLL(fms.dest);if(dc&&(pts.length===0||pts[pts.length-1].name!==fms.dest))pts.push({name:fms.dest,lat:dc.lat,lon:dc.lon,isAprt:true,isDest:true,alt:"",spd:"",isFaf:false});}
 
     if(pts.length<2){
       ctx.fillStyle=NC.wht;ctx.font="14px "+M;ctx.textAlign="center";
@@ -25781,31 +26350,148 @@ function NDView({fms,setFms,hideControls}){
     var scaleF=0.9;  // scale factor so route fits inside display area
     var pxPerNm=roseR/rng;
 
+    // ═══ FCOM 10.40.14: Flight plan route colors ═══
+    // Active route = magenta (M)  — EXECed, committed route
+    // Modified route = white (W)  — current modification, EXEC pending
+    // Inactive route = cyan (C)   — route entered on RTE page but not yet ACTIVATEd
+    var routeColor=NC.mag; // default: active
+    var hasModRoute=false;
+    var snapPts=null;
+    if(fms.execLight&&fms._snapshot&&fms._snapshot.computedLegs){
+      // EXEC pending: snapshot = active (magenta), current = modified (white)
+      routeColor=NC.wht;
+      hasModRoute=true;
+      var _snapLegs=fms._snapshot.computedLegs;
+      snapPts=[];
+      if(fms.origin){var _soc=getWptLL(fms.origin);if(_soc)snapPts.push({name:fms.origin,lat:_soc.lat,lon:_soc.lon,isAprt:true,isOrig:true});}
+      for(var _si2=0;_si2<_snapLegs.length;_si2++){
+        var _sl=_snapLegs[_si2];
+        if(_sl.isDisc||_sl.isHold||_sl.isVectors||_sl.isMissed)continue;
+        var _swn=_sl.wpt;if(!_swn||_swn.match(/^RW\d/))continue;
+        var _sll=getWptLL(_swn);
+        if(_sll)snapPts.push({name:_swn,lat:_sll.lat,lon:_sll.lon});
+      }
+      if(fms.dest){var _sdc=getWptLL(fms.dest);if(_sdc&&(snapPts.length===0||snapPts[snapPts.length-1].lat!==_sdc.lat))snapPts.push({name:fms.dest,lat:_sdc.lat,lon:_sdc.lon,isAprt:true,isDest:true});}
+    } else if(fms.phase!=="ACTIVE"){
+      routeColor=NC.cyn; // inactive
+    }
+
     // ═══ Helper: draw waypoint "+" cross (FCOM 10.40.12) ═══
     function drawWptCross(x,y,sz,color){
       ctx.strokeStyle=color;ctx.lineWidth=1.5;
       ctx.beginPath();ctx.moveTo(x,y-sz);ctx.lineTo(x,y+sz);ctx.stroke();
       ctx.beginPath();ctx.moveTo(x-sz,y);ctx.lineTo(x+sz,y);ctx.stroke();
     }
-    // ═══ Helper: draw airport circle (FCOM 10.40.17) ═══
-    function drawAprtSym(x,y,color){
-      ctx.strokeStyle=color;ctx.lineWidth=1.5;
-      ctx.beginPath();ctx.arc(x,y,6,0,Math.PI*2);ctx.stroke();
+    // ═══ Helper: draw airport symbol (FCOM 10.40.17) ═══
+    // FCOM 10.40.17: Airport — circle. Destination airport also shows a runway
+    //   oriented to the selected approach/arrival runway heading.
+    //   Color: W (white) for origin, C (cyan) for destination/non-active.
+    function drawAprtSym(x,y,color,rwyHdg,isMapMode,mapHdg){
+      ctx.strokeStyle=color;ctx.lineWidth=2;
+      ctx.beginPath();ctx.arc(x,y,15,0,Math.PI*2);ctx.stroke();
+      // FCOM 10.40.17: Runway line inside airport circle — oriented to actual runway heading
+      if(typeof rwyHdg==="number"&&!isNaN(rwyHdg)){
+        var rwyLen=21; // runway symbol half-length (px)
+        // In MAP mode: rotate relative to aircraft heading (track-up)
+        // In PLN mode: north-up (no rotation needed)
+        var rRad=(rwyHdg-(isMapMode?(mapHdg||0):0))*Math.PI/180;
+        var rx=Math.sin(rRad)*rwyLen, ry=-Math.cos(rRad)*rwyLen;
+        ctx.strokeStyle=color;ctx.lineWidth=2.5;
+        ctx.beginPath();ctx.moveTo(x-rx,y-ry);ctx.lineTo(x+rx,y+ry);ctx.stroke();
+        // Threshold marks at runway ends (small perpendicular ticks)
+        var tx=Math.cos(rRad)*3, ty=Math.sin(rRad)*3;
+        ctx.lineWidth=1.5;
+        ctx.beginPath();ctx.moveTo(x+rx-tx,y+ry-ty);ctx.lineTo(x+rx+tx,y+ry+ty);ctx.stroke();
+        ctx.beginPath();ctx.moveTo(x-rx-tx,y-ry-ty);ctx.lineTo(x-rx+tx,y-ry+ty);ctx.stroke();
+      }
     }
     // ═══ Helper: draw airplane triangle (FCOM 10.40.11) ═══
+    // FCOM 10.40.14: Airplane symbol (W) — hollow triangle, center open
     function drawAcSym(x,y,sz,rot){
+      // Aircraft position (x,y) = nose tip (top vertex of triangle)
       ctx.save();ctx.translate(x,y);if(rot)ctx.rotate(rot);
-      ctx.fillStyle=NC.wht;ctx.beginPath();
-      ctx.moveTo(0,-sz);          // nose
-      ctx.lineTo(sz*0.65,sz*0.5); // right wing tip
-      ctx.lineTo(sz*0.15,sz*0.2);
-      ctx.lineTo(sz*0.35,sz*0.9); // right tail
-      ctx.lineTo(0,sz*0.6);       // tail center
-      ctx.lineTo(-sz*0.35,sz*0.9);// left tail
-      ctx.lineTo(-sz*0.15,sz*0.2);
-      ctx.lineTo(-sz*0.65,sz*0.5);// left wing tip
-      ctx.closePath();ctx.fill();
+      ctx.strokeStyle=NC.wht;ctx.lineWidth=2;
+      ctx.beginPath();
+      ctx.moveTo(0,0);              // nose (top) = aircraft position
+      ctx.lineTo(sz*0.7,sz*1.8);    // right base
+      ctx.lineTo(-sz*0.7,sz*1.8);   // left base
+      ctx.closePath();ctx.stroke();
       ctx.restore();
+    }
+
+    // ═══ Helper: draw TOD/TOC circle (FCOM 10.40.14) ═══
+    // Green circle with "T/D" or "T/C" label — marks top of descent/climb
+    function drawTODSym(x,y,label){
+      ctx.strokeStyle=NC.grn;ctx.lineWidth=1.5;
+      ctx.beginPath();ctx.arc(x,y,6,0,Math.PI*2);ctx.stroke();
+      ctx.fillStyle=NC.grn;ctx.font="bold 7px "+M;ctx.textAlign="center";
+      ctx.fillText(label,x,y+3);
+    }
+    // ═══ Helper: draw DECEL point (FCOM 10.40.14) ═══
+    // Green "D" in circle — marks deceleration point
+    function drawDecelSym(x,y){
+      ctx.strokeStyle=NC.grn;ctx.lineWidth=1.5;
+      ctx.beginPath();ctx.arc(x,y,6,0,Math.PI*2);ctx.stroke();
+      ctx.fillStyle=NC.grn;ctx.font="bold 8px "+M;ctx.textAlign="center";
+      ctx.fillText("D",x,y+3);
+    }
+    // ═══ Helper: draw active waypoint (magenta, FCOM 10.40.12) ═══
+    // Active "TO" waypoint uses solid magenta diamond
+    function drawActWptDiamond(x,y,sz){
+      ctx.strokeStyle=NC.mag;ctx.lineWidth=2;
+      ctx.beginPath();
+      ctx.moveTo(x,y-sz);ctx.lineTo(x+sz,y);ctx.lineTo(x,y+sz);ctx.lineTo(x-sz,y);
+      ctx.closePath();ctx.stroke();
+    }
+    // ═══ Helper: draw flyover waypoint (FCOM 10.40.12) ═══
+    // Flyover = cross inside circle
+    function drawFlyoverWpt(x,y,sz,color){
+      drawWptCross(x,y,sz,color);
+      ctx.strokeStyle=color;ctx.lineWidth=1;
+      ctx.beginPath();ctx.arc(x,y,sz+2,0,Math.PI*2);ctx.stroke();
+    }
+    // ═══ Helper: draw constraint annotation (FCOM 10.40.16) ═══
+    // Altitude/speed text below/beside waypoint symbol (magenta = constraint)
+    function drawConstraint(x,y,alt,spd,color){
+      var ty=y+20;
+      ctx.font="10px "+M;ctx.textAlign="center";
+      if(alt){
+        // FCOM 10.40.16: altitude in green when met, magenta when command
+        ctx.fillStyle=color||NC.mag;
+        var altDisp=alt;
+        // Convert to FL if ≥ transition alt
+        var altNum=parseInt(alt);
+        if(!isNaN(altNum)&&altNum>=10000){altDisp="FL"+Math.round(altNum/100);}
+        else if(!isNaN(altNum)){altDisp=String(altNum);}
+        ctx.fillText(altDisp,x,ty);ty+=9;
+      }
+      if(spd){
+        ctx.fillStyle=NC.mag;
+        ctx.fillText(spd+"KT",x,ty);
+      }
+    }
+    // ═══ Helper: draw offset route line (FCOM 10.40.14, 11.42.19) ═══
+    // White dashed parallel path when lateral offset is active
+    function drawOffsetLine(scrPts2,offsetNm,pxPerNm2,hdgRad2){
+      if(!offsetNm||scrPts2.length<2)return;
+      var offPx=offsetNm*pxPerNm2;
+      ctx.strokeStyle=NC.wht;ctx.lineWidth=1.5;ctx.setLineDash([8,6]);
+      ctx.beginPath();
+      for(var oi=0;oi<scrPts2.length;oi++){
+        // Compute perpendicular offset at each point
+        var dx=0,dy=0;
+        if(oi<scrPts2.length-1){
+          dx=scrPts2[oi+1].x-scrPts2[oi].x;dy=scrPts2[oi+1].y-scrPts2[oi].y;
+        }else if(oi>0){
+          dx=scrPts2[oi].x-scrPts2[oi-1].x;dy=scrPts2[oi].y-scrPts2[oi-1].y;
+        }
+        var ln=Math.sqrt(dx*dx+dy*dy)||1;
+        // Perpendicular: rotate 90° (positive = right offset)
+        var px=-dy/ln*offPx, py=dx/ln*offPx;
+        if(oi===0)ctx.moveTo(scrPts2[oi].x+px,scrPts2[oi].y+py);
+        else ctx.lineTo(scrPts2[oi].x+px,scrPts2[oi].y+py);
+      }
+      ctx.stroke();ctx.setLineDash([]);
     }
 
     // ══════════════════════════════════════════════
@@ -25838,28 +26524,194 @@ function NDView({fms,setFms,hideControls}){
       ctx.arc(acX,acY,arcR+4,-Math.PI/2-arcSpanDeg*Math.PI/180,-Math.PI/2+arcSpanDeg*Math.PI/180);
       ctx.closePath();ctx.clip();
 
-      // ── Active route line (magenta solid, FCOM 10.40.14) ──
+      // ── FCOM 10.40.14: Snapshot (active) route — magenta, shown when modification pending ──
       var scrPts=pts.map(function(p){return mapProj(p.lat,p.lon);});
-      ctx.strokeStyle=NC.mag;ctx.lineWidth=2.5;ctx.beginPath();
-      for(var m1=0;m1<scrPts.length;m1++){
-        if(m1===0)ctx.moveTo(scrPts[m1].x,scrPts[m1].y);
-        else ctx.lineTo(scrPts[m1].x,scrPts[m1].y);
-      }ctx.stroke();
+      var acSz=18; // aircraft symbol size (must match drawAcSym call)
+      if(hasModRoute&&snapPts&&snapPts.length>=2){
+        // ── MOD state: Active route (magenta) = snapshot, Modified route (white) = current ──
+        // 1) Active route line (magenta) — what the airplane actually follows
+        var snapScrPts=snapPts.map(function(p){return mapProj(p.lat,p.lon);});
+        ctx.strokeStyle=NC.mag;ctx.lineWidth=2;ctx.setLineDash([]);ctx.beginPath();
+        for(var ms=0;ms<snapScrPts.length;ms++){
+          if(ms===0)ctx.moveTo(snapScrPts[ms].x,snapScrPts[ms].y);
+          else ctx.lineTo(snapScrPts[ms].x,snapScrPts[ms].y);
+        }ctx.stroke();
+        // 2) Active route waypoints (magenta) — full symbols
+        for(var ms2=0;ms2<snapPts.length;ms2++){
+          var sSp=snapScrPts[ms2],sPt=snapPts[ms2];
+          if(sSp.x<-40||sSp.x>W+40||sSp.y<-40||sSp.y>H+40)continue;
+          if(sPt.isAprt)continue;
+          drawWptCross(sSp.x,sSp.y,6,NC.mag);
+          ctx.fillStyle=NC.mag;ctx.font="13px "+M;ctx.textAlign="left";
+          ctx.fillText(sPt.name,sSp.x+10,sSp.y+4);
+        }
+        // 3) Modified route line (white, short dashes) — starts from aircraft nose
+        // FCOM 10.40.14: Active route modifications displayed with short dashes (W)
+        ctx.strokeStyle=NC.wht;ctx.lineWidth=2;ctx.setLineDash([8,6]);ctx.beginPath();
+        ctx.moveTo(acX,acY);
+        for(var m1=0;m1<scrPts.length;m1++){
+          if(pts[m1].isOrig) continue;
+          // DISC break: stop current segment, start new moveTo
+          if(pts[m1]._discBefore){
+            ctx.stroke(); // finish previous segment
+            ctx.beginPath();ctx.moveTo(scrPts[m1].x,scrPts[m1].y); // start new segment at this waypoint
+          } else {
+            ctx.lineTo(scrPts[m1].x,scrPts[m1].y);
+          }
+        }
+        ctx.stroke();ctx.setLineDash([]);
+      } else {
+        // ── Normal state: single route line (with DISC breaks) ──
+        ctx.strokeStyle=routeColor;ctx.lineWidth=2;ctx.setLineDash([]);ctx.beginPath();
+        for(var m1=0;m1<scrPts.length;m1++){
+          if(pts[m1]&&pts[m1]._discBefore){
+            ctx.stroke();ctx.beginPath();ctx.moveTo(scrPts[m1].x,scrPts[m1].y);
+          } else if(m1===0){
+            ctx.moveTo(scrPts[m1].x,scrPts[m1].y);
+          } else {
+            ctx.lineTo(scrPts[m1].x,scrPts[m1].y);
+          }
+        }
+        ctx.stroke();
+      }
 
-      // ── Waypoint symbols (FCOM 10.40.12-13) ──
+      // ── FCOM 11.42.8-12: INTC CRS TO/FROM course line on ND (MAP mode) ──
+      if(fms.directToMod && fms.intcCrsWpt){
+        var _icWptLL=getWptLL(fms.intcCrsWpt);
+        if(_icWptLL){
+          var _icSp=mapProj(_icWptLL.lat,_icWptLL.lon);
+          if(fms.intcCrsFromVal!==null){
+            // INTC CRS FROM: draw outbound course line from waypoint
+            // Line starts at waypoint and extends outbound along the entered course
+            var _fromCrsRad=(fms.intcCrsFromVal-hdg)*Math.PI/180;
+            var _lineLen=arcR*0.8;
+            var _fx2=_icSp.x+Math.sin(_fromCrsRad)*_lineLen;
+            var _fy2=_icSp.y-Math.cos(_fromCrsRad)*_lineLen;
+            ctx.strokeStyle=NC.wht;ctx.lineWidth=2;ctx.setLineDash([8,6]);
+            ctx.beginPath();ctx.moveTo(_icSp.x,_icSp.y);ctx.lineTo(_fx2,_fy2);ctx.stroke();
+            ctx.setLineDash([]);
+            // Draw course label near the line origin
+            ctx.fillStyle=NC.wht;ctx.font="bold 10px "+M;ctx.textAlign="center";
+            var _lx=_icSp.x+Math.sin(_fromCrsRad)*30;
+            var _ly=_icSp.y-Math.cos(_fromCrsRad)*30;
+            ctx.fillText(String(fms.intcCrsFromVal).padStart(3,"0")+"°",_lx,_ly);
+          } else if(fms.intcCrsToVal!==null){
+            // INTC CRS TO: draw inbound course line TO the waypoint
+            // Line shows the inbound path: extends from waypoint backwards along reciprocal of entered course
+            var _toCrsRad=(fms.intcCrsToVal-hdg)*Math.PI/180;
+            var _recipRad=_toCrsRad+Math.PI; // reciprocal (where line comes from)
+            var _lineLen2=arcR*0.8;
+            var _tx1=_icSp.x+Math.sin(_recipRad)*_lineLen2;
+            var _ty1=_icSp.y-Math.cos(_recipRad)*_lineLen2;
+            ctx.strokeStyle=NC.wht;ctx.lineWidth=2;ctx.setLineDash([8,6]);
+            ctx.beginPath();ctx.moveTo(_tx1,_ty1);ctx.lineTo(_icSp.x,_icSp.y);ctx.stroke();
+            ctx.setLineDash([]);
+            // Draw direct line from aircraft to the intercept point
+            ctx.strokeStyle=NC.wht;ctx.lineWidth=1.5;ctx.setLineDash([5,4]);
+            ctx.beginPath();ctx.moveTo(acX,acY);ctx.lineTo(_tx1,_ty1);ctx.stroke();
+            ctx.setLineDash([]);
+            // Course label near waypoint
+            ctx.fillStyle=NC.wht;ctx.font="bold 10px "+M;ctx.textAlign="center";
+            var _clx=_icSp.x+Math.sin(_recipRad)*30;
+            var _cly=_icSp.y-Math.cos(_recipRad)*30;
+            ctx.fillText(String(fms.intcCrsToVal).padStart(3,"0")+"°",_clx,_cly);
+          }
+        }
+      }
+
+      // ── TOD / TOC / DECEL symbols on route (FCOM 10.40.14) ──
+      // FCOM 10.40.14: T/D (Top of Descent) displayed as green circle with "T/D"
+      //   positioned on the active route at the computed descent point.
+      //   T/C (Top of Climb) = green circle with "T/C" at end of climb phase.
+      //   DECEL = green "D" in circle at deceleration point before approach.
+      // Simulate TOD at ~70% of route, DECEL at ~90% (near approach start)
+      if(pts.length>=4){
+        var todIdx=Math.floor(pts.length*0.65);
+        var decelIdx=Math.max(todIdx+1,pts.length-3);
+        // TOD — interpolate between waypoints
+        if(todIdx>0&&todIdx<scrPts.length){
+          var todSp=scrPts[todIdx];
+          if(todSp.x>-20&&todSp.x<W+20&&todSp.y>-20&&todSp.y<H+20){
+            drawTODSym(todSp.x-8,todSp.y-8,"T/D");
+          }
+        }
+        // DECEL — near approach
+        if(decelIdx>0&&decelIdx<scrPts.length){
+          var decSp=scrPts[decelIdx];
+          if(decSp.x>-20&&decSp.x<W+20&&decSp.y>-20&&decSp.y<H+20){
+            drawDecelSym(decSp.x-8,decSp.y-8);
+          }
+        }
+      }
+
+      // ── Waypoint symbols (FCOM 10.40.12-13, 10.40.16) ──
+      // NOTE: Airport symbols are drawn AFTER the aircraft symbol (below) so they
+      // appear on top of the aircraft triangle and remain visible at the origin.
       for(var m2=0;m2<pts.length;m2++){
         var sp=scrPts[m2],pt=pts[m2];
         if(sp.x<-40||sp.x>W+40||sp.y<-40||sp.y>H+40)continue;
         if(pt.isAprt){
-          drawAprtSym(sp.x,sp.y,pt.isOrig?NC.wht:NC.cyn);
-          ctx.fillStyle=pt.isOrig?NC.wht:NC.cyn;ctx.font="bold 9px "+M;ctx.textAlign="center";
-          ctx.fillText(pt.name,sp.x,sp.y-10);
+          // Skip — drawn after aircraft symbol to avoid being hidden underneath
+        } else if(hasModRoute){
+          // MOD state: current pts = modified route → draw in white
+          drawWptCross(sp.x,sp.y,6,NC.wht);
+          ctx.fillStyle=NC.wht;ctx.font="13px "+M;ctx.textAlign="left";
+          ctx.fillText(pt.name,sp.x+10,sp.y+4);
         } else {
           var isAct=(m2===actPtIdx);
-          var wc=isAct?NC.mag:NC.wht;
-          drawWptCross(sp.x,sp.y,4,wc);
-          ctx.fillStyle=wc;ctx.font="9px "+M;ctx.textAlign="left";
-          ctx.fillText(pt.name,sp.x+7,sp.y+3);
+          if(isAct){
+            // FCOM 10.40.12: Active "TO" waypoint — magenta diamond
+            drawActWptDiamond(sp.x,sp.y,7);
+            ctx.fillStyle=NC.mag;ctx.font="bold 13px "+M;ctx.textAlign="left";
+            ctx.fillText(pt.name,sp.x+12,sp.y+4);
+          } else if(pt.isFaf){
+            // FCOM 10.40.12: FAF symbol — flyover waypoint (cross in circle)
+            drawFlyoverWpt(sp.x,sp.y,6,NC.wht);
+            ctx.fillStyle=NC.wht;ctx.font="13px "+M;ctx.textAlign="left";
+            ctx.fillText(pt.name,sp.x+12,sp.y+4);
+          } else {
+            // FCOM 10.40.12: Inactive waypoint — white "+" cross
+            var wc=NC.wht;
+            drawWptCross(sp.x,sp.y,6,wc);
+            ctx.fillStyle=wc;ctx.font="13px "+M;ctx.textAlign="left";
+            ctx.fillText(pt.name,sp.x+10,sp.y+4);
+          }
+          // FCOM 10.40.16: Altitude/speed constraint annotation
+          if(pt.alt||pt.spd){
+            drawConstraint(sp.x,sp.y,pt.alt,pt.spd,isAct?NC.mag:NC.mag);
+          }
+        }
+      }
+
+      // ── Offset route line (FCOM 10.40.14, 11.42.19) ──
+      // FCOM 10.40.14: When a lateral offset is active, a white dashed line is
+      //   displayed parallel to the magenta active route at the offset distance.
+      if(fms.offsetDist){
+        var offMatch=fms.offsetDist.match(/^([LR])(\d+\.?\d*)/);
+        if(offMatch){
+          var offDir=offMatch[1]==="R"?1:-1;
+          var offNm=parseFloat(offMatch[2])*offDir;
+          drawOffsetLine(scrPts,offNm,mapPxPerNm,hdgRad);
+        }
+      }
+      // ── SLOP offset line (FCOM 11.42.20: Strategic Lateral Offset) ──
+      // FCOM 10.40.14: SLOP offset displayed as cyan dashed parallel path
+      if(fms.slopOn&&fms.slopDist){
+        var slopMatch=fms.slopDist.match(/^([LR])\s*(\d+\.?\d*)/);
+        if(slopMatch){
+          var sDir=slopMatch[1]==="R"?1:-1;
+          var sNm=parseFloat(slopMatch[2])*sDir;
+          ctx.strokeStyle=NC.cyn;ctx.lineWidth=1;ctx.setLineDash([6,4]);
+          // Draw simplified parallel path
+          for(var si=0;si<scrPts.length-1;si++){
+            var sdx=scrPts[si+1].x-scrPts[si].x,sdy=scrPts[si+1].y-scrPts[si].y;
+            var sln=Math.sqrt(sdx*sdx+sdy*sdy)||1;
+            var spx=-sdy/sln*sNm*mapPxPerNm,spy=sdx/sln*sNm*mapPxPerNm;
+            if(si===0)ctx.beginPath();
+            if(si===0)ctx.moveTo(scrPts[si].x+spx,scrPts[si].y+spy);
+            ctx.lineTo(scrPts[si+1].x+spx,scrPts[si+1].y+spy);
+          }
+          ctx.stroke();ctx.setLineDash([]);
         }
       }
 
@@ -25959,10 +26811,41 @@ function NDView({fms,setFms,hideControls}){
       }
 
       // ── Aircraft symbol at bottom (FCOM 10.40.11) ──
-      drawAcSym(acX,acY,12,0);
-      // Lateral path deviation below aircraft
+      drawAcSym(acX,acY,18,0);
+
+      // ── Airport symbols ON TOP of aircraft (FCOM 10.40.17) ──
+      // Drawn after aircraft symbol so origin airport circle/runway is visible
+      for(var ma=0;ma<pts.length;ma++){
+        var spA=scrPts[ma],ptA=pts[ma];
+        if(spA.x<-40||spA.x>W+40||spA.y<-40||spA.y>H+40)continue;
+        if(!ptA.isAprt)continue;
+        var rwyH=undefined;
+        if(ptA.isDest){
+          var arrAppStr=(fms.arrApp||"").replace(/\s+/g,"");
+          var arrRwyMatch=arrAppStr.match(/(\d{2})[LRC]?$/);
+          if(arrRwyMatch){var rnArr=parseInt(arrRwyMatch[1]);if(!isNaN(rnArr)&&rnArr>0&&rnArr<=36){rwyH=rnArr*10;if(rwyH===360)rwyH=0;}}
+        }
+        if(ptA.isOrig&&fms.depRwy){
+          var rn2=parseInt((fms.depRwy||"").replace(/[LRC]/gi,""));
+          if(!isNaN(rn2)&&rn2>0&&rn2<=36)rwyH=rn2*10;if(rwyH===360)rwyH=0;
+        }
+        drawAprtSym(spA.x,spA.y,ptA.isOrig?NC.wht:NC.cyn,rwyH,true,hdg);
+        ctx.fillStyle=ptA.isOrig?NC.wht:NC.cyn;ctx.font="bold 15px "+M;ctx.textAlign="center";
+        ctx.fillText(ptA.name,spA.x,spA.y-22);
+      }
+
+      // FCOM 10.40.11: Lateral path deviation (XTK) below aircraft symbol
+      // Shows actual cross-track deviation in NM. When offset is active, shows offset dist.
+      var xtkText="0.0 L";
+      if(fms.offsetDist){
+        var offM2=fms.offsetDist.match(/^([LR])(\d+\.?\d*)/);
+        if(offM2)xtkText=offM2[2]+" "+offM2[1]+" OFST";
+      } else if(fms.slopOn&&fms.slopDist){
+        var slM=fms.slopDist.match(/([LR])\s*(\d+\.?\d*)/);
+        if(slM)xtkText=slM[2]+" "+slM[1]+" SLOP";
+      }
       ctx.fillStyle=NC.grn;ctx.font="8px "+M;ctx.textAlign="center";
-      ctx.fillText("0.0 L",acX,acY+22);
+      ctx.fillText(xtkText,acX,acY+22);
 
       // ── Bottom area below aircraft: RNP/ANP/GPS (FCOM 10.40.11,18) ──
       var botY=H-6;
@@ -26026,29 +26909,167 @@ function NDView({fms,setFms,hideControls}){
       ctx.textAlign="left";ctx.fillText("E",W-16,cy+4);
       ctx.textAlign="right";ctx.fillText("W",16,cy+4);
 
-      // ── Active route line (magenta, FCOM 10.40.14) ──
+      // ── FCOM 10.40.14: Snapshot (active) route — magenta, shown when modification pending ──
       var plnPts=pts.map(function(p){return plnProj(p.lat,p.lon);});
-      ctx.strokeStyle=NC.mag;ctx.lineWidth=2.5;ctx.beginPath();
-      for(var p1=0;p1<plnPts.length;p1++){
-        if(p1===0)ctx.moveTo(plnPts[p1].x,plnPts[p1].y);
-        else ctx.lineTo(plnPts[p1].x,plnPts[p1].y);
-      }ctx.stroke();
+      if(hasModRoute&&snapPts&&snapPts.length>=2){
+        // ── MOD state: Active route (magenta) = snapshot, Modified route (white) = current ──
+        var snapPlnPts=snapPts.map(function(p){return plnProj(p.lat,p.lon);});
+        // 1) Active route line (magenta)
+        ctx.strokeStyle=NC.mag;ctx.lineWidth=2;ctx.setLineDash([]);ctx.beginPath();
+        for(var ps=0;ps<snapPlnPts.length;ps++){
+          if(ps===0)ctx.moveTo(snapPlnPts[ps].x,snapPlnPts[ps].y);
+          else ctx.lineTo(snapPlnPts[ps].x,snapPlnPts[ps].y);
+        }ctx.stroke();
+        // 2) Active route waypoints (magenta)
+        for(var ps2=0;ps2<snapPts.length;ps2++){
+          var sSp2=snapPlnPts[ps2],sPt2=snapPts[ps2];
+          if(sSp2.x<-40||sSp2.x>W+40||sSp2.y<-40||sSp2.y>H+40)continue;
+          if(sPt2.isAprt)continue;
+          drawWptCross(sSp2.x,sSp2.y,6,NC.mag);
+          ctx.fillStyle=NC.mag;ctx.font="13px "+M;ctx.textAlign="left";
+          ctx.fillText(sPt2.name,sSp2.x+10,sSp2.y+4);
+        }
+        // 3) Modified route line (white, short dashes)
+        // FCOM 10.40.14: Active route modifications displayed with short dashes (W)
+        ctx.strokeStyle=NC.wht;ctx.lineWidth=2;ctx.setLineDash([8,6]);ctx.beginPath();
+        for(var p1=0;p1<plnPts.length;p1++){
+          if(pts[p1]&&pts[p1]._discBefore){
+            ctx.stroke(); // finish previous segment
+            ctx.beginPath();ctx.moveTo(plnPts[p1].x,plnPts[p1].y);
+          } else if(p1===0){
+            ctx.moveTo(plnPts[p1].x,plnPts[p1].y);
+          } else {
+            ctx.lineTo(plnPts[p1].x,plnPts[p1].y);
+          }
+        }ctx.stroke();ctx.setLineDash([]);
+      } else {
+        // ── Normal state: single route line (with DISC breaks) ──
+        ctx.strokeStyle=routeColor;ctx.lineWidth=2;ctx.setLineDash([]);ctx.beginPath();
+        for(var p1=0;p1<plnPts.length;p1++){
+          if(pts[p1]&&pts[p1]._discBefore){
+            ctx.stroke();ctx.beginPath();ctx.moveTo(plnPts[p1].x,plnPts[p1].y);
+          } else if(p1===0){
+            ctx.moveTo(plnPts[p1].x,plnPts[p1].y);
+          } else {
+            ctx.lineTo(plnPts[p1].x,plnPts[p1].y);
+          }
+        }ctx.stroke();
+      }
 
-      // ── Waypoint symbols ──
+      // ── FCOM 11.42.8-12: INTC CRS TO/FROM course line on ND (PLN mode) ──
+      if(fms.directToMod && fms.intcCrsWpt){
+        var _icWptLLP=getWptLL(fms.intcCrsWpt);
+        if(_icWptLLP){
+          var _icSpP=plnProj(_icWptLLP.lat,_icWptLLP.lon);
+          // PLN mode is north-up, so course angles are absolute (no hdg subtraction)
+          if(fms.intcCrsFromVal!==null){
+            // INTC CRS FROM: outbound course line from waypoint (north-up)
+            var _fromCrsRadP=fms.intcCrsFromVal*Math.PI/180;
+            var _lineLenP=plnR*0.6;
+            var _fx2P=_icSpP.x+Math.sin(_fromCrsRadP)*_lineLenP;
+            var _fy2P=_icSpP.y-Math.cos(_fromCrsRadP)*_lineLenP;
+            ctx.strokeStyle=NC.wht;ctx.lineWidth=2;ctx.setLineDash([8,6]);
+            ctx.beginPath();ctx.moveTo(_icSpP.x,_icSpP.y);ctx.lineTo(_fx2P,_fy2P);ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.fillStyle=NC.wht;ctx.font="bold 10px "+M;ctx.textAlign="center";
+            var _plx=_icSpP.x+Math.sin(_fromCrsRadP)*25;
+            var _ply=_icSpP.y-Math.cos(_fromCrsRadP)*25;
+            ctx.fillText(String(fms.intcCrsFromVal).padStart(3,"0")+"°",_plx,_ply);
+          } else if(fms.intcCrsToVal!==null){
+            // INTC CRS TO: inbound course line to waypoint (north-up)
+            var _toCrsRadP=fms.intcCrsToVal*Math.PI/180;
+            var _recipRadP=_toCrsRadP+Math.PI;
+            var _lineLen2P=plnR*0.6;
+            var _tx1P=_icSpP.x+Math.sin(_recipRadP)*_lineLen2P;
+            var _ty1P=_icSpP.y-Math.cos(_recipRadP)*_lineLen2P;
+            ctx.strokeStyle=NC.wht;ctx.lineWidth=2;ctx.setLineDash([8,6]);
+            ctx.beginPath();ctx.moveTo(_tx1P,_ty1P);ctx.lineTo(_icSpP.x,_icSpP.y);ctx.stroke();
+            ctx.setLineDash([]);
+            // Direct line from aircraft position to intercept start
+            var _acPlnP=plnProj(acLL.lat,acLL.lon);
+            ctx.strokeStyle=NC.wht;ctx.lineWidth=1.5;ctx.setLineDash([5,4]);
+            ctx.beginPath();ctx.moveTo(_acPlnP.x,_acPlnP.y);ctx.lineTo(_tx1P,_ty1P);ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.fillStyle=NC.wht;ctx.font="bold 10px "+M;ctx.textAlign="center";
+            var _pclx=_icSpP.x+Math.sin(_recipRadP)*25;
+            var _pcly=_icSpP.y-Math.cos(_recipRadP)*25;
+            ctx.fillText(String(fms.intcCrsToVal).padStart(3,"0")+"°",_pclx,_pcly);
+          }
+        }
+      }
+
+      // ── TOD / DECEL symbols (PLN mode, FCOM 10.40.14) ──
+      if(pts.length>=4){
+        var todIdxP=Math.floor(pts.length*0.65);
+        var decelIdxP=Math.max(todIdxP+1,pts.length-3);
+        if(todIdxP>0&&todIdxP<plnPts.length){
+          var todSpP=plnPts[todIdxP];
+          if(todSpP.x>-20&&todSpP.x<W+20&&todSpP.y>-20&&todSpP.y<H+20){
+            drawTODSym(todSpP.x-8,todSpP.y-8,"T/D");
+          }
+        }
+        if(decelIdxP>0&&decelIdxP<plnPts.length){
+          var decSpP=plnPts[decelIdxP];
+          if(decSpP.x>-20&&decSpP.x<W+20&&decSpP.y>-20&&decSpP.y<H+20){
+            drawDecelSym(decSpP.x-8,decSpP.y-8);
+          }
+        }
+      }
+
+      // ── Waypoint symbols (FCOM 10.40.12-13, 10.40.16) ──
       for(var p2=0;p2<pts.length;p2++){
         var sp2=plnPts[p2],pt2=pts[p2];
         if(sp2.x<-40||sp2.x>W+40||sp2.y<-40||sp2.y>H+40)continue;
         if(pt2.isAprt){
-          // Airport circle (FCOM 10.40.17)
-          drawAprtSym(sp2.x,sp2.y,NC.cyn);
-          ctx.fillStyle=NC.cyn;ctx.font="bold 9px "+M;ctx.textAlign="center";
-          ctx.fillText(pt2.name,sp2.x,sp2.y-10);
+          // FCOM 10.40.17: Airport circle + runway for dest/origin
+          var rwyHP=undefined;
+          if(pt2.isDest){
+            var arrAppStr2=(fms.arrApp||"").replace(/\s+/g,"");
+            var arrRwyMatch2=arrAppStr2.match(/(\d{2})[LRC]?$/);
+            if(arrRwyMatch2){var rnP=parseInt(arrRwyMatch2[1]);if(!isNaN(rnP)&&rnP>0&&rnP<=36){rwyHP=rnP*10;if(rwyHP===360)rwyHP=0;}}
+          }
+          if(pt2.isOrig&&fms.depRwy){
+            var rn2P=parseInt((fms.depRwy||"").replace(/[LRC]/gi,""));
+            if(!isNaN(rn2P)&&rn2P>0&&rn2P<=36)rwyHP=rn2P*10;if(rwyHP===360)rwyHP=0;
+          }
+          drawAprtSym(sp2.x,sp2.y,pt2.isOrig?NC.wht:NC.cyn,rwyHP,false,0);
+          ctx.fillStyle=pt2.isOrig?NC.wht:NC.cyn;ctx.font="bold 15px "+M;ctx.textAlign="center";
+          ctx.fillText(pt2.name,sp2.x,sp2.y-22);
+        } else if(hasModRoute){
+          // MOD state: current pts = modified route → draw in white
+          drawWptCross(sp2.x,sp2.y,6,NC.wht);
+          ctx.fillStyle=NC.wht;ctx.font="13px "+M;ctx.textAlign="left";
+          ctx.fillText(pt2.name,sp2.x+10,sp2.y+4);
         } else {
-          var isAct2=(p2===1);
-          var wc2=isAct2?NC.mag:NC.wht;
-          drawWptCross(sp2.x,sp2.y,4,wc2);
-          ctx.fillStyle=wc2;ctx.font="9px "+M;ctx.textAlign="left";
-          ctx.fillText(pt2.name,sp2.x+7,sp2.y+3);
+          var isAct2=(p2===actPtIdx);
+          if(isAct2){
+            drawActWptDiamond(sp2.x,sp2.y,7);
+            ctx.fillStyle=NC.mag;ctx.font="bold 13px "+M;ctx.textAlign="left";
+            ctx.fillText(pt2.name,sp2.x+12,sp2.y+4);
+          } else if(pt2.isFaf){
+            drawFlyoverWpt(sp2.x,sp2.y,6,NC.wht);
+            ctx.fillStyle=NC.wht;ctx.font="13px "+M;ctx.textAlign="left";
+            ctx.fillText(pt2.name,sp2.x+12,sp2.y+4);
+          } else {
+            var wc2=NC.wht;
+            drawWptCross(sp2.x,sp2.y,6,wc2);
+            ctx.fillStyle=wc2;ctx.font="13px "+M;ctx.textAlign="left";
+            ctx.fillText(pt2.name,sp2.x+10,sp2.y+4);
+          }
+          if(pt2.alt||pt2.spd){
+            drawConstraint(sp2.x,sp2.y,pt2.alt,pt2.spd,isAct2?NC.mag:NC.mag);
+          }
+        }
+      }
+
+      // ── Offset route line (PLN mode, FCOM 10.40.14) ──
+      if(fms.offsetDist){
+        var offMatchP=fms.offsetDist.match(/^([LR])(\d+\.?\d*)/);
+        if(offMatchP){
+          var offDirP=offMatchP[1]==="R"?1:-1;
+          var offNmP=parseFloat(offMatchP[2])*offDirP;
+          var plnPxPerNm=plnR/scaleNM;
+          drawOffsetLine(plnPts,offNmP,plnPxPerNm,0);
         }
       }
 
@@ -26184,7 +27205,7 @@ function NDView({fms,setFms,hideControls}){
 
     ctx.textBaseline="alphabetic"; // reset
 
-  },[fms.computedLegs,fms.origin,fms.dest,rng,ndMode,plnIdx,cvSize,fms.fixData,fms.simActive,fms.simLat,fms.simLon,fms.simHdg,fms.simLegIdx]);
+  },[fms.computedLegs,fms.origin,fms.dest,rng,ndMode,plnIdx,cvSize,fms.fixData,fms.simActive,fms.simLat,fms.simLon,fms.simHdg,fms.simLegIdx,fms.offsetDist,fms.slopOn,fms.slopDist,fms.execLight,fms._snapshot,fms.phase,fms.arrApp,fms.depRwy,fms.directToMod,fms.intcCrsToVal,fms.intcCrsFromVal,fms.intcCrsWpt]);
 
   // PLN mode step buttons
   var maxIdx=(fms.computedLegs||[]).filter(function(l){return!l.isDisc&&!l.isHold&&!l.isVectors&&!l.isMissed&&l.wpt;}).length;
@@ -27093,7 +28114,9 @@ function B787Cockpit(){
       setFms(function(p){
         if(!p.simActive) return p;
         // Build waypoint list from computedLegs
-        var legs = p.computedLegs || [];
+        // FCOM: In MOD state, aircraft follows ACT route (snapshot), not modified route
+        var legs = (p.execLight && p._snapshot && p._snapshot.computedLegs)
+          ? p._snapshot.computedLegs : (p.computedLegs || []);
         var pts = [];
         if(p.origin){ var oc = getWptLL(p.origin); if(oc) pts.push({name:p.origin,lat:oc.lat,lon:oc.lon}); }
         for(var i=0;i<legs.length;i++){
@@ -27173,23 +28196,25 @@ function B787Cockpit(){
         React.createElement('div', {style:{color:"#00cccc",fontSize:33,fontWeight:"bold",letterSpacing:4,marginBottom:4}}, "B787 DREAMLINER"),
         React.createElement('div', {style:{color:"#aaa",fontSize:14,letterSpacing:2}}, "COCKPIT PROCEDURE SIMULATOR"),
         React.createElement('div', {style:{color:"#777",fontSize:14,marginTop:4}}, "FOR TRAINING PURPOSE ONLY"),
-        React.createElement('div', {style:{color:"#00bb00",fontSize:11,marginTop:12,letterSpacing:1}}, "v2.13.4 \u00a0|\u00a0 by SH Lee \u00a0 s.lee@koreanair.com"),
+        React.createElement('div', {style:{color:"#00bb00",fontSize:11,marginTop:12,letterSpacing:1}}, "v2.14.1 \u00a0|\u00a0 by SH Lee \u00a0 s.lee@koreanair.com"),
         React.createElement('div', {style:{color:"#888",fontSize:11,marginTop:6}}, "\uc624\ub958\uac00 \uc788\uc744 \uc2dc \uc704 \uba54\uc77c\ub85c \uc54c\ub824\uc8fc\uc2dc\uae30 \ubc14\ub78d\ub2c8\ub2e4.")
       ),
       React.createElement('div', {style:{display:"flex",gap:20,borderTop:"1px solid #333",borderBottom:"1px solid #333",padding:"14px 0",marginBottom:16}},
         React.createElement('div', {style:{flex:1,minWidth:0}},
           React.createElement('div', {style:{marginBottom:14}},
             React.createElement(ChkRow, {checked:ckIPad,onToggle:function(){setCkIPad(function(p){return!p;});}},
-              React.createElement('div', {style:{color:"#00cccc",fontSize:17,fontWeight:"bold",marginBottom:8,letterSpacing:1}}, "PATCH NOTES v2.13.4"),
+              React.createElement('div', {style:{color:"#00cccc",fontSize:17,fontWeight:"bold",marginBottom:8,letterSpacing:1}}, "PATCH NOTES v2.14.1"),
               React.createElement('div', {style:{color:"#aaa",fontSize:14,fontWeight:"bold",lineHeight:1.8}},
-                React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginBottom:2}}, "v2.13.4"),
-                React.createElement('div', null, "\u2022 STAR \uad6c\ubd84: rwyVariants STAR(BOXUM7) vs \ub2e8\uc77c base STAR(GUKD2E)"),
-                React.createElement('div', null, "\u2022 rwyVariants STAR: APP \ubbf8\uc120\ud0dd \uc2dc transition\ub9cc · \ub2e8\uc77c base STAR: \ud56d\uc0c1 \uc804\uccb4 \ud45c\uc2dc"),
-                React.createElement('div', null, "\u2022 DEST \uacf5\ud56d \uc785\ub825 \uc2dc \uc544\ub798 \uc804\uccb4 \uc0ad\uc81c + APP \ud574\uc81c + STAR base \uc720\uc9c0"),
-                React.createElement('div', null, "\u2022 LEGS bypass \uc2dc APP \uc120\ud0dd \ud574\uc81c (FCOM 11.31.36)"),
-                React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginTop:8,marginBottom:2}}, "v2.13.3"),
-                React.createElement('div', null, "\u2022 BOXUM7 ARR \ucc28\ud2b8 \uae30\ubc18 \uc804\uccb4 \uc7ac\uad6c\ucd95 (RWY variant, transition \uc218\uc815)"),
-                React.createElement('div', null, "\u2022 ILS05·ILS23 APP TRANS \uad6c\uc870 · Vectors STAR RTE/LEGS \ucc98\ub9ac · presetRteLegs \ubd84\ub9ac"),
+                React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginBottom:2}}, "v2.14.1"),
+                React.createElement('div', null, "\u2022 LNAV Modification \uad6c\ud604 (FCOM 11.42.1-17): Direct To, INTC CRS TO/FROM, ABEAM PTS, RTE COPY"),
+                React.createElement('div', null, "\u2022 ND MOD route \uc810\uc120 \ud45c\uc2dc + DISC \uad6c\uac04 \uacbd\ub85c\uc120 \ub04a\uae40 (FCOM 10.40.14)"),
+                React.createElement('div', null, "\u2022 MOD \uc0c1\ud0dc\uc5d0\uc11c \ud56d\uacf5\uae30 ACT route \uc720\uc9c0 (\uc2a4\ub0c5\uc0f7 \uae30\ubc18)"),
+                React.createElement('div', null, "\u2022 \ud56d\uacf5\uae30 \uc2ec\ubcfc \uc704\uce58 \uc0bc\uac01\ud615 \uaf2d\uc9c0\uc810(nose)\uc73c\ub85c \uc218\uc815 (FCOM 10.40.11)"),
+                React.createElement('div', null, "\u2022 LEGS \uc218\uc815\uc73c\ub85c SID \ubd84\ud560 \uc2dc RTE \ud398\uc774\uc9c0 \uc62c\ubc14\ub978 \ud45c\uc2dc"),
+                React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginTop:8,marginBottom:2}}, "v2.14.0"),
+                React.createElement('div', null, "\u2022 ZBAA \uacf5\ud56d \ucd94\uac00 (SID 5\uac1c, STAR 7\uac1c, APP 3\uac1c)"),
+                React.createElement('div', null, "\u2022 LATERAL OFFSET \ud398\uc774\uc9c0 \ud480 \uad6c\ud604 (FCOM 11.42.19-21)"),
+                React.createElement('div', null, "\u2022 ND Route: Active/Modified/Inactive \uc774\uc911 \uacbd\ub85c \ud45c\uc2dc"),
               )
             )
           ),
