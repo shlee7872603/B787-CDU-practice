@@ -10,7 +10,7 @@
 <meta name="theme-color" content="#050505">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>B787 CDU Practice v2.15.0</title>
+<title>B787 CDU Practice v2.15.1</title>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js" crossorigin="anonymous" async></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js" crossorigin="anonymous" async></script>
 <style>*{margin:0;padding:0;box-sizing:border-box;-webkit-user-select:none;user-select:none}body{background:#050505;overflow-x:hidden}</style>
@@ -23094,7 +23094,7 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
           if(u.toN1)s.toN1=u.toN1;
           if(u.togw)s.togw=u.togw;
           if(u.thrReduction)s.thrReduction=u.thrReduction;
-          s.pendingUplink=null;s.helpMsg="TAKEOFF DATA ACCEPTED";if(s.eicasScenario<2)s.eicasScenario=2;
+          s.pendingUplink=null;s.helpMsg="TAKEOFF DATA ACCEPTED";
           go("TOREF1");
         }
         if(side==="L"&&num===6)go("INIT_REF");
@@ -24894,6 +24894,7 @@ function EFBPanel({fms,setFms,onClose}) {
         page: "TOREF_UPLINK",
         efbPerf: {...p, sentToFmc: true},
         helpMsg: "TAKEOFF UPLINK RECEIVED",
+        eicasScenario: Math.max(prev.eicasScenario, 3),
       };
     });
   };
@@ -25586,7 +25587,7 @@ function ChecklistView({fms,setFms}){
       )
       /* Bottom command keys (FCOM 10.50.1) */
       , React.createElement('div', { style: {display:"flex",gap:2,padding:"4px 6px",borderTop:"1px solid #444"},}
-        , React.createElement(CmdKey, { l: "NORMAL", cmd: "0", onClick: allDone?()=>{const ni=clIdx+1<CHECKLISTS.length?clIdx+1:0;setClIdx(ni);setCur(0);setFms(p=>{var es=p.eicasScenario;if(clIdx===1)es=4;else if(clIdx===2){es=5;setTimeout(function(){setFms(function(pp){return{...pp,eicasScenario:6};});},2500);}else if(clIdx===3)es=7;else if(clIdx===4)es=8;var nx={...p,cursorIdx:null,eicasScenario:es,eicasCxd:[]};var _bfrToDone2=CHECKLISTS[3]&&CHECKLISTS[3].items.every(function(_it2b,ii2b){var _ck2=p.chkl||{};if(_ck2.ovrd&&_ck2.ovrd["3-"+ii2b])return true;if(_it2b.t==="closed")return true;return!!(_ck2.ck&&_ck2.ck["3-"+ii2b]);});if(_bfrToDone2&&p.vnavPressed&&!p.simActive){var _db2=FLIGHT_DB[(p.fltNo||"").toUpperCase()];var _oLL2=_db2?getWptLL(_db2.origin):null;if(_oLL2){nx.simActive=true;nx.simLegIdx=0;nx.simLat=_oLL2.lat;nx.simLon=_oLL2.lon;var _rwyS2=(p.runway||"").replace(/[LRC]/gi,"");var _rwyN2=parseInt(_rwyS2);nx.simHdg=(!isNaN(_rwyN2)&&_rwyN2>0&&_rwyN2<=36)?_rwyN2*10:0;if(nx.simHdg===360)nx.simHdg=0;nx.simFuelUsed=0;nx.simTimeMin=0;nx.simGS=510;}}return nx;});}:goNextIncomplete,})
+        , React.createElement(CmdKey, { l: "NORMAL", cmd: "0", onClick: allDone?()=>{const ni=clIdx+1<CHECKLISTS.length?clIdx+1:0;setClIdx(ni);setCur(0);setFms(p=>{var es=p.eicasScenario;if(clIdx===0)es=Math.max(es,2);else if(clIdx===1)es=4;else if(clIdx===2){es=5;setTimeout(function(){setFms(function(pp){return{...pp,eicasScenario:6};});},2500);}else if(clIdx===3)es=7;else if(clIdx===4)es=8;var nx={...p,cursorIdx:null,eicasScenario:es,eicasCxd:[]};var _bfrToDone2=CHECKLISTS[3]&&CHECKLISTS[3].items.every(function(_it2b,ii2b){var _ck2=p.chkl||{};if(_ck2.ovrd&&_ck2.ovrd["3-"+ii2b])return true;if(_it2b.t==="closed")return true;return!!(_ck2.ck&&_ck2.ck["3-"+ii2b]);});if(_bfrToDone2&&p.vnavPressed&&!p.simActive){var _db2=FLIGHT_DB[(p.fltNo||"").toUpperCase()];var _oLL2=_db2?getWptLL(_db2.origin):null;if(_oLL2){nx.simActive=true;nx.simLegIdx=0;nx.simLat=_oLL2.lat;nx.simLon=_oLL2.lon;var _rwyS2=(p.runway||"").replace(/[LRC]/gi,"");var _rwyN2=parseInt(_rwyS2);nx.simHdg=(!isNaN(_rwyN2)&&_rwyN2>0&&_rwyN2<=36)?_rwyN2*10:0;if(nx.simHdg===360)nx.simHdg=0;nx.simFuelUsed=0;nx.simTimeMin=0;nx.simGS=510;}}return nx;});}:goNextIncomplete,})
         , React.createElement(CmdKey, { l: "ITEM\nOVRD", cmd: "1", onClick: itemOverride,})
         , React.createElement(CmdKey, { l: "NOTES", cmd: "2",})
         , React.createElement(CmdKey, { l: "CHKL\nOVRD", cmd: "3", onClick: ()=>{items.forEach((_,ii)=>{setOvrd(o=>({...o,[`${clIdx}-${ii}`]:true}));});setCur(items.length);},})
@@ -26145,8 +26146,8 @@ function CommView({fms,setFms}){
       display:"flex",gap:3,padding:"4px",borderTop:"2px solid #444",background:"#111",flexShrink:0
     },}
       , mainTab==="NEW_MSG"&&msgView?(React.createElement(React.Fragment, null
-        , msgView==="LOADSHEET"&&!lsAccepted&&CmdBtn({l:"ACCEPT",onClick:function(){setInfoMsg("ACCEPTING");setTimeout(function(){setInfoMsg("ACCEPTED");setLsAccepted(true);setFms(function(p){return{...p,eicasScenario:Math.max(p.eicasScenario,3)};});setTimeout(function(){setInfoMsg("");},2000);},1000);}})
-        , msgView==="DCL"&&fms.dclMsg&&!fms.dclMsg.accepted&&CmdBtn({l:"ACCEPT",onClick:function(){setInfoMsg("ACCEPTING");setTimeout(function(){setInfoMsg("ACCEPTED");setFms(function(p){var msgs=[].concat(p.auxMsgs);for(var i=0;i<msgs.length;i++){if(msgs[i].type==="dcl"&&!msgs[i].accepted){msgs[i]=Object.assign({},msgs[i],{accepted:true});break;}}return{...p,dclMsg:Object.assign({},p.dclMsg,{accepted:true}),auxMsgs:msgs};});setTimeout(function(){setInfoMsg("");setFms(function(p){var msgs=[].concat(p.auxMsgs);msgs.push({text:"CLEARANCE CONFIRMED",type:"info",id:Date.now()});return{...p,auxMsgs:msgs,auxBlink:true};});},2000);},1000);}})
+        , msgView==="LOADSHEET"&&!lsAccepted&&CmdBtn({l:"ACCEPT",onClick:function(){setInfoMsg("ACCEPTING");setTimeout(function(){setInfoMsg("ACCEPTED");setLsAccepted(true);setTimeout(function(){setInfoMsg("");},2000);},1000);}})
+        , msgView==="DCL"&&fms.dclMsg&&!fms.dclMsg.accepted&&CmdBtn({l:"ACCEPT",onClick:function(){setInfoMsg("ACCEPTING");setTimeout(function(){setInfoMsg("ACCEPTED");setFms(function(p){var msgs=[].concat(p.auxMsgs);for(var i=0;i<msgs.length;i++){if(msgs[i].type==="dcl"&&!msgs[i].accepted){msgs[i]=Object.assign({},msgs[i],{accepted:true});break;}}return{...p,dclMsg:Object.assign({},p.dclMsg,{accepted:true}),auxMsgs:msgs,eicasScenario:Math.max(p.eicasScenario,4)};});setTimeout(function(){setInfoMsg("");setFms(function(p){var msgs=[].concat(p.auxMsgs);msgs.push({text:"CLEARANCE CONFIRMED",type:"info",id:Date.now()});return{...p,auxMsgs:msgs,auxBlink:true};});},2000);},1000);}})
         
         , (msgView==="ATIS"||msgView==="GATE"||msgView==="ETA"||msgView==="ACARS")&&CmdBtn({l:"PRINT"})
         , React.createElement('div', { style: {flex:1},})
@@ -28286,25 +28287,30 @@ function B787Cockpit(){
         React.createElement('div', {style:{color:"#00cccc",fontSize:33,fontWeight:"bold",letterSpacing:4,marginBottom:4}}, "B787 DREAMLINER"),
         React.createElement('div', {style:{color:"#aaa",fontSize:14,letterSpacing:2}}, "COCKPIT PROCEDURE SIMULATOR"),
         React.createElement('div', {style:{color:"#777",fontSize:14,marginTop:4}}, "FOR TRAINING PURPOSE ONLY"),
-        React.createElement('div', {style:{color:"#00bb00",fontSize:11,marginTop:12,letterSpacing:1}}, "v2.15.0 \u00a0|\u00a0 by SH Lee \u00a0 s.lee@koreanair.com"),
+        React.createElement('div', {style:{color:"#00bb00",fontSize:11,marginTop:12,letterSpacing:1}}, "v2.15.1 \u00a0|\u00a0 by SH Lee \u00a0 s.lee@koreanair.com"),
         React.createElement('div', {style:{color:"#888",fontSize:11,marginTop:6}}, "\uc624\ub958\uac00 \uc788\uc744 \uc2dc \uc704 \uba54\uc77c\ub85c \uc54c\ub824\uc8fc\uc2dc\uae30 \ubc14\ub78d\ub2c8\ub2e4.")
       ),
       React.createElement('div', {style:{display:"flex",gap:20,borderTop:"1px solid #333",borderBottom:"1px solid #333",padding:"14px 0",marginBottom:16}},
         React.createElement('div', {style:{flex:1,minWidth:0}},
           React.createElement('div', {style:{marginBottom:14}},
             React.createElement(ChkRow, {checked:ckIPad,onToggle:function(){setCkIPad(function(p){return!p;});}},
-              React.createElement('div', {style:{color:"#00cccc",fontSize:17,fontWeight:"bold",marginBottom:8,letterSpacing:1}}, "PATCH NOTES v2.15.0"),
+              React.createElement('div', {style:{color:"#00cccc",fontSize:17,fontWeight:"bold",marginBottom:8,letterSpacing:1}}, "PATCH NOTES v2.15.1"),
               React.createElement('div', {style:{color:"#aaa",fontSize:14,fontWeight:"bold",lineHeight:1.8}},
-                React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginBottom:2}}, "v2.15.0"),
+                React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginBottom:2}}, "v2.15.1"),
+                React.createElement('div', null, "\u2022 SYNC: \ud638\uc2a4\ud2b8 \ud1f4\uc7a5 \uc2dc \ubc29 \uc790\ub3d9 \uc0ad\uc81c"),
+                React.createElement('div', null, "\u2022 RTE: Manual \uc14b\uc5c5 \uc2dc MISSED APPR \uc790\ub3d9\uc0dd\uc131 \ubc29\uc9c0"),
+                React.createElement('div', null, "\u2022 LEGS: ORIGIN/DEST \ud45c\uc2dc \uc81c\uac70, DELETE \ub3d9\uc791 \uc218\uc815"),
+                React.createElement('div', null, "\u2022 LEGS: \uc5f0\uc18d DISC \ubcd1\ud569 \ucc98\ub9ac"),
+                React.createElement('div', null, "\u2022 DIRECT TO + STAR/APP \uc120\ud0dd \uc2dc \uacbd\ub85c \ubcf5\uc6d0 \ubc84\uadf8 \uc218\uc815"),
+                React.createElement('div', null, "\u2022 SYS \ud0ed trackpad hover \ud558\uc774\ub77c\uc774\ud2b8 \uc218\uc815"),
+                React.createElement('div', null, "\u2022 COMM NEW MESSAGE trackpad \ucf54\ub108 \ub124\ube44\uac8c\uc774\uc158 \uc218\uc815"),
+                React.createElement('div', null, "\u2022 EICAS S2/S3/S4 \ud2b8\ub9ac\uac70 \ubcc0\uacbd"),
+                React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginTop:8,marginBottom:2}}, "v2.15.0"),
                 React.createElement('div', null, "\u2022 SIM \uc2dc\uc791 \uc870\uac74: VNAV + BFR T/O CHKL \uc644\ub8cc (\uc21c\uc11c \ubb34\uad00)"),
                 React.createElement('div', null, "\u2022 \ube44\ud589 \uc911 RTE \ubc84\ud2bc \u2192 2/x \ud398\uc774\uc9c0\ub85c \uc9c1\ud589"),
                 React.createElement('div', null, "\u2022 \ubaa8\ub4e0 RTE \ud398\uc774\uc9c0 R6 OFFSET> \ubc84\ud2bc (ACTIVE \uc2dc)"),
                 React.createElement('div', null, "\u2022 BFR T/O \ud504\ub9ac\uc14b: RTE \ub370\uc774\ud130 \uadf8\ub300\ub85c LEGS \ubc18\uc601"),
                 React.createElement('div', null, "\u2022 Dual CDU SYNC: UI \uc0c1\ud0dc \ub3c5\ub9bd, SIM/OFFSET \ub3d9\uae30\ud654"),
-                React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginTop:8,marginBottom:2}}, "v2.14.2"),
-                React.createElement('div', null, "\u2022 LATERAL OFFSET FCOM \uc644\uc804 \ubc18\uc601 (11.42.18-21)"),
-                React.createElement('div', null, "\u2022 SLOP ON/OFF \ubb34\uad00 \ud56d\uc0c1 \ud45c\uc2dc + \uc120\ud0dd large/green \ud1a0\uae00"),
-                React.createElement('div', null, "\u2022 ND Offset: MOD=\ud770\uc0c9 \uc810\uc120, EXEC \ud6c4=\ub9c8\uc820\ud0c0 \uc810\uc120"),
               )
             )
           ),
@@ -28333,9 +28339,9 @@ function B787Cockpit(){
             React.createElement('tbody', null,
               [
                 [1,"Cockpit Entry","FMS \ub9ac\uc14b (\ucd08\uae30\uac12)"],
-                [2,"Boarding Complete","Accept EFB data"],
-                [3,"Welcome Ann. Done","LOADSHEET Accept"],
-                [4,"Before Pushback","PREFLIGHT CHKL \uc644\ub8cc"],
+                [2,"Boarding Complete","PREFLIGHT CHKL \uc644\ub8cc"],
+                [3,"Welcome Ann. Done","Accept EFB data"],
+                [4,"Before Pushback","Clearance (DCL) Accept"],
                 [5,"ENG Start/APU OFF","BFR START CHKL \uc644\ub8cc"],
                 [6,"GRD Equip Cleared","S5 \ud6c4 2.5s \uc790\ub3d9\uc804\ud658"],
                 [7,"Taxiing","BFR TAXI CHKL \uc644\ub8cc"],
@@ -28611,14 +28617,14 @@ ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(
 <script>
 // Force refresh for cached users: update SW, clear caches
 if('serviceWorker' in navigator){
-  navigator.serviceWorker.register('sw.js?v=2.15.0').catch(function(){});
+  navigator.serviceWorker.register('sw.js?v=2.15.1').catch(function(){});
   navigator.serviceWorker.getRegistrations().then(function(regs){
     regs.forEach(function(r){r.update();});
   });
 }
 // Version check: force reload if stale
 (function(){
-  var CV="2.15.0";
+  var CV="2.15.1";
   var lv=localStorage.getItem("cdu_ver");
   if(lv&&lv!==CV){localStorage.setItem("cdu_ver",CV);location.reload(true);}
   else{localStorage.setItem("cdu_ver",CV);}
