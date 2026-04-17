@@ -21161,7 +21161,7 @@ const initFMS = () => ({
   crzSpdMode:"ECON",crzSelSpd:"",crzN1:"",stepTo:"",
   // ── SIM (flight simulation) state ──
   directToMod:false,intcCrsToVal:null,intcCrsFromVal:null,intcCrsWpt:"",abeamPtsSelected:false,rteCopyDone:false,
-  simActive:false,simLegIdx:0,simLat:0,simLon:0,simHdg:0,
+  vnavPressed:false,simActive:false,simLegIdx:0,simLat:0,simLon:0,simHdg:0,
   simFuelUsed:0,simTimeMin:0,simGS:510,
   // DES page state (FCOM 11.43.2)
   desSpdMode:"ECON",desSelSpd:"",desSpdTrans:"",desSpdRestr:"",
@@ -21328,7 +21328,8 @@ function cduPageData(fms) {
        dl:fms.rteUplinkPending?"<LOAD":(fms.phase==="ACTIVE"?"<PRINT":""),
        dr:"ALTN>",
        dlc:fms.rteUplinkPending?C.cyan:C.cyan,drc:C.cyan},
-      {dl:fms.execLight?"<ERASE":"<RTE 2",dr:fms.phase==="ACTIVE"?"PERF INIT>":(fms.origin&&fms.dest&&!fms.execLight?"ACTIVATE>":"PERF INIT>"),dlc:C.cyan,drc:C.cyan},
+      {dl:fms.execLight?"<ERASE":"<RTE 2",
+       dr:fms.phase==="ACTIVE"?"OFFSET>":(fms.origin&&fms.dest&&!fms.execLight?"ACTIVATE>":"PERF INIT>"),dlc:C.cyan,drc:C.cyan},
     ],sep:fms.phase==="ACTIVE"?4:5,helpMsg:fms.helpMsg},
     RTE_1_2: (()=>{
       const startIdx = (fms.rtePage - 2) * 5;
@@ -21347,11 +21348,11 @@ function cduPageData(fms) {
         else rows.push({tl:i===0&&!legsSlice.length?"VIA":"",tr:i===0&&!legsSlice.length?"TO":"",
           dl:"-----",dr:"▯▯▯▯▯",dlc:C.cyan,drc:C.cyan,dlBg:true,drBg:true,tlc:C.dim,trc:C.dim});
       }
-      // Row 6: L6=<ERASE/<RTE 2, R6=OFFSET field (active) or ACTIVATE>/PERF INIT>
+      // Row 6: L6=<ERASE/<RTE 2, R6=OFFSET> (active) or ACTIVATE>/PERF INIT>
       if(fms.phase==="ACTIVE"){
-        rows.push({dl:fms.execLight?"<ERASE":"<RTE 2",tr:"OFFSET",
-          dr:fms.offsetDist||"---",
-          dlc:C.cyan,drc:fms.offsetDist?C.green:C.cyan,drBg:true});
+        rows.push({dl:fms.execLight?"<ERASE":"<RTE 2",
+          dr:"OFFSET>",
+          dlc:C.cyan,drc:C.cyan});
       } else {
         rows.push({dl:fms.execLight?"<ERASE":"<RTE 2",dr:fms.origin&&fms.dest&&!fms.execLight?"ACTIVATE>":"PERF INIT>",dlc:C.cyan,drc:C.cyan});
       }
@@ -22812,7 +22813,7 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
             }
           }
           // R6: ACTIVATE (inactive) or PERF INIT (active)
-          if(side==="R"&&num===6){if(s.phase!=="ACTIVE"&&s.origin&&s.dest&&!s.execLight){s.execLight=true;}else{go("PERF_INIT");}}
+          if(side==="R"&&num===6){if(s.phase==="ACTIVE"){go("OFFSET");}else if(s.origin&&s.dest&&!s.execLight){s.execLight=true;}else{go("PERF_INIT");}}
           if(side==="L"&&num===6){
             if(s.execLight){
               if(s._snapshot){
@@ -22944,39 +22945,9 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
           }
         }
         // [Issue2] Auto-advance disabled — user stays on current page after R5 entry
-        if(sp==="DELETE"&&num===6&&side==="R"&&s.phase==="ACTIVE"){
-          // DELETE on OFFSET field → clear offset
-          s.offsetDist="";s.offsetStart="";s.offsetEnd="";s.offsetActive=false;
-          if(s.execLight){}else{s.execLight=true;}
-          s.scratchpad="";
-        }
-        else if(sp==="DELETE"&&num===6){s.helpMsg="INVALID DELETE";s.scratchpad="";}
-        else if(side==="R"&&num===6&&s.phase==="ACTIVE"){
-          // R6 OFFSET field: accept Lxx.x, Rxx.x, xx.xL, xx.xR, or 0 to clear
-          if(sp){
-            var offIn=sp.toUpperCase().trim();
-            // Parse offset: L/R prefix or suffix + distance
-            var offDir="",offVal=0,offMatch;
-            if(offIn==="0"||offIn==="0.0"){
-              // Entering 0 removes offset
-              s.offsetDist="";s.offsetStart="";s.offsetEnd="";s.offsetActive=false;
-              s.execLight=true;s.scratchpad="";
-            } else if((offMatch=offIn.match(/^([LR])(\d{1,2}(?:\.\d)?)$/))){
-              offDir=offMatch[1];offVal=parseFloat(offMatch[2]);
-              if(offVal>=0.1&&offVal<=99.0){
-                s.offsetDist=offDir+offVal.toFixed(1);
-                s.execLight=true;s.scratchpad="";
-              } else {s.helpMsg="INVALID ENTRY";s.scratchpad="";}
-            } else if((offMatch=offIn.match(/^(\d{1,2}(?:\.\d)?)([LR])$/))){
-              offDir=offMatch[2];offVal=parseFloat(offMatch[1]);
-              if(offVal>=0.1&&offVal<=99.0){
-                s.offsetDist=offDir+offVal.toFixed(1);
-                s.execLight=true;s.scratchpad="";
-              } else {s.helpMsg="INVALID ENTRY";s.scratchpad="";}
-            } else {s.helpMsg="INVALID ENTRY";s.scratchpad="";}
-          }
-        }
-        else if(side==="R"&&num===6){if(s.phase!=="ACTIVE"&&s.origin&&s.dest&&!s.execLight){s.execLight=true;}else{go("PERF_INIT");}}
+        if(sp==="DELETE"&&num===6){s.helpMsg="INVALID DELETE";s.scratchpad="";}
+        else if(side==="R"&&num===6&&s.phase==="ACTIVE"){go("OFFSET");}
+        else if(side==="R"&&num===6){if(s.origin&&s.dest&&!s.execLight){s.execLight=true;}else{go("PERF_INIT");}}
         else if(side==="L"&&num===6){
           if(s.execLight){
             // ERASE — restore to last EXEC snapshot
@@ -24093,7 +24064,7 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
   const handleFunc = useCallback(cmd => {
     setMfdMode("CDU");
     const map={"INIT REF":"INIT_REF","RTE":"RTE_1","DEP ARR":"DEP_ARR","ALTN":"ALTN","VNAV":"CLB","FIX":"FIX","LEGS":"LEGS","HOLD":"HOLD","FMC COMM":"FMC_COMM","PROG":"PROGRESS","NAV RAD":"NAV_RADIO","OFST":"OFFSET","RTA":"RTA"};
-    if(map[cmd])setFms(p=>{var dest=map[cmd];if(cmd==="INIT REF"){var _pfc=!!(p.origin&&p.dest&&p.routeLegs&&p.routeLegs.length&&p.flaps&&p.v1&&p.v1!=="---"&&p.vr&&p.vr!=="---"&&p.v2&&p.v2!=="---"&&p.cg&&p.trim&&p.grWt&&p.fuel&&p.zfw&&p.crzAlt);if(_pfc&&p.chkl&&p.chkl.clIdx>=5)dest="APPROACH_REF";else if(p.phase==="ACTIVE")dest="PERF_INIT";}if(cmd==="VNAV"&&p.chkl&&p.chkl.clIdx>=5)dest="CRZ";if(cmd==="VNAV"&&p.chkl&&p.chkl.clIdx>=5&&!p.simActive){var _db=FLIGHT_DB[(p.fltNo||"").toUpperCase()];var _oLL=_db?getWptLL(_db.origin):null;if(_oLL){p.simActive=true;p.simLegIdx=0;p.simLat=_oLL.lat;p.simLon=_oLL.lon;var _rwyS=(p.runway||"").replace(/[LRC]/gi,"");var _rwyN=parseInt(_rwyS);p.simHdg=(!isNaN(_rwyN)&&_rwyN>0&&_rwyN<=36)?_rwyN*10:0;if(p.simHdg===360)p.simHdg=0;p.simFuelUsed=0;p.simTimeMin=0;p.simGS=510;}}var _rteStartPage=1;if(cmd==="RTE"){var _pfc2=!!(p.origin&&p.dest&&p.routeLegs&&p.routeLegs.length&&p.flaps&&p.v1&&p.v1!=="---"&&p.vr&&p.vr!=="---"&&p.v2&&p.v2!=="---"&&p.cg&&p.trim&&p.grWt&&p.fuel&&p.zfw&&p.crzAlt);if(_pfc2&&p.chkl&&p.chkl.clIdx>=5){dest="RTE_1_2";_rteStartPage=2;}}var n={...p,page:dest,
+    if(map[cmd])setFms(p=>{var dest=map[cmd];if(cmd==="INIT REF"){var _pfc=!!(p.origin&&p.dest&&p.routeLegs&&p.routeLegs.length&&p.flaps&&p.v1&&p.v1!=="---"&&p.vr&&p.vr!=="---"&&p.v2&&p.v2!=="---"&&p.cg&&p.trim&&p.grWt&&p.fuel&&p.zfw&&p.crzAlt);if(_pfc&&p.chkl&&p.chkl.clIdx>=5)dest="APPROACH_REF";else if(p.phase==="ACTIVE")dest="PERF_INIT";}if(cmd==="VNAV"&&p.chkl&&p.chkl.clIdx>=5)dest="CRZ";if(cmd==="VNAV"){p.vnavPressed=true;var _bfrToDone=p.chkl&&p.chkl.clIdx>=3&&CHECKLISTS[3]&&CHECKLISTS[3].items.every(function(_it,ii){if(p.chkl.ovrd&&p.chkl.ovrd["3-"+ii])return true;if(_it.t==="closed")return true;return!!(p.chkl.ck&&p.chkl.ck["3-"+ii]);});if(_bfrToDone&&!p.simActive){var _db=FLIGHT_DB[(p.fltNo||"").toUpperCase()];var _oLL=_db?getWptLL(_db.origin):null;if(_oLL){p.simActive=true;p.simLegIdx=0;p.simLat=_oLL.lat;p.simLon=_oLL.lon;var _rwyS=(p.runway||"").replace(/[LRC]/gi,"");var _rwyN=parseInt(_rwyS);p.simHdg=(!isNaN(_rwyN)&&_rwyN>0&&_rwyN<=36)?_rwyN*10:0;if(p.simHdg===360)p.simHdg=0;p.simFuelUsed=0;p.simTimeMin=0;p.simGS=510;}}}var _rteStartPage=1;if(cmd==="RTE"&&p.simActive){dest="RTE_1_2";_rteStartPage=2;}var n={...p,page:dest,
       rtePage:cmd==="RTE"?_rteStartPage:p.rtePage,
       legsPage:cmd==="LEGS"?1:p.legsPage,
       progPage:cmd==="PROG"?1:p.progPage,
@@ -24331,7 +24302,7 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
             var intx=db.intx||"FULL "+rwy;
             var oIata=iataMap[origin]||"";var aprtDisp=oIata?origin+" / "+oIata:origin;
             var base={fltNo:fltNo,origin:origin,dest:dest,runway:rwy,depRwy:rwy,
-              routeLegs:phase==="setup"?presetRL:rteLegs,depSid:sid,depSidAct:true,depTrans:db.sidTrans||"",phase:"ACTIVE",
+              routeLegs:presetRL,depSid:sid,depSidAct:true,depTrans:db.sidTrans||"",phase:"ACTIVE",
               grWt:grWt,fuel:fuel,zfw:zfw,reserves:reserves,crzAlt:crzAlt,costIndex:ci,
               efbInit:true};
             if(phase==="setup"){
@@ -24349,7 +24320,6 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
                 cg:cg,trim:trimVal,thrustMode:bThrMode,selOat:db.perfSelTemp||"",togw:bfrtoGrWt,
                 toN1:(db.perfDTO||"")+"%",eoAccelHt:(db.perfAccelHt||"")+"FT",
                 wind:db.wind?db.wind.replace("/","°/")+"KT":"",
-                arrStar:star,arrStarAct:true,arrStarTrans:db.starTrans||"",arrApp:app,arrAppAct:true,arrTrans:appTr,
                 eicasScenario:7,page:"TOREF1",
                 chkl:{tab:"NORMAL",clIdx:3,cur:0,ck:mkCk(3),ovrd:{},menuMode:false},
                 efbPerf:{aprt:aprtDisp,rwy:rwy,intx:intx,cond:db.cond||"DRY",wind:db.wind||"",oat:db.oat||"",qnh:db.qnh||"1013",rtg:"OPTIMUM",ic:"NO",atm:"MAX",flap:"OPTIMUM",aiEng:"ENG AUTO",icing:"NO",rtl:"20/30",tow:bTogwLbs,zfw:zfwLbs,cg:cg,calcDone:true,sentToFmc:true,calcV1:db.perfV1||"",calcVR:db.perfVR||"",calcV2:db.perfV2||"",calcFlap:db.perfFlap||"",calcThrust:db.perfThrust||"",calcAccelHt:db.perfAccelHt||"",calcDTO:db.perfDTO||"",calcSelTemp:db.perfSelTemp||"",calcVref30:db.perfVref30||"",calcRwyIntx:intx,calcTOGW:bTogwLbs}});
@@ -24508,7 +24478,7 @@ function MFKKeypad({fms,setFms,mfdMode,setMfdMode}) {
     }
     return React.createElement('button', { onClick: ()=>hk(l), style: {width:"43px",height:"41px",borderRadius:"3px",background:hi?"#3a3a3a":"linear-gradient(180deg,#3a3a3a 0%,#2a2a2a 100%)",color:C.white,border:hi?"2px solid #88cccc":"1px solid #555",fontSize:"14px",fontWeight:"bold",cursor:"pointer",fontFamily:M,boxShadow:"0 1px 3px rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,255,255,0.1)"},}, l);
   };
-  const MBtn=({l,a})=>(React.createElement('button', { onClick: ()=>{if(l==="CHKL"){/* Toggle: if already in CHKL, return to previous screen */if(mfdMode==="CHKL"){setFms(function(p){return{...p,returnFromChkl:true};});return;}setFms(function(p){var c=Object.assign({},p.chkl||{tab:"NORMAL",clIdx:0,cur:0,ck:{},ovrd:{},menuMode:false});var CL=CUR.CHECKLISTS||[];if(CL.length>0&&CL[c.clIdx]){var _allDone=CL[c.clIdx].items.every(function(_it,ii){if(c.ovrd[c.clIdx+"-"+ii])return true;if(_it.t==="closed")return true;return!!c.ck[c.clIdx+"-"+ii];});if(_allDone){var _found=false;for(var _i=0;_i<CL.length;_i++){var _done=CL[_i].items.every(function(_it2,ii2){if(c.ovrd[_i+"-"+ii2])return true;if(_it2.t==="closed")return true;return!!c.ck[_i+"-"+ii2];});if(!_done){c.clIdx=_i;c.cur=0;c.menuMode=false;_found=true;break;}}if(!_found)c.menuMode=true;}}return Object.assign({},p,{cursorIdx:null,prevMfdMode:mfdMode,prevPage:p.page,chkl:c});});setMfdMode(l);}else{setMfdMode(l);if(l==="COMM")setFms(function(p){return Object.assign({},p,{cursorIdx:null});});}}, style: {width:"55px",height:"28px",borderRadius:"3px",position:"relative",background:a?"#2a2a2a":"#3a3a3a",color:C.white,border:a?"2px solid #fff":"1px solid #555",fontSize:"16px",fontWeight:"bold",cursor:"pointer",fontFamily:M,boxShadow:a?"0 0 4px rgba(255,255,255,0.3)":"0 1px 3px rgba(0,0,0,0.4)"},}
+  const MBtn=({l,a})=>(React.createElement('button', { onClick: ()=>{if(l==="CHKL"){/* Toggle: if already in CHKL, return to previous screen */if(mfdMode==="CHKL"){setFms(function(p){return{...p,returnFromChkl:true};});return;}setFms(function(p){var c=Object.assign({},p.chkl||{tab:"NORMAL",clIdx:0,cur:0,ck:{},ovrd:{},menuMode:false});var CL=CUR.CHECKLISTS||[];if(CL.length>0&&CL[c.clIdx]){var _allDone=CL[c.clIdx].items.every(function(_it,ii){if(c.ovrd[c.clIdx+"-"+ii])return true;if(_it.t==="closed")return true;return!!c.ck[c.clIdx+"-"+ii];});if(_allDone){var _found=false;for(var _i=0;_i<CL.length;_i++){var _done=CL[_i].items.every(function(_it2,ii2){if(c.ovrd[_i+"-"+ii2])return true;if(_it2.t==="closed")return true;return!!c.ck[_i+"-"+ii2];});if(!_done){c.clIdx=_i;c.cur=0;c.menuMode=false;_found=true;break;}}if(!_found)c.menuMode=true;}}var _nx=Object.assign({},p,{cursorIdx:null,prevMfdMode:mfdMode,prevPage:p.page,chkl:c});var _bfrToDone3=c.clIdx>=3&&CHECKLISTS[3]&&CHECKLISTS[3].items.every(function(_it3,ii3){if(c.ovrd&&c.ovrd["3-"+ii3])return true;if(_it3.t==="closed")return true;return!!(c.ck&&c.ck["3-"+ii3]);});if(_bfrToDone3&&p.vnavPressed&&!p.simActive){var _db3=FLIGHT_DB[(p.fltNo||"").toUpperCase()];var _oLL3=_db3?getWptLL(_db3.origin):null;if(_oLL3){_nx.simActive=true;_nx.simLegIdx=0;_nx.simLat=_oLL3.lat;_nx.simLon=_oLL3.lon;var _rwyS3=(p.runway||"").replace(/[LRC]/gi,"");var _rwyN3=parseInt(_rwyS3);_nx.simHdg=(!isNaN(_rwyN3)&&_rwyN3>0&&_rwyN3<=36)?_rwyN3*10:0;if(_nx.simHdg===360)_nx.simHdg=0;_nx.simFuelUsed=0;_nx.simTimeMin=0;_nx.simGS=510;}}return _nx;});setMfdMode(l);}else{setMfdMode(l);if(l==="COMM")setFms(function(p){return Object.assign({},p,{cursorIdx:null});});}}, style: {width:"55px",height:"28px",borderRadius:"3px",position:"relative",background:a?"#2a2a2a":"#3a3a3a",color:C.white,border:a?"2px solid #fff":"1px solid #555",fontSize:"16px",fontWeight:"bold",cursor:"pointer",fontFamily:M,boxShadow:a?"0 0 4px rgba(255,255,255,0.3)":"0 1px 3px rgba(0,0,0,0.4)"},}
     , l));
   // Move DOM cursor to LSK position AND set cursorIdx
   function jumpCursor(idx){if(CUR.hoverEl)CUR.hoverEl.style.outline="none";CUR.hoverKey=null;CUR.hoverEl=null;CUR.set(function(p){var n=Object.assign({},p,{cursorIdx:idx});if(idx>=100&&idx<200)n.chkl=Object.assign({},p.chkl,{cur:idx-100});return n;});setTimeout(function(){positionCursorAt(idx);},120);}
@@ -25558,7 +25528,7 @@ function ChecklistView({fms,setFms}){
       )
       /* Bottom command keys (FCOM 10.50.1) */
       , React.createElement('div', { style: {display:"flex",gap:2,padding:"4px 6px",borderTop:"1px solid #444"},}
-        , React.createElement(CmdKey, { l: "NORMAL", cmd: "0", onClick: allDone?()=>{const ni=clIdx+1<CHECKLISTS.length?clIdx+1:0;setClIdx(ni);setCur(0);setFms(p=>{var es=p.eicasScenario;if(clIdx===1)es=4;else if(clIdx===2){es=5;setTimeout(function(){setFms(function(pp){return{...pp,eicasScenario:6};});},2500);}else if(clIdx===3)es=7;else if(clIdx===4)es=8;return{...p,cursorIdx:null,eicasScenario:es,eicasCxd:[]};});}:goNextIncomplete,})
+        , React.createElement(CmdKey, { l: "NORMAL", cmd: "0", onClick: allDone?()=>{const ni=clIdx+1<CHECKLISTS.length?clIdx+1:0;setClIdx(ni);setCur(0);setFms(p=>{var es=p.eicasScenario;if(clIdx===1)es=4;else if(clIdx===2){es=5;setTimeout(function(){setFms(function(pp){return{...pp,eicasScenario:6};});},2500);}else if(clIdx===3)es=7;else if(clIdx===4)es=8;var nx={...p,cursorIdx:null,eicasScenario:es,eicasCxd:[]};var _bfrToDone2=CHECKLISTS[3]&&CHECKLISTS[3].items.every(function(_it2b,ii2b){var _ck2=p.chkl||{};if(_ck2.ovrd&&_ck2.ovrd["3-"+ii2b])return true;if(_it2b.t==="closed")return true;return!!(_ck2.ck&&_ck2.ck["3-"+ii2b]);});if(_bfrToDone2&&p.vnavPressed&&!p.simActive){var _db2=FLIGHT_DB[(p.fltNo||"").toUpperCase()];var _oLL2=_db2?getWptLL(_db2.origin):null;if(_oLL2){nx.simActive=true;nx.simLegIdx=0;nx.simLat=_oLL2.lat;nx.simLon=_oLL2.lon;var _rwyS2=(p.runway||"").replace(/[LRC]/gi,"");var _rwyN2=parseInt(_rwyS2);nx.simHdg=(!isNaN(_rwyN2)&&_rwyN2>0&&_rwyN2<=36)?_rwyN2*10:0;if(nx.simHdg===360)nx.simHdg=0;nx.simFuelUsed=0;nx.simTimeMin=0;nx.simGS=510;}}return nx;});}:goNextIncomplete,})
         , React.createElement(CmdKey, { l: "ITEM\nOVRD", cmd: "1", onClick: itemOverride,})
         , React.createElement(CmdKey, { l: "NOTES", cmd: "2",})
         , React.createElement(CmdKey, { l: "CHKL\nOVRD", cmd: "3", onClick: ()=>{items.forEach((_,ii)=>{setOvrd(o=>({...o,[`${clIdx}-${ii}`]:true}));});setCur(items.length);},})
@@ -28005,6 +27975,9 @@ function _fbInit(){
 }
 
 // Shared state keys (synced between CPT and FO)
+// SYNC_KEYS: Only FMS DATA shared between dual CDUs.
+// UI state (page, legsPage, rtePage, progPage, helpMsg, etc.) is NOT synced —
+// each CDU navigates independently.
 var SYNC_KEYS=["phase","origin","dest","fltNo","coRoute","runway","refAirport",
   "posGate","setInertialPos","setHdg",
   "rteUplinkPending","model","engRating","navData","navActive","opProgram","dragFF",
@@ -28015,22 +27988,24 @@ var SYNC_KEYS=["phase","origin","dest","fltNo","coRoute","runway","refAirport",
   "rwyWind","slopeCond","toN1","togw",
   "depSid","depRwy","depTrans","depEoSid","depSidAct",
   "arrStar","arrStarTrans","arrApp","arrTrans","arrRwy","arrStarAct","arrAppAct",
-  "routeLegs","rtePage","computedLegs",
+  "routeLegs","computedLegs",
   "eicasScenario","eicasCxd","execLight",
-  "rte2Origin","rte2Dest","rte2FltNo","rte2Runway","rte2CoRoute","rte2Legs","rte2Page","rte2UplinkPending",
-  "desFcstPage","desFcstTransLvl","desFcstTaiAlt","desFcstWinds",
-  "fixData","fixPage","windPage","windReqPending","windEntries",
+  "rte2Origin","rte2Dest","rte2FltNo","rte2Runway","rte2CoRoute","rte2Legs","rte2UplinkPending",
+  "desFcstTransLvl","desFcstTaiAlt","desFcstWinds",
+  "fixData","windReqPending","windEntries",
   "rtaFix","rtaTime","altnAirports","altnSelected","altnInhibit",
-  "altnDetailIdx","altnRouteMode","altnAlt","altnSpd","altnPage",
-  "progDestWpt","fuelSel","offsetDist","offsetStart","offsetEnd","offsetSlopStart","offsetSlopEnd",
+  "altnDetailIdx","altnRouteMode","altnAlt","altnSpd",
+  "offsetDist","offsetStart","offsetEnd","offsetActive","offsetSlopStart","offsetSlopEnd",
+  "slopOn","slopDist","slopDistEntered","slopStartEntered","slopEndEntered","slopStartNow",
   "pendingUplink","auxMsgs","auxBlink","dclMsg",
   "spdMode","clbSpdMode","clbSelSpd","clbSpdRestr","spdTrans","transAlt",
   "crzSpdMode","crzSelSpd","crzN1","stepTo",
   "desSpdMode","desSelSpd","desSpdTrans","desSpdRestr","desWptAlt","desFPA","desVB","desVS",
-  "rnp","anp","legsPage","progPage","helpMsg",
+  "rnp","anp",
   "efbInit","efbPerf",
-  "depSid","depRwy","depTrans","depEoSid","depSidAct",
-  "arrPage"];
+  // Sim state (aircraft position must be consistent across CDUs)
+  "vnavPressed","simActive","simLegIdx","simLat","simLon","simHdg","simGS","simFuelUsed","simTimeMin",
+  "chkl"];
 
 function _syncExtract(fmsObj){
   var out={};
