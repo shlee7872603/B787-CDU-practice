@@ -20963,7 +20963,7 @@ function updateRouteLegs(fms){
     fms.routeLegs.splice(insertPos,0,{via:"DIRECT",to:fms._replaceMissed,_dest:true});
     insertPos++;
     delete fms._replaceMissed;
-  } else if(!_hasManualAirport&&fms.arrApp){
+  } else if(!_hasManualAirport&&fms.arrApp&&(app||star)){
     var missedSrc=(app&&app.missedApproach)?app.missedApproach:(db&&db.missedApproach?db.missedApproach:null);
     if(missedSrc&&missedSrc.length){
       var missedFix="";
@@ -21922,9 +21922,7 @@ function cduPageData(fms) {
       }
       let allLegs=legs;
       if(!allLegs.length && fms.routeLegs.length) {
-        allLegs=[{wpt:fms.origin,crs:"---°",dist:"",spdAlt:"",pred:"",isRwy:true}];
-        fms.routeLegs.forEach(l=>allLegs.push({wpt:l.to,crs:"---°",dist:"---NM",spdAlt:"",pred:""}));
-        allLegs.push({wpt:fms.dest,crs:"---°",dist:"---NM",spdAlt:"",pred:"",isDest:true});
+        fms.routeLegs.forEach(l=>{if(l.to&&!l._disc)allLegs.push({wpt:l.to,crs:"---°",dist:"---NM",spdAlt:"",pred:""});});
       }
       // SIM sequencing: trim passed waypoints so LEGS page advances
       if(fms.simActive&&fms.simLegIdx>0&&allLegs.length>0){
@@ -22872,7 +22870,9 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
         // DELETE on L1-L5 or R1-R5: remove the routeLeg at that position
         if((side==="L"||side==="R")&&num>=1&&num<=5&&sp==="DELETE"){
           const idx=startIdx+(num-1);
-          if(idx<s.routeLegs.length&&!s.routeLegs[idx]._star&&!s.routeLegs[idx]._app&&!s.routeLegs[idx]._missed&&!s.routeLegs[idx]._dest){
+          if(idx<s.routeLegs.length&&!s.routeLegs[idx]._star&&!s.routeLegs[idx]._app){
+            // _missed and _dest auto-entries: clear associated state so they don't regenerate
+            if(s.routeLegs[idx]._missed){s._replaceMissed=undefined;}
             s.routeLegs.splice(idx,1);
             s.routeLegs=s.routeLegs.filter(function(l){return l.via||l.to||l._star||l._app||l._disc||l._appTrans||l._sid||l._missed||l._dest;});
             if(s.phase==="ACTIVE")s.execLight=true;
@@ -23195,6 +23195,7 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
       // [HDL] LEGS
       else if(p==="LEGS"){
         const db=FLIGHT_DB[(s.fltNo||"").toUpperCase()];
+        if(!(s.computedLegs||[]).length&&s.routeLegs&&s.routeLegs.length){updateRouteLegs(s);s.computedLegs=buildLegs(s);}
         const legs=s.computedLegs||[];
         if(!legs.length){if(side==="R"&&num===6)go("RTE_DATA");return s;}
         const pgIdx=(s.legsPage-1)*5;
@@ -28100,8 +28101,8 @@ function B787Cockpit(){
           return merged;});
       });
       _syncRef.current=ref;
-      // Cleanup on disconnect
-      ref.child("host").onDisconnect().remove();
+      // Cleanup on disconnect — remove entire room so no orphan data remains
+      ref.onDisconnect().remove();
     });
   }
   function syncJoinRoom(code){
@@ -28129,7 +28130,20 @@ function B787Cockpit(){
           return merged;});
       });
       _syncRef.current=ref;
+      // Cleanup guest presence on disconnect
       ref.child("guest").onDisconnect().remove();
+      ref.child("guestState").onDisconnect().remove();
+      // Detect room deletion (host disconnected) and auto-disconnect
+      ref.on("value",function(roomSnap){
+        if(!roomSnap.exists()){
+          // Room was deleted (host left) — clean up guest state
+          ref.off();
+          db.ref("rooms/"+code+"/state").off();
+          db.ref("rooms/"+code+"/guestState").off();
+          setSyncRoom(null);setSyncRole(null);setSyncPeer(false);
+          _syncRef.current=null;_syncLastJson.current="";
+        }
+      });
     });
   }
   function syncDisconnect(){
@@ -28572,6 +28586,21 @@ function B787Cockpit(){
 
 ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(B787Cockpit));
 </script>
-<script>if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(function(){});}</script>
+<script>
+// Force refresh for cached users: update SW, clear caches
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js?v=2.15.0').catch(function(){});
+  navigator.serviceWorker.getRegistrations().then(function(regs){
+    regs.forEach(function(r){r.update();});
+  });
+}
+// Version check: force reload if stale
+(function(){
+  var CV="2.15.0";
+  var lv=localStorage.getItem("cdu_ver");
+  if(lv&&lv!==CV){localStorage.setItem("cdu_ver",CV);location.reload(true);}
+  else{localStorage.setItem("cdu_ver",CV);}
+})();
+</script>
 </body>
 </html>
