@@ -20963,7 +20963,7 @@ function updateRouteLegs(fms){
     fms.routeLegs.splice(insertPos,0,{via:"DIRECT",to:fms._replaceMissed,_dest:true});
     insertPos++;
     delete fms._replaceMissed;
-  } else if(!_hasManualAirport){
+  } else if(!_hasManualAirport&&fms.arrApp){
     var missedSrc=(app&&app.missedApproach)?app.missedApproach:(db&&db.missedApproach?db.missedApproach:null);
     if(missedSrc&&missedSrc.length){
       var missedFix="";
@@ -26554,8 +26554,8 @@ function NDView({fms,setFms,hideControls}){
       var acX=cx, acY=H*0.82;
       var arcR=acY-18;  // compass arc radius (from aircraft to near top)
       var mapPxPerNm=arcR/rng;
-      // Visible arc span: ±60° from heading (120° total, FCOM 10.40.9)
-      var arcSpanDeg=60;
+      // Visible arc span: ±90° from heading (180° total)
+      var arcSpanDeg=90;
 
       // ── Projection: track-up, aircraft at (acX, acY) ──
       function mapProj(lat,lon){
@@ -27283,7 +27283,7 @@ function NDView({fms,setFms,hideControls}){
       , React.createElement('canvas', { ref: ref, width: cvSize.w, height: cvSize.h, style: {position:"absolute",top:0,left:0,width:"100%",height:"100%"},})
     )
     // PLN step buttons (bottom bar) — also jumps airplane when simActive
-    , !hideControls&&ndMode==="PLN"&&plnIdx>=0&&React.createElement('div', { style: {display:"flex",gap:3,justifyContent:"center",padding:"2px 0",flexShrink:0},}
+    , !hideControls&&(plnIdx>=0||fms.simActive)&&React.createElement('div', { style: {display:"flex",gap:3,justifyContent:"center",padding:"2px 0",flexShrink:0},}
       , React.createElement('button', { onClick: function(){
           var ni=Math.max(0,plnIdx-1); setPlnIdx(ni);
           if(fms.simActive&&setFms){setFms(function(p){
