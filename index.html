@@ -23408,9 +23408,17 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
             // Cannot delete the active waypoint (idx===0 in active phase)
             const isActive=idx===0&&s.phase==="ACTIVE";
             if(!isActive){
-              // Replace waypoint with DISC (boxes) — data before/after does not change
-              const disc={wpt:"□□□□□",crs:"",dist:"",spdAlt:"",pred:"",isDisc:true};
-              legs.splice(idx,1,disc);
+              // Check if adjacent entries are already DISCs — merge instead of creating another
+              var _prevIsDisc=idx>0&&legs[idx-1].isDisc;
+              var _nextIsDisc=idx+1<legs.length&&legs[idx+1].isDisc;
+              if(_prevIsDisc||_nextIsDisc){
+                // Adjacent DISC exists — just remove the waypoint (DISC already covers the gap)
+                legs.splice(idx,1);
+              } else {
+                // Replace waypoint with DISC (boxes) — data before/after does not change
+                const disc={wpt:"□□□□□",crs:"",dist:"",spdAlt:"",pred:"",isDisc:true};
+                legs.splice(idx,1,disc);
+              }
               s.scratchpad="";if(s.phase==="ACTIVE")s.execLight=true;
             }
           }
