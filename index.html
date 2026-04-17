@@ -28629,6 +28629,29 @@ if('serviceWorker' in navigator){
   if(lv&&lv!==CV){localStorage.setItem("cdu_ver",CV);location.reload(true);}
   else{localStorage.setItem("cdu_ver",CV);}
 })();
+// Firebase live version check: force reload when server version changes
+(function(){
+  var CV="2.15.1";
+  function startVersionWatch(){
+    if(typeof firebase==="undefined")return;
+    try{
+      var db=_fbDb||(_fbInit&&_fbInit());
+      if(!db)return;
+      db.ref("appVersion").once("value",function(snap){
+        if(!snap.exists()){db.ref("appVersion").set(CV);}
+      });
+      db.ref("appVersion").on("value",function(snap){
+        var sv=snap.val();
+        if(sv&&sv!==CV){
+          localStorage.setItem("cdu_ver",sv);
+          location.reload(true);
+        }
+      });
+    }catch(e){}
+  }
+  if(document.readyState==="complete")startVersionWatch();
+  else window.addEventListener("load",startVersionWatch);
+})();
 </script>
 </body>
 </html>
