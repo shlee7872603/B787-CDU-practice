@@ -10,7 +10,7 @@
 <meta name="theme-color" content="#050505">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>B787 CDU Practice v2.14.2</title>
+<title>B787 CDU Practice v2.15.0</title>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js" crossorigin="anonymous" async></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js" crossorigin="anonymous" async></script>
 <style>*{margin:0;padding:0;box-sizing:border-box;-webkit-user-select:none;user-select:none}body{background:#050505;overflow-x:hidden}</style>
@@ -20626,7 +20626,13 @@ function buildLegs(fms){
   // Enroute — GLOBAL RULE: dynamically expand routeLegs via AIRWAY_DB
   // Process enroute + _manual + _disc entries in order (exclude STAR/APP/etc)
   var rl=fms.routeLegs||[];
-  var processRL=rl.filter(function(l){return !l._star&&!l._app&&!l._appTrans&&!l._sid&&!l._missed&&!l._dest;});
+  var processRL=rl.filter(function(l){
+    if(l._sid||l._dest||l._missed)return false;
+    if(l._star&&fms.arrStar)return false;
+    if(l._app&&fms.arrApp)return false;
+    if(l._appTrans&&fms.arrApp)return false;
+    return true;
+  });
   var prevTo=sid?sid.exit||"":"";
   var lastEnrouteTo=prevTo; // Track last enroute TO for DISC recovery
 
@@ -20665,6 +20671,34 @@ function buildLegs(fms){
         if(enr){legs.push(Object.assign({},enr));}
         else{legs.push({wpt:awWpts[aj],crs:"",dist:"",spdAlt:"",pred:"",via:via});}
       }
+    } else if(leg._star&&NAV_DATA[via.replace(/\..*/,"")]){
+      // STAR entry in RTE (no arrStar set): expand STAR waypoints from NAV_DATA
+      var _starKey=via.replace(/\..*/,""); // "BOXUM7.OTNIK" → "BOXUM7"
+      var _starNav=NAV_DATA[_starKey];
+      var _starTrans=leg._viaDisp?(leg._viaDisp.split(".")[1]||""):"";
+      var _starWpts=[];
+      if(_starTrans&&_starNav.transLegs&&_starNav.transLegs[_starTrans]){
+        _starWpts=_starNav.transLegs[_starTrans].map(function(w){return Object.assign({},w,{via:_starKey});});
+        var _lastT=_starWpts[_starWpts.length-1].wpt;
+        var _commonStart=_starNav.wpts[0].wpt;
+        if(_lastT===_commonStart){
+          _starWpts=_starWpts.concat(_starNav.wpts.slice(1).map(function(w){return Object.assign({},w,{via:_starKey});}));
+        } else {
+          _starWpts=_starWpts.concat(_starNav.wpts.map(function(w){return Object.assign({},w,{via:_starKey});}));
+        }
+      } else {
+        _starWpts=_starNav.wpts.map(function(w){return Object.assign({},w,{via:_starKey});});
+      }
+      // Trim: skip wpts before prevTo, stop at to (inclusive)
+      var _sStart=-1,_sEnd=_starWpts.length;
+      for(var si=0;si<_starWpts.length;si++){
+        if(_starWpts[si].wpt===prevTo){_sStart=si;}
+        if(_starWpts[si].wpt===to){_sEnd=si+1;break;}
+      }
+      var _sSlice=_starWpts.slice(_sStart>=0?_sStart+1:0,_sEnd);
+      // Dedup first wpt if matches last leg
+      if(_sSlice.length&&legs.length&&legs[legs.length-1].wpt===_sSlice[0].wpt){_sSlice=_sSlice.slice(1);}
+      for(var sk=0;sk<_sSlice.length;sk++){legs.push(_sSlice[sk]);}
     } else {
       // DIRECT or airway not in AIRWAY_DB
       var enr2=enrLookup[to];
@@ -28215,24 +28249,25 @@ function B787Cockpit(){
         React.createElement('div', {style:{color:"#00cccc",fontSize:33,fontWeight:"bold",letterSpacing:4,marginBottom:4}}, "B787 DREAMLINER"),
         React.createElement('div', {style:{color:"#aaa",fontSize:14,letterSpacing:2}}, "COCKPIT PROCEDURE SIMULATOR"),
         React.createElement('div', {style:{color:"#777",fontSize:14,marginTop:4}}, "FOR TRAINING PURPOSE ONLY"),
-        React.createElement('div', {style:{color:"#00bb00",fontSize:11,marginTop:12,letterSpacing:1}}, "v2.14.2 \u00a0|\u00a0 by SH Lee \u00a0 s.lee@koreanair.com"),
+        React.createElement('div', {style:{color:"#00bb00",fontSize:11,marginTop:12,letterSpacing:1}}, "v2.15.0 \u00a0|\u00a0 by SH Lee \u00a0 s.lee@koreanair.com"),
         React.createElement('div', {style:{color:"#888",fontSize:11,marginTop:6}}, "\uc624\ub958\uac00 \uc788\uc744 \uc2dc \uc704 \uba54\uc77c\ub85c \uc54c\ub824\uc8fc\uc2dc\uae30 \ubc14\ub78d\ub2c8\ub2e4.")
       ),
       React.createElement('div', {style:{display:"flex",gap:20,borderTop:"1px solid #333",borderBottom:"1px solid #333",padding:"14px 0",marginBottom:16}},
         React.createElement('div', {style:{flex:1,minWidth:0}},
           React.createElement('div', {style:{marginBottom:14}},
             React.createElement(ChkRow, {checked:ckIPad,onToggle:function(){setCkIPad(function(p){return!p;});}},
-              React.createElement('div', {style:{color:"#00cccc",fontSize:17,fontWeight:"bold",marginBottom:8,letterSpacing:1}}, "PATCH NOTES v2.14.2"),
+              React.createElement('div', {style:{color:"#00cccc",fontSize:17,fontWeight:"bold",marginBottom:8,letterSpacing:1}}, "PATCH NOTES v2.15.0"),
               React.createElement('div', {style:{color:"#aaa",fontSize:14,fontWeight:"bold",lineHeight:1.8}},
-                React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginBottom:2}}, "v2.14.2"),
+                React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginBottom:2}}, "v2.15.0"),
+                React.createElement('div', null, "\u2022 SIM \uc2dc\uc791 \uc870\uac74: VNAV + BFR T/O CHKL \uc644\ub8cc (\uc21c\uc11c \ubb34\uad00)"),
+                React.createElement('div', null, "\u2022 \ube44\ud589 \uc911 RTE \ubc84\ud2bc \u2192 2/x \ud398\uc774\uc9c0\ub85c \uc9c1\ud589"),
+                React.createElement('div', null, "\u2022 \ubaa8\ub4e0 RTE \ud398\uc774\uc9c0 R6 OFFSET> \ubc84\ud2bc (ACTIVE \uc2dc)"),
+                React.createElement('div', null, "\u2022 BFR T/O \ud504\ub9ac\uc14b: RTE \ub370\uc774\ud130 \uadf8\ub300\ub85c LEGS \ubc18\uc601"),
+                React.createElement('div', null, "\u2022 Dual CDU SYNC: UI \uc0c1\ud0dc \ub3c5\ub9bd, SIM/OFFSET \ub3d9\uae30\ud654"),
+                React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginTop:8,marginBottom:2}}, "v2.14.2"),
                 React.createElement('div', null, "\u2022 LATERAL OFFSET FCOM \uc644\uc804 \ubc18\uc601 (11.42.18-21)"),
-                React.createElement('div', null, "\u2022 SLOP \ud56d\ubaa9 ON/OFF \ubb34\uad00 \ud56d\uc0c1 \ud45c\uc2dc + \uc120\ud0dd large/green \ud1a0\uae00"),
-                React.createElement('div', null, "\u2022 RTE 2/x+ R6 OFFSET \ud544\ub4dc (Lxx.x/Rxx.x \uc785\ub825 \u2192 EXEC)"),
+                React.createElement('div', null, "\u2022 SLOP ON/OFF \ubb34\uad00 \ud56d\uc0c1 \ud45c\uc2dc + \uc120\ud0dd large/green \ud1a0\uae00"),
                 React.createElement('div', null, "\u2022 ND Offset: MOD=\ud770\uc0c9 \uc810\uc120, EXEC \ud6c4=\ub9c8\uc820\ud0c0 \uc810\uc120"),
-                React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginTop:8,marginBottom:2}}, "v2.14.1"),
-                React.createElement('div', null, "\u2022 LNAV Modification (FCOM 11.42.1-17): Direct To, INTC CRS, ABEAM PTS"),
-                React.createElement('div', null, "\u2022 ND MOD route \uc810\uc120 + DISC \ub04a\uae40 + ACT route \uc720\uc9c0 + nose \uc704\uce58"),
-                React.createElement('div', null, "\u2022 SID \ubd84\ud560 \uc2dc RTE \ud45c\uc2dc \uc218\uc815"),
               )
             )
           ),
