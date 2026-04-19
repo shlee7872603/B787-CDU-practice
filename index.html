@@ -10,7 +10,7 @@
 <meta name="theme-color" content="#050505">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>B787 CDU Practice v2.15.4</title>
+<title>B787 CDU Practice v2.15.5</title>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js" crossorigin="anonymous"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js" crossorigin="anonymous"></script>
 <style>*{margin:0;padding:0;box-sizing:border-box;-webkit-user-select:none;user-select:none}body{background:#050505;overflow-x:hidden}</style>
@@ -28519,19 +28519,19 @@ function B787Cockpit(){
         React.createElement('div', {style:{color:"#00cccc",fontSize:33,fontWeight:"bold",letterSpacing:4,marginBottom:4}}, "B787 DREAMLINER"),
         React.createElement('div', {style:{color:"#aaa",fontSize:14,letterSpacing:2}}, "COCKPIT PROCEDURE SIMULATOR"),
         React.createElement('div', {style:{color:"#777",fontSize:14,marginTop:4}}, "FOR TRAINING PURPOSE ONLY"),
-        React.createElement('div', {style:{color:"#00bb00",fontSize:11,marginTop:12,letterSpacing:1}}, "v2.15.4 \u00a0|\u00a0 by SH Lee \u00a0 s.lee@koreanair.com"),
+        React.createElement('div', {style:{color:"#00bb00",fontSize:11,marginTop:12,letterSpacing:1}}, "v2.15.5 \u00a0|\u00a0 by SH Lee \u00a0 s.lee@koreanair.com"),
         React.createElement('div', {style:{color:"#888",fontSize:11,marginTop:6}}, "\uc624\ub958\uac00 \uc788\uc744 \uc2dc \uc704 \uba54\uc77c\ub85c \uc54c\ub824\uc8fc\uc2dc\uae30 \ubc14\ub78d\ub2c8\ub2e4.")
       ),
       React.createElement('div', {style:{display:"flex",gap:20,borderTop:"1px solid #333",borderBottom:"1px solid #333",padding:"14px 0",marginBottom:16}},
         React.createElement('div', {style:{flex:1,minWidth:0}},
           React.createElement('div', {style:{marginBottom:14}},
             React.createElement(ChkRow, {checked:ckIPad,onToggle:function(){setCkIPad(function(p){return!p;});}},
-              React.createElement('div', {style:{color:"#00cccc",fontSize:17,fontWeight:"bold",marginBottom:8,letterSpacing:1}}, "PATCH NOTES v2.15.4"),
+              React.createElement('div', {style:{color:"#00cccc",fontSize:17,fontWeight:"bold",marginBottom:8,letterSpacing:1}}, "PATCH NOTES v2.15.5"),
               React.createElement('div', {style:{color:"#aaa",fontSize:14,fontWeight:"bold",lineHeight:1.8}},
-                React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginBottom:2}}, "v2.15.4"),
-                React.createElement('div', null, "\u2022 Firebase \ub85c\ub529 \uc624\ub958 \uc218\uc815 (async \uc81c\uac70)"),
-                React.createElement('div', null, "\u2022 \uc790\ub3d9 \uc0c8\ub85c\uace0\uce68: \uc11c\ubc84 \ubc84\uc804 \uc790\ub3d9 \uac31\uc2e0 \ub85c\uc9c1 \uac1c\uc120"),
-                React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginTop:8,marginBottom:2}}, "v2.15.3"),
+                React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginBottom:2}}, "v2.15.5"),
+                React.createElement('div', null, "\u2022 \ucd08\uae30\ud654 \ubc84\ud2bc: \uce90\uc2dc \uc0ad\uc81c + \uac15\uc81c \uc0c8\ub85c\uace0\uce68"),
+                React.createElement('div', null, "\u2022 Firebase \ub85c\ub529 \uc624\ub958 \uc218\uc815 / \uc790\ub3d9 \ubc84\uc804 \uac31\uc2e0 \uac1c\uc120"),
+                React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginTop:8,marginBottom:2}}, "v2.15.4"),
                 React.createElement('div', null, "\u2022 KAL853/854 (RKSI\u2194ZBAA) \ube44\ud589 \ub370\uc774\ud130 \ucd94\uac00"),
                 React.createElement('div', null, "\u2022 \ud55c\uad6d AIP ENR 3.2 \ud56d\uacf5\ub85c 27\uac1c \ucd94\uac00 (\ucd1d 51\uac1c)"),
                 React.createElement('div', null, "\u2022 \uc6e8\uc774\ud3ec\uc778\ud2b8 \uc88c\ud45c \uc815\ud655\ub3c4 \uac1c\uc120 (HCH, DOVIV \ub4f1 8\uac1c)"),
@@ -28631,7 +28631,7 @@ function B787Cockpit(){
         )
       ),
       React.createElement('div', {style:{textAlign:"center",marginTop:24}},
-        React.createElement('button', {onClick:allChecked?function(){_logVisit(userEmail);setSplash(false);}:undefined,style:{
+        React.createElement('button', {onClick:allChecked?function(){_logVisit(userEmail);setSplash(false);caches.keys().then(function(n){n.forEach(function(k){caches.delete(k);});});}:undefined,style:{
           padding:"12px 48px",
           background:allChecked?"linear-gradient(180deg,#2a4a2a 0%,#1a3a1a 100%)":"#1a1a1a",
           color:allChecked?"#00e800":"#444",
@@ -28650,7 +28650,7 @@ function B787Cockpit(){
     , React.createElement('div', { style: {width:"100%",display:"flex",alignItems:"center",padding:"6px 12px",background:"#0a0a0a",borderBottom:"1px solid #222",gap:10,flexShrink:0},}
       , React.createElement('span', { style: {color:C.white,fontSize:"16px",fontWeight:"bold",letterSpacing:"2px"},}, "B787")
       , React.createElement('div', { style: {width:1,height:18,background:"#333"},})
-      , React.createElement('button', { onClick: ()=>{setFms(initFMS());switchView("CDU");}, style: {padding:"4px 8px",background:"#1a0a0a",color:C.red,border:"1px solid #600",borderRadius:3,fontSize:12,fontWeight:"bold",cursor:"pointer",fontFamily:M},}, "초기화")
+      , React.createElement('button', { onClick: ()=>{caches.keys().then(function(n){n.forEach(function(k){caches.delete(k);});}).then(function(){location.reload(true);});}, style: {padding:"4px 8px",background:"#1a0a0a",color:C.red,border:"1px solid #600",borderRadius:3,fontSize:12,fontWeight:"bold",cursor:"pointer",fontFamily:M},}, "초기화")
         , React.createElement('button', { onClick: ()=>setSplash(true), style: {padding:"4px 8px",background:"#0a0a1a",color:"#aaccff",border:"1px solid #446",borderRadius:3,fontSize:12,fontWeight:"bold",cursor:"pointer",fontFamily:M},}, "INFO")
       , React.createElement('div', { style: {width:1,height:18,background:"#333"},})
       , ["CDU","EFB","FWD","AUX"].map(v=>(
@@ -28849,14 +28849,14 @@ if('serviceWorker' in navigator){
 }
 // Version check: force reload if stale
 (function(){
-  var CV="2.15.4";
+  var CV="2.15.5";
   var lv=localStorage.getItem("cdu_ver");
   if(lv&&lv!==CV){localStorage.setItem("cdu_ver",CV);location.reload(true);}
   else{localStorage.setItem("cdu_ver",CV);}
 })();
 // Firebase live version check: force reload when server version changes
 (function(){
-  var CV="2.15.4";
+  var CV="2.15.5";
   function startVersionWatch(){
     if(typeof firebase==="undefined")return;
     try{
