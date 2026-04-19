@@ -10,9 +10,9 @@
 <meta name="theme-color" content="#050505">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>B787 CDU Practice v2.15.2</title>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js" crossorigin="anonymous" async></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js" crossorigin="anonymous" async></script>
+<title>B787 CDU Practice v2.15.3</title>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js" crossorigin="anonymous"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js" crossorigin="anonymous"></script>
 <style>*{margin:0;padding:0;box-sizing:border-box;-webkit-user-select:none;user-select:none}body{background:#050505;overflow-x:hidden}</style>
 </head>
 <body>
@@ -17242,12 +17242,18 @@ const WPT_COORDS = {
   "RJCC":{lat:42.7750,lon:141.6917},
   // ZBAA (Beijing Capital)
   "ZBAA":{lat:40.0800,lon:116.5847},
-  "MUGLO":{lat:38.8500,lon:117.2000},
+  "MUGLO":{lat:39.0703,lon:118.0344},
   "AVBOX":{lat:40.5000,lon:115.4000},
   "DUGEB":{lat:39.0000,lon:116.0000},
-  "DUMAP":{lat:40.0000,lon:115.5000},
+  "DUMAP":{lat:38.5914,lon:118.0292},
   "LULTA":{lat:39.7500,lon:116.8000},
   "DXG":{lat:39.5000,lon:116.3500},
+  "IKEKA":{lat:36.8314,lon:123.3542},
+  "VAPGU":{lat:38.7731,lon:119.8289},
+  "ORAVA":{lat:38.7100,lon:120.2058},
+  "UNSEK":{lat:38.6128,lon:120.2356},
+  "HCH":{lat:37.6550,lon:120.5450},
+  "DOVIV":{lat:38.1111,lon:119.5325},
   // CYYZ (Toronto Pearson) — extracted via OCR from NAV CANADA CAP_04_en_20260319
   "AGNOB":{lat:44.201,lon:-77.502},
   "ALKUT":{lat:43.645,lon:-79.2295},
@@ -19008,13 +19014,13 @@ const AIRWAY_DB = {
   G339: ["DGC","BEETL"],
   Y208: ["BEETL","INVOK"],
   Z91:  ["INVOK","PSN"],
-  Y782: ["OSPOT","VASLI","MAKDU","BITUX","TGU","KALOD","PSN"],
+  Y782: ["SEL","POLEG","SOT","OSPOT","VASLI","MAKDU","BITUX","TGU","KALOD","PSN","APELA"],
   Z53:  ["BITUX","TEBEX","BASEM"],
-  Y685: ["BASEM","ENSAL","GUKDO"],
+  Y685: ["SEL","KALMA","KAKSO","GUKDO","ENSAL","BASEM","BIGOB","CUN","ELAPI","KPO","BULGA","SAPRA"],
   Y781: ["TGU","MASTA","ANKUS","OMOTU","BESNA"],
   Y209: ["BESNA","PAVGA","FRAIZ","SARUP","IKE"],
-  // Japan RNAV (ENR 3.3)
-  Y697: ["EGOBA","KARBU","TORUS","BIKSI","KAE","PILIT","ESNEG","AGSUS","LANAT"],
+  // Japan RNAV (ENR 3.3) + Korea (ENR 3.2)
+  Y697: ["AGAVO","OLBIM","NOGON","ANSIM","BINIL","NOPIK","GOGET","SEL","EGOBA","KARBU","TORUS","BIKSI","KAE","PILIT","ESNEG","AGSUS","LANAT","MONSI","BULTI","MEKIL","GONAX","BEDES","ELPOS","MANGI","DALSU","NULDI","DOTOL","KIDOS","REMOS","PANSI","DOMKO","PONIK","IKEDO","KANKA","BONSO","MUGUS"],
   Y51:  ["LANAT","DISSH","OVSOS","SAMON"],
   Y513: ["SAMON","KMC"],
   Y889: ["DAIGO","LENVO","MAMID","MUBTO","OATIS","PUTER"],
@@ -19025,8 +19031,41 @@ const AIRWAY_DB = {
   W107: ["CHI","SANKO"],
   A326: ["SANKO","OBDIS","DONVO"],
   G597: ["DONVO","AGAVO"],
+  A591: ["AGAVO","IKEKA"],
+  W4: ["IKEKA","HCH"],
+  W200: ["HCH","DOVIV"],
+  W55: ["DOVIV","DUMAP"],
+  W34: ["MUGLO","VAPGU"],
+  W100: ["VAPGU","ORAVA"],
+  W201: ["ORAVA","UNSEK"],
   // Korea RNAV (ENR 3.2)
-  Y644: ["AGAVO","RILRO","GONAV","BODOL","REBIT"],
+  L512: ["TENAS","SABET","ANDOL"],
+  Y233: ["BUSKO","SELPA","ONATA","KANSU"],
+  Y253: ["DALSU","KWA","SAMUL","TEDAN","ANUBA","SAPDI","SARAM","ANKUS","PSN","KAE","LESBU","UGOVI","BUSKO","TENAS","MALSO","KANSU"],
+  Y437: ["KAE","LESBU","UGOVI","BUSKO"],
+  Y571: ["OMKIM","PAPLU","AKPON","NISAV","ANROD","POVEM","PSN"],
+  Y572: ["PSN","OLMUD","ENGOT","POVOR","UPGOS","BILUM","BEPKO","CJU","OMKIM","TOSAN","RUGMA"],
+  Y579: ["AGSUS","DABIK","BULGA","BEDOM","PSN"],
+  Y590: ["BEDAR","ELGEP","IKEDO","SADLI"],
+  Y644: ["AGAVO","RILRO","GONAV","BODOL","REBIT","BELTU","BOGAN","MONSI","POLEG","EGOBA","DALPO","NONOS","BIDRI","DANPA","PALSA","TOLIS","ENSUM","BONSO","ATOTI","KWA","IGDOK","TGU"],
+  Y659: ["KUZ","ELPOS","RINBO","MELES","OPEDA","TGU","LAPAL","KPO"],
+  Y677: ["TOLIS","LIMDI","REMOS","CJU","TAMNA","SAMDO"],
+  Y722: ["SOT","OLMEN","GUNKU","PEBRI","ATASO","MAKSA","SAMUL","KAMIT","GUKSU","LOSNI","CJU","SOSDO","SAMLO","NIRAT","ELGEP","TESIM","ATOTI"],
+  Y744: ["PILIT","NOBUT","OSVOM","LOSTO","KPO","APARU","PSN"],
+  Z50: ["EGOBA","SOT","BULTI"],
+  Z51: ["BOPTA","MOXID","BEDES"],
+  Z52: ["OLMEN","POSAN","KAKSO"],
+  Z54: ["SOT","MONSI","GOGET"],
+  Z55: ["AGAVO","NONOS"],
+  Z56: ["KANSU","PALDU","SABET","IGRAS"],
+  Z57: ["DALPO"],
+  Z63: ["LESBU"],
+  Z81: ["CJU"],
+  Z82: ["PANSI"],
+  Z83: ["TGU","MASTA","SARAM","ENGOT","ANROD"],
+  Z84: ["PSN","KALEK"],
+  Z85: ["PAPLU","RUGMA"],
+  Z86: ["BONSO","ATOTI"],
 };
 // Find exit point: first shared waypoint between current airway and next airway
 function findExitPoint(awy, prevTo, nextAwy) {
@@ -19451,6 +19490,109 @@ const FLIGHT_DB = {
     arrStars:["GUKD2E","KARB2E","OLME2E","REBITY1","OLMEY1","OLME3C","GUKD3C","KARB3C","REBITH2","OLMEH2","GUKDH2","KARBH2","BISKIM2","GONAVM3"], arrApps:["ILS 33R","ILS 15L","ILS Z 15L","ILS 33L","RNAV 34L"],
     dclText:"KAL074 CLRD TO RKSI\nOFF 33R, IKLEN3 TONNY TRANSITION\nTHEN AS FILED\nMAINTAIN 5000\nSQ 0203",
     dclData:{rwy:"33R",sid:"IKLEN3",sidTrans:"TONNY",initAlt:"5000",squawk:"0203"},
+  },
+  KAL853: {
+    origin:"RKSI", dest:"ZBAA", runway:"33L", fltNo:"KAL853",
+    sid:"NOPIK2A", star:"DUMA2G", approach:"ILSZ01", appTrans:"AA141",
+    sidTrans:"",
+    route:[
+      {via:"DIRECT",to:"NOPIK"},
+      {via:"Y697",to:"AGAVO"},
+      {via:"A591",to:"IKEKA"},
+      {via:"W4",to:"HCH"},
+      {via:"W200",to:"DOVIV"},
+      {via:"W55",to:"DUMAP"}
+    ],
+    presetRteLegs:[
+      {via:"NOPIK2A",to:"NOPIK",_sid:true},
+      {via:"Y697",to:"AGAVO"},
+      {via:"A591",to:"IKEKA"},
+      {via:"W4",to:"HCH"},
+      {via:"W200",to:"DOVIV"},
+      {via:"W55",to:"DUMAP"},
+      {via:"DIRECT",to:"ZBAA"}
+    ],
+    legs:[],
+    tripDist:960, tripTime:"02:20", tripFuel:"25.0",
+    blockFuel:"66.0", reserveFuel:"10.0",
+    zfw:"355.0", fuel:"66.0", grWt:"421.0", reserves:"10.0", crzAlt:"FL330", costIndex:"50",
+    crzCg:"23", oat:"10", wind:"300/15", qnh:"1022",
+    transAlt:"14000", spdTrans:"250/10000",
+    optAlt:"FL370", maxAlt:"FL410", recmdAlt:"FL370",
+    econSpd:".840", econSpdClb:"280/.780", econSpdDes:".780/280",
+    crzN1:"87.8", crzTAS:"470", crzSAT:"-48",
+    climbFuel:"6.0",
+    intx:"FULL 33L", cond:"DRY", rtg:"OPTIMUM", ic:"NO", atm:"MAX",
+    flapOpt:"OPTIMUM", aiEng:"AUTO", icing:"NO", rtl:"20/30",
+    perfV1:"150", perfVR:"152", perfV2:"155", perfFlap:"5",
+    perfThrust:"56°C D-TO1", perfTrim:"4.50",
+    perfAccelHt:"815", perfDTO:"85.4", perfSelTemp:"56", perfVref30:"152",
+    altnIcao:"ZYHB", altnRoute:"ZBAA..ZYHB",
+    altnList:["ZYHB","RJCC"],
+    altnData:{ZYHB:{dist:540,route:"DIRECT TO",alt:"FL250",eta:65,fuel:10.0},
+              RJCC:{dist:870,route:"DIRECT TO",alt:"FL310",eta:105,fuel:16.0}},
+    ilsFreq:"110.3", ilsCrs:"013", ilsIdent:"IBKW",
+    arrRwyLen:{ft:12467,m:3800},
+    depSids:["NOPIK2A","OSPO2C","EGOB2C","BOPTA2C","NOPIK2Y","OSPO2Y"],
+    depRwys:["34L","34R","33L","33R","15L","15R"],
+    arrStars:["DUMA2G","AVBO6J","DUGE6J","DUMA9Z"],
+    arrApps:["ILS Z 01","ILS Y 36R","ILS Z 36R"],
+    wx:{wind:"300/15",oat:"10",qnh:"1022"},
+    windData:{},
+    missedApproach:[],
+  },
+  KAL854: {
+    origin:"ZBAA", dest:"RKSI", runway:"36R", fltNo:"KAL854",
+    sid:"MUGL7X", star:"GUKD2E", approach:"ILS33R", appTrans:"ENPIL",
+    sidTrans:"",starTrans:"",
+    route:[
+      {via:"DIRECT",to:"MUGLO"},
+      {via:"W34",to:"VAPGU"},
+      {via:"W100",to:"ORAVA"},
+      {via:"W201",to:"UNSEK"},
+      {via:"A326",to:"DONVO"},
+      {via:"G597",to:"AGAVO"},
+      {via:"Y644",to:"REBIT"}
+    ],
+    presetRteLegs:[
+      {via:"MUGL7X",to:"MUGLO",_sid:true},
+      {via:"W34",to:"VAPGU"},
+      {via:"W100",to:"ORAVA"},
+      {via:"W201",to:"UNSEK"},
+      {via:"A326",to:"DONVO"},
+      {via:"G597",to:"AGAVO"},
+      {via:"Y644",to:"REBIT"},
+      {via:"DIRECT",to:"RKSI"}
+    ],
+    legs:[],
+    tripDist:960, tripTime:"02:10", tripFuel:"22.0",
+    blockFuel:"38.0", reserveFuel:"9.0",
+    zfw:"343.0", fuel:"38.0", grWt:"381.0", reserves:"9.0", crzAlt:"FL340", costIndex:"50",
+    crzCg:"23", oat:"15", wind:"300/5", qnh:"1013",
+    transAlt:"9850", spdTrans:"250/10000",
+    optAlt:"FL380", maxAlt:"FL410", recmdAlt:"FL380",
+    econSpd:".840", econSpdClb:"280/.780", econSpdDes:".780/280",
+    crzN1:"87.8", crzTAS:"470", crzSAT:"-50",
+    climbFuel:"5.5",
+    intx:"FULL 36R", cond:"DRY", rtg:"OPTIMUM", ic:"NO", atm:"MAX",
+    flapOpt:"OPTIMUM", aiEng:"AUTO", icing:"NO", rtl:"20/30",
+    perfV1:"144", perfVR:"144", perfV2:"147", perfFlap:"5",
+    perfThrust:"62°C D-TO1", perfTrim:"4.50",
+    perfAccelHt:"953", perfDTO:"84.3", perfSelTemp:"62", perfVref30:"144",
+    altnIcao:"RKSS", altnRoute:"RKSI..SEL..RKSS",
+    altnList:["RKSS","RKES","RKPC"],
+    altnData:{RKSS:{dist:41,route:"DIRECT TO",alt:"FL100",eta:18,fuel:2.8},
+              RKES:{dist:214,route:"DIRECT TO",alt:"FL230",eta:42,fuel:6.5},
+              RKPC:{dist:170,route:"DIRECT TO",alt:"FL200",eta:35,fuel:5.2}},
+    ilsFreq:"108.9", ilsCrs:"334", ilsIdent:"INRR",
+    arrRwyLen:{ft:12303,m:3750},
+    depSids:["MUGL7X","MUGL9Z","MUGL7X_36R","MUGL5Y","MUGL9Z_36R"],
+    depRwys:["01","18L","18R","19","36L","36R"],
+    arrStars:["GUKD2E","KARB2E","OLME2E","REBITY1","OLMEY1"],
+    arrApps:["ILS 33R","ILS 33L","ILS 15L"],
+    wx:{wind:"300/5",oat:"15",qnh:"1013"},
+    windData:{},
+    missedApproach:[],
   },
 };
 // Flight number aliases (FLIGHT_DB)
@@ -20596,6 +20738,33 @@ const ENROUTE_LEGS = {
     {wpt:"SANKO",crs:"195°",dist:"114NM",spdAlt:"",pred:".780/FL340",via:"W107"},
     {wpt:"OBDIS",crs:"142°",dist:"24NM", spdAlt:"",pred:".780/FL340",via:"A326"},
     {wpt:"DONVO",crs:"142°",dist:"85NM", spdAlt:"",pred:".780/FL340",via:"A326"},
+    {wpt:"AGAVO",crs:"255°",dist:"",spdAlt:"",pred:".780/FL340",via:"G597"},
+    {wpt:"RILRO",crs:"250°",dist:"",spdAlt:"",pred:".780/FL340",via:"Y644"},
+    {wpt:"GONAV",crs:"250°",dist:"",spdAlt:"",pred:".780/FL340",via:"Y644"},
+    {wpt:"BODOL",crs:"250°",dist:"",spdAlt:"",pred:".780/FL340",via:"Y644"},
+    {wpt:"REBIT",crs:"250°",dist:"",spdAlt:"",pred:".780/FL340",via:"Y644"},
+  ],
+  KAL853:[
+    {wpt:"NOPIK",crs:"278°",dist:"",spdAlt:"",pred:".780/FL230",via:"DIRECT"},
+    {wpt:"KARBU",crs:"088°",dist:"13.9NM",spdAlt:"",pred:".780/FL290",via:"Y697"},
+    {wpt:"TORUS",crs:"088°",dist:"22.9NM",spdAlt:"",pred:".780/FL310",via:"Y697"},
+    {wpt:"BIKSI",crs:"088°",dist:"21.8NM",spdAlt:"",pred:".780/FL330",via:"Y697"},
+    {wpt:"KAE",  crs:"088°",dist:"8.2NM", spdAlt:"",pred:".780/FL330",via:"Y697"},
+    {wpt:"PILIT",crs:"130°",dist:"30.0NM",spdAlt:"",pred:".780/FL330",via:"Y697"},
+    {wpt:"ESNEG",crs:"130°",dist:"31.2NM",spdAlt:"",pred:".780/FL330",via:"Y697"},
+    {wpt:"AGSUS",crs:"131°",dist:"47.1NM",spdAlt:"",pred:".780/FL330",via:"Y697"},
+    {wpt:"AGAVO",crs:"131°",dist:"",spdAlt:"",pred:".780/FL330",via:"Y697"},
+    {wpt:"IKEKA",crs:"310°",dist:"",spdAlt:"",pred:".780/FL330",via:"A591"},
+    {wpt:"HCH",  crs:"310°",dist:"",spdAlt:"",pred:".780/FL330",via:"W4"},
+    {wpt:"DOVIV",crs:"330°",dist:"",spdAlt:"",pred:".780/FL330",via:"W200"},
+    {wpt:"DUMAP",crs:"350°",dist:"",spdAlt:"",pred:".780/FL330",via:"W55"},
+  ],
+  KAL854:[
+    {wpt:"MUGLO",crs:"101°",dist:"",spdAlt:"",pred:".780/FL200",via:"DIRECT"},
+    {wpt:"VAPGU",crs:"230°",dist:"",spdAlt:"",pred:".780/FL300",via:"W34"},
+    {wpt:"ORAVA",crs:"150°",dist:"",spdAlt:"",pred:".780/FL340",via:"W100"},
+    {wpt:"UNSEK",crs:"140°",dist:"",spdAlt:"",pred:".780/FL340",via:"W201"},
+    {wpt:"DONVO",crs:"142°",dist:"",spdAlt:"",pred:".780/FL340",via:"A326"},
     {wpt:"AGAVO",crs:"255°",dist:"",spdAlt:"",pred:".780/FL340",via:"G597"},
     {wpt:"RILRO",crs:"250°",dist:"",spdAlt:"",pred:".780/FL340",via:"Y644"},
     {wpt:"GONAV",crs:"250°",dist:"",spdAlt:"",pred:".780/FL340",via:"Y644"},
@@ -22045,8 +22214,8 @@ function cduPageData(fms) {
         });
       });
       while(rows.length<5) rows.push({});
-      // ── FCOM 11.42.8-12: INTC CRS TO/FROM — modify rows when directToMod on page 1 ──
-      if(fms.directToMod && pg===1){
+      // ── FCOM 11.42.8-12: INTC CRS TO/FROM — modify rows when directToMod on page 1 (MOD only) ──
+      if(fms.directToMod && fms.execLight && pg===1){
         // R1: show dashes
         if(rows[0]) rows[0].dr="----------";
         if(rows[0]) rows[0].drc=C.white;
@@ -22063,11 +22232,11 @@ function cduPageData(fms) {
           }
         }
       }
-      // Row 6: INTC CRS title and course value when directToMod
+      // Row 6: INTC CRS title and course value when directToMod (MOD only)
       var row6Title="";
       var row6Dr="RTE DATA>";
       var row6Drc=C.cyan;
-      if(fms.directToMod && pg===1){
+      if(fms.directToMod && fms.execLight && pg===1){
         if(fms.intcCrsFromVal!==null){
           row6Title="INTC CRS FROM";
           row6Dr=String(fms.intcCrsFromVal).padStart(3,"0")+"°>";
@@ -24383,7 +24552,7 @@ function CDUPanel({fms,setFms,mfdMode,setMfdMode}) {
           var phaseDescs=["RTE DEP/ARR PERF Done","T/O REF Complete","Enroute"];
           var phaseColors=["#336","#353","#533"];
           var mkCk=function(upTo){var ck={};var counts=[10,8,6,5,3];for(var ci=0;ci<upTo;ci++){for(var ii=0;ii<counts[ci];ii++)ck[ci+"-"+ii]=true;}return ck;};
-          var iataMap={"RJFF":"FUK","RKSI":"ICN","RKES":"CJU","RKSS":"GMP","RJTT":"HND","RJAA":"NRT","CYYZ":"YYZ","KBUF":"BUF","CYOW":"YOW","CYHM":"YHM"};
+          var iataMap={"RJFF":"FUK","RKSI":"ICN","RKES":"CJU","RKSS":"GMP","RJTT":"HND","RJAA":"NRT","CYYZ":"YYZ","KBUF":"BUF","CYOW":"YOW","CYHM":"YHM","ZBAA":"PEK"};
           /* Helper: build preset FMS state from FLIGHT_DB for any flight */
           var buildPreset=function(fltKey,phase){
             var db=FLIGHT_DB[fltKey];if(!db)return null;
@@ -24812,8 +24981,8 @@ function MFKKeypad({fms,setFms,mfdMode,setMfdMode}) {
           /* 4 corner buttons — 38x36 like alphabet keys */
           , React.createElement('button', { onPointerDown: function(e){e.stopPropagation();e.preventDefault();if(CUR.mode==="SYS"){var aa=CUR.areas||[];if(aa.length)jumpCursor(aa[0]);}else if(CUR.mode==="CHKL"){jumpCursor(300);}else if(CUR.mode==="COMM"){jumpCursor(600);}else{jumpCursor(0);}}, style: {position:"absolute",top:0,left:0,width:42,height:40,background:"transparent",border:"2px dashed rgba(255,255,255,0.5)",borderRadius:0,cursor:"pointer",padding:0,zIndex:2},})
           , React.createElement('button', { onPointerDown: function(e){e.stopPropagation();e.preventDefault();if(CUR.mode==="SYS"){var aa=CUR.areas||[];var mid=Math.floor(aa.length/2);if(aa.length)jumpCursor(aa[mid]);}else if(CUR.mode==="CHKL"){jumpCursor(302);}else if(CUR.mode==="COMM"){var aa2=CUR.areas||[];var last=aa2[aa2.length-1];if(typeof last==="number")jumpCursor(last);else jumpCursor(602);}else{jumpCursor(1);}}, style: {position:"absolute",top:0,right:0,width:42,height:40,background:"transparent",border:"2px dashed rgba(255,255,255,0.5)",borderRadius:0,cursor:"pointer",padding:0,zIndex:2},})
-          , React.createElement('button', { onPointerDown: function(e){e.stopPropagation();e.preventDefault();if(CUR.mode==="SYS"){var aa=CUR.areas||[];if(aa.length)jumpCursor(aa[Math.floor(aa.length/2)-1]||aa[0]);}else if(CUR.mode==="CHKL"){jumpCursor(200);}else if(CUR.mode==="COMM"){var aa2=CUR.areas||[];var f=null;for(var i=0;i<aa2.length;i++){if(aa2[i]>=700&&aa2[i]<800){f=aa2[i];break;}}if(f===null){for(var j=0;j<aa2.length;j++){if(aa2[j]>=800){f=aa2[j];break;}}}if(f!==null)jumpCursor(f);else jumpCursor(600);}else{jumpCursor(10);}}, style: {position:"absolute",bottom:0,left:0,width:42,height:40,background:"transparent",border:"2px dashed rgba(255,255,255,0.5)",borderRadius:0,cursor:"pointer",padding:0,zIndex:2},})
-          , React.createElement('button', { onPointerDown: function(e){e.stopPropagation();e.preventDefault();if(CUR.mode==="SYS"){var aa=CUR.areas||[];if(aa.length)jumpCursor(aa[aa.length-1]);}else if(CUR.mode==="CHKL"){jumpCursor(205);}else if(CUR.mode==="COMM"){var aa2=CUR.areas||[];var l=null;for(var i=aa2.length-1;i>=0;i--){if(aa2[i]>=800){l=aa2[i];break;}}if(l===null){for(var j=aa2.length-1;j>=0;j--){if(aa2[j]>=700&&aa2[j]<800){l=aa2[j];break;}}}if(l!==null)jumpCursor(l);else jumpCursor(605);}else{jumpCursor(11);}}, style: {position:"absolute",bottom:0,right:0,width:42,height:40,background:"transparent",border:"2px dashed rgba(255,255,255,0.5)",borderRadius:0,cursor:"pointer",padding:0,zIndex:2},})
+          , React.createElement('button', { onPointerDown: function(e){e.stopPropagation();e.preventDefault();if(CUR.mode==="SYS"){var aa=CUR.areas||[];if(aa.length)jumpCursor(aa[Math.floor(aa.length/2)-1]||aa[0]);}else if(CUR.mode==="CHKL"){jumpCursor(200);}else if(CUR.mode==="COMM"){var aa2=CUR.areas||[];var f=null;for(var i=0;i<aa2.length;i++){if(aa2[i]>=700&&aa2[i]<800){f=aa2[i];break;}}if(f===null){for(var j=0;j<aa2.length;j++){if(aa2[j]>=800&&aa2[j]<900){f=aa2[j];break;}}}if(f===null){for(var k=0;k<aa2.length;k++){if(aa2[k]>=900){f=aa2[k];break;}}}if(f!==null)jumpCursor(f);else jumpCursor(600);}else{jumpCursor(10);}}, style: {position:"absolute",bottom:0,left:0,width:42,height:40,background:"transparent",border:"2px dashed rgba(255,255,255,0.5)",borderRadius:0,cursor:"pointer",padding:0,zIndex:2},})
+          , React.createElement('button', { onPointerDown: function(e){e.stopPropagation();e.preventDefault();if(CUR.mode==="SYS"){var aa=CUR.areas||[];if(aa.length)jumpCursor(aa[aa.length-1]);}else if(CUR.mode==="CHKL"){jumpCursor(205);}else if(CUR.mode==="COMM"){var aa2=CUR.areas||[];var l=null;for(var i=aa2.length-1;i>=0;i--){if(aa2[i]>=800&&aa2[i]<900){l=aa2[i];break;}}if(l===null){for(var j=aa2.length-1;j>=0;j--){if(aa2[j]>=700&&aa2[j]<800){l=aa2[j];break;}}}if(l===null){for(var k=aa2.length-1;k>=0;k--){if(aa2[k]>=900){l=aa2[k];break;}}}if(l!==null)jumpCursor(l);else jumpCursor(605);}else{jumpCursor(11);}}, style: {position:"absolute",bottom:0,right:0,width:42,height:40,background:"transparent",border:"2px dashed rgba(255,255,255,0.5)",borderRadius:0,cursor:"pointer",padding:0,zIndex:2},})
         )
       )
     )
@@ -24851,7 +25020,7 @@ function EFBPanel({fms,setFms,onClose}) {
   const handleCopyFmcData = () => {
     const d = db || {};
     const wx = d.wx || {wind:"000/00",oat:"15",qnh:"1013"};
-    const iataMap={"RJFF":"FUK","RKSI":"ICN","RKES":"CJU","RKSS":"GMP","RJTT":"HND","RJAA":"NRT"};
+    const iataMap={"RJFF":"FUK","RKSI":"ICN","RKES":"CJU","RKSS":"GMP","RJTT":"HND","RJAA":"NRT","ZBAA":"PEK"};
     setFms(prev => {
       const o = prev.origin || d.origin || "";
       const iata = iataMap[o] || "";
@@ -24950,7 +25119,7 @@ function EFBPanel({fms,setFms,onClose}) {
       setTimeout(()=>{
         setEfbInitializing(false);
         const d2 = FLIGHT_DB[(fms.fltNo||"").toUpperCase()] || {};
-        const iataMap={"RJFF":"FUK","RKSI":"ICN","RKES":"CJU","RKSS":"GMP","RJTT":"HND","RJAA":"NRT"};
+        const iataMap={"RJFF":"FUK","RKSI":"ICN","RKES":"CJU","RKSS":"GMP","RJTT":"HND","RJAA":"NRT","ZBAA":"PEK"};
         setFms(prev => {
           const o = prev.origin || d2.origin || "";
           const iata = iataMap[o] || "";
@@ -28350,26 +28519,23 @@ function B787Cockpit(){
         React.createElement('div', {style:{color:"#00cccc",fontSize:33,fontWeight:"bold",letterSpacing:4,marginBottom:4}}, "B787 DREAMLINER"),
         React.createElement('div', {style:{color:"#aaa",fontSize:14,letterSpacing:2}}, "COCKPIT PROCEDURE SIMULATOR"),
         React.createElement('div', {style:{color:"#777",fontSize:14,marginTop:4}}, "FOR TRAINING PURPOSE ONLY"),
-        React.createElement('div', {style:{color:"#00bb00",fontSize:11,marginTop:12,letterSpacing:1}}, "v2.15.2 \u00a0|\u00a0 by SH Lee \u00a0 s.lee@koreanair.com"),
+        React.createElement('div', {style:{color:"#00bb00",fontSize:11,marginTop:12,letterSpacing:1}}, "v2.15.3 \u00a0|\u00a0 by SH Lee \u00a0 s.lee@koreanair.com"),
         React.createElement('div', {style:{color:"#888",fontSize:11,marginTop:6}}, "\uc624\ub958\uac00 \uc788\uc744 \uc2dc \uc704 \uba54\uc77c\ub85c \uc54c\ub824\uc8fc\uc2dc\uae30 \ubc14\ub78d\ub2c8\ub2e4.")
       ),
       React.createElement('div', {style:{display:"flex",gap:20,borderTop:"1px solid #333",borderBottom:"1px solid #333",padding:"14px 0",marginBottom:16}},
         React.createElement('div', {style:{flex:1,minWidth:0}},
           React.createElement('div', {style:{marginBottom:14}},
             React.createElement(ChkRow, {checked:ckIPad,onToggle:function(){setCkIPad(function(p){return!p;});}},
-              React.createElement('div', {style:{color:"#00cccc",fontSize:17,fontWeight:"bold",marginBottom:8,letterSpacing:1}}, "PATCH NOTES v2.15.2"),
+              React.createElement('div', {style:{color:"#00cccc",fontSize:17,fontWeight:"bold",marginBottom:8,letterSpacing:1}}, "PATCH NOTES v2.15.3"),
               React.createElement('div', {style:{color:"#aaa",fontSize:14,fontWeight:"bold",lineHeight:1.8}},
-                React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginBottom:2}}, "v2.15.2"),
-                React.createElement('div', null, "\u2022 EICAS Scenario: CHKL \uc544\uc774\ud15c \uc804\uccb4 green \uc2dc \uc790\ub3d9 \uc804\ud658 (NORMAL \ubc84\ud2bc \ubb34\uad00)"),
-                React.createElement('div', null, "\u2022 EICAS \ud2b8\ub9ac\uac70 \ud50c\ub798\uadf8 \uc2dc\uc2a4\ud15c: \uc21c\uc11c \ubb34\uad00 \uc790\ub3d9 \uc9c4\ud589"),
-                React.createElement('div', null, "\u2022 LEGS R6: ERASE/EXEC \ud6c4 RTE DATA \ubcf5\uc6d0 (INTC CRS \uc0c1\ud0dc \ucd08\uae30\ud654)"),
+                React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginBottom:2}}, "v2.15.3"),
+                React.createElement('div', null, "\u2022 KAL853/854 (RKSI\u2194ZBAA) \ube44\ud589 \ub370\uc774\ud130 \ucd94\uac00"),
+                React.createElement('div', null, "\u2022 \ud55c\uad6d AIP ENR 3.2 \ud56d\uacf5\ub85c 27\uac1c \ucd94\uac00 (\ucd1d 51\uac1c)"),
+                React.createElement('div', null, "\u2022 \uc6e8\uc774\ud3ec\uc778\ud2b8 \uc88c\ud45c \uc815\ud655\ub3c4 \uac1c\uc120 (HCH, DOVIV \ub4f1 8\uac1c)"),
+                React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginTop:8,marginBottom:2}}, "v2.15.2"),
+                React.createElement('div', null, "\u2022 EICAS Scenario: CHKL \uc544\uc774\ud15c \uc804\uccb4 green \uc2dc \uc790\ub3d9 \uc804\ud658"),
+                React.createElement('div', null, "\u2022 EICAS \ud2b8\ub9ac\uac70 \ud50c\ub798\uadf8 \uc2dc\uc2a4\ud15c / LEGS R6 INTC CRS \uc218\uc815"),
                 React.createElement('div', null, "\u2022 Firebase \uc2e4\uc2dc\uac04 \ubc84\uc804 \uac10\uc2dc: \uc790\ub3d9 \uac15\uc81c \uc0c8\ub85c\uace0\uce68"),
-                React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginTop:8,marginBottom:2}}, "v2.15.1"),
-                React.createElement('div', null, "\u2022 SYNC: \ud638\uc2a4\ud2b8 \ud1f4\uc7a5 \uc2dc \ubc29 \uc790\ub3d9 \uc0ad\uc81c"),
-                React.createElement('div', null, "\u2022 RTE: Manual \uc14b\uc5c5 \uc2dc MISSED APPR \uc790\ub3d9\uc0dd\uc131 \ubc29\uc9c0"),
-                React.createElement('div', null, "\u2022 LEGS: ORIGIN/DEST \ud45c\uc2dc \uc81c\uac70, DELETE \ub3d9\uc791 \uc218\uc815"),
-                React.createElement('div', null, "\u2022 DIRECT TO + STAR/APP \uacbd\ub85c \ubcf5\uc6d0 \ubc84\uadf8 \uc218\uc815"),
-                React.createElement('div', null, "\u2022 SYS/COMM trackpad \uc218\uc815, EICAS S2/S3/S4 \ud2b8\ub9ac\uac70 \ubcc0\uacbd"),
               )
             )
           ),
@@ -28426,6 +28592,7 @@ function B787Cockpit(){
           React.createElement('div', {style:{color:"#aaa",fontSize:15,lineHeight:2}},
             React.createElement('div', null, React.createElement('span', {style:{color:"#fff"}}, "Database"), " ", React.createElement('span', {style:{color:"#999",fontSize:13}}, "(FTD 0 [RKSI\u2194RJFF] FTD 8 [RKSI\u2194CYYZ Route \uc911 \uc77c\ubd80])")),
             React.createElement('div', null, React.createElement('span', {style:{color:"#999"}}, "KAL781/782 (RKSI\u2194RJFF)")),
+            React.createElement('div', null, React.createElement('span', {style:{color:"#999"}}, "KAL853/854 (RKSI\u2194ZBAA)")),
             React.createElement('div', null, React.createElement('span', {style:{color:"#999"}}, "KAL073 RKSI to HAMND\u2025ELLAM\u2025TADIS\u2025OTNIK BOXUM7")),
             React.createElement('div', null, React.createElement('span', {style:{color:"#999"}}, "KAL074 IKLEN TONNY\u2025YYB\u2025GRAMP\u2025VETRO\u2025PEMLU\u2025PELEE\u2025DUSMA\u2025VIRSO YZS SIMLI to REBIT")),
             React.createElement('div', null, React.createElement('span', {style:{color:"#00e800"}}, "CDU, COMM, CHKL, INFO, SYS, EFB, FWD, ND, SIM"), " ", React.createElement('span', {style:{color:"#999"}}, "for Preflight + Flight"))
@@ -28567,7 +28734,7 @@ function B787Cockpit(){
                 /* ACPT text inside the ring */
                 , React.createElement('text', { x: 137, y: 57, textAnchor: "middle", fill: "#ddd", fontSize: 17, fontWeight: "bold", fontFamily: M, pointerEvents: "none",}, "ACPT")
                 /* Clickable overlay for ACPT — accept first DCL message */
-                , React.createElement('rect', { x: 100, y: 14, width: 74, height: 74, rx: 5, fill: "transparent", style: {cursor:"pointer"}, onClick: ()=>{setFms(function(p){var msgs=[].concat(p.auxMsgs);var di=-1;for(var i=0;i<msgs.length;i++){if(msgs[i].type==="dcl"&&!msgs[i].accepted){di=i;break;}}if(di<0)return p;msgs[di]=Object.assign({},msgs[di],{accepted:"accepting"});return{...p,auxMsgs:msgs};});setTimeout(function(){setFms(function(p){var msgs=[].concat(p.auxMsgs);var di=-1;for(var i=0;i<msgs.length;i++){if(msgs[i].type==="dcl"&&msgs[i].accepted==="accepting"){di=i;break;}}if(di<0)return p;msgs[di]=Object.assign({},msgs[di],{accepted:true});return{...p,auxMsgs:msgs,dclMsg:p.dclMsg?Object.assign({},p.dclMsg,{accepted:true}):p.dclMsg};});setTimeout(function(){setFms(function(p){var msgs=[].concat(p.auxMsgs);msgs.push({text:"CLEARANCE CONFIRMED",type:"info",id:Date.now()});return{...p,auxMsgs:msgs,auxBlink:true};});},2000);},1000);},})
+                , React.createElement('rect', { x: 100, y: 14, width: 74, height: 74, rx: 5, fill: "transparent", style: {cursor:"pointer"}, onClick: ()=>{setFms(function(p){var msgs=[].concat(p.auxMsgs);var di=-1;for(var i=0;i<msgs.length;i++){if(msgs[i].type==="dcl"&&!msgs[i].accepted){di=i;break;}}if(di<0)return p;msgs[di]=Object.assign({},msgs[di],{accepted:"accepting"});return{...p,auxMsgs:msgs};});setTimeout(function(){setFms(function(p){var msgs=[].concat(p.auxMsgs);var di=-1;for(var i=0;i<msgs.length;i++){if(msgs[i].type==="dcl"&&msgs[i].accepted==="accepting"){di=i;break;}}if(di<0)return p;msgs[di]=Object.assign({},msgs[di],{accepted:true});return{...p,auxMsgs:msgs,dclMsg:p.dclMsg?Object.assign({},p.dclMsg,{accepted:true}):p.dclMsg,eicasFlags:Object.assign({},p.eicasFlags,{dclDone:true})};});setTimeout(function(){setFms(function(p){var msgs=[].concat(p.auxMsgs);msgs.push({text:"CLEARANCE CONFIRMED",type:"info",id:Date.now()});return{...p,auxMsgs:msgs,auxBlink:true};});},2000);},1000);},})
 
                 /* CANC button */
                 , React.createElement('rect', { x: 178, y: 14, width: 74, height: 74, rx: 5, fill: "url(#btnG)", stroke: "#555", strokeWidth: 1.5, filter: "url(#btnShadow)",})
@@ -28683,14 +28850,14 @@ if('serviceWorker' in navigator){
 }
 // Version check: force reload if stale
 (function(){
-  var CV="2.15.1";
+  var CV="2.15.3";
   var lv=localStorage.getItem("cdu_ver");
   if(lv&&lv!==CV){localStorage.setItem("cdu_ver",CV);location.reload(true);}
   else{localStorage.setItem("cdu_ver",CV);}
 })();
 // Firebase live version check: force reload when server version changes
 (function(){
-  var CV="2.15.1";
+  var CV="2.15.3";
   function startVersionWatch(){
     if(typeof firebase==="undefined")return;
     try{
