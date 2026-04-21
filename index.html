@@ -22211,6 +22211,7 @@ function cduPageData(fms) {
         const wptColor=isActive?C.magenta:leg.inserted?"#aaaaaa":C.white;
         const spdAltDisplay=leg.spdAlt||leg.pred||"";
         const spdAltColor=leg.spdAlt?C.magenta:C.white;
+        const spdAltFs=leg.spdAlt?11:9;
         const crsDistTitle=(leg.crs||leg.dist)?React.createElement('div',{style:{display:"flex",alignItems:"flex-end",padding:"0",width:"100%"}},
           React.createElement('span',{style:{flex:1,color:wptColor,fontSize:"16px",fontFamily:M,fontWeight:"bold",textAlign:"left"}},leg.crs||""),
           React.createElement('span',{style:{flex:1,color:wptColor,fontSize:"16px",fontFamily:M,fontWeight:"bold",textAlign:"center"}},leg.dist||""),
@@ -22219,7 +22220,7 @@ function cduPageData(fms) {
         rows.push({
           tl:crsDistTitle,
           dl:wptName,dr:spdAltDisplay,
-          dlc:wptColor,drc:spdAltColor,
+          dlc:wptColor,drc:spdAltColor,drFs:spdAltFs,
           tlc:C.white,dlBg:true,drBg:true
         });
       });
@@ -26749,22 +26750,22 @@ function NDView({fms,setFms,hideControls}){
     // ═══ Helper: draw constraint annotation (FCOM 10.40.16) ═══
     // Altitude/speed text below/beside waypoint symbol (magenta = constraint)
     function drawConstraint(x,y,alt,spd,color,isChart){
+      if(!isChart)return;
       var ty=y+20;
-      var bigFont="bold 11px "+M;
-      var smallFont="8px "+M;
+      var font="bold 11px "+M;
       ctx.textAlign="center";
       if(alt){
         ctx.fillStyle=color||NC.mag;
-        ctx.font=isChart?bigFont:smallFont;
+        ctx.font=font;
         var altDisp=alt;
         var altNum=parseInt(alt);
         if(!isNaN(altNum)&&altNum>=10000){altDisp="FL"+Math.round(altNum/100);}
         else if(!isNaN(altNum)){altDisp=String(altNum);}
-        ctx.fillText(altDisp,x,ty);ty+=isChart?11:8;
+        ctx.fillText(altDisp,x,ty);ty+=11;
       }
       if(spd){
         ctx.fillStyle=NC.mag;
-        ctx.font=isChart?bigFont:smallFont;
+        ctx.font=font;
         ctx.fillText(spd+"KT",x,ty);
       }
     }
@@ -28228,7 +28229,7 @@ function CDUMiniView({fms,setFms}){
           )
           , React.createElement('div', { style: {textAlign:"right"},}
             , r.tr && React.createElement('div', { style: {color:r.trc||C.dim,fontSize:8},}, r.tr)
-            , React.createElement('div', { style: {color:r.drc||C.white,fontSize:11},}, r.dr||"")
+            , React.createElement('div', { style: {color:r.drc||C.white,fontSize:r.drFs||11},}, r.dr||"")
           )
         )
       ))
@@ -28545,7 +28546,8 @@ function B787Cockpit(){
                 React.createElement('div', null, "\u2022 RKSI STAR: AIP chart \uc18d\ub3c4/\uace0\ub3c4 \uc81c\ud55c\uac12 \ucd94\uac00 (E/C/H/Y series)"),
                 React.createElement('div', null, "\u2022 RKSI APP: OLTEM/ATKON 180kt, step-down fix \uace0\ub3c4 \ucd94\uac00"),
                 React.createElement('div', null, "\u2022 MAKSA 2M STAR \uc2e0\uaddc \ucd94\uac00"),
-                React.createElement('div', null, "\u2022 ND: chart restriction Large font / predicted Small font \uad6c\ubd84 \uac1c\uc120"),
+                React.createElement('div', null, "\u2022 ND: chart restriction\ub9cc \ud45c\uc2dc (predicted \uc81c\uac70)"),
+                React.createElement('div', null, "\u2022 LEGS: restriction Large font / predicted Small font \uad6c\ubd84"),
                 React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginTop:8,marginBottom:2}}, "v2.15.5"),
                 React.createElement('div', null, "\u2022 \ucd08\uae30\ud654 \ubc84\ud2bc: \uce90\uc2dc \uc0ad\uc81c + \uac15\uc81c \uc0c8\ub85c\uace0\uce68"),
                 React.createElement('div', null, "\u2022 Firebase \ub85c\ub529 \uc624\ub958 \uc218\uc815 / \uc790\ub3d9 \ubc84\uc804 \uac31\uc2e0 \uac1c\uc120"),
