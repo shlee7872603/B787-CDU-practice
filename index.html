@@ -10,7 +10,7 @@
 <meta name="theme-color" content="#050505">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>B787 CDU Practice v2.15.5</title>
+<title>B787 CDU Practice v2.15.6</title>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js" crossorigin="anonymous"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js" crossorigin="anonymous"></script>
 <style>*{margin:0;padding:0;box-sizing:border-box;-webkit-user-select:none;user-select:none}body{background:#050505;overflow-x:hidden}</style>
@@ -19187,7 +19187,7 @@ const FLIGHT_DB = {
     // DEP/ARR options for this origin/dest
     depSids:["HAKAT5","TOGIK2","OGUNI5","YAMEK7"],
     depRwys:["34R","34L","16L","16R"],
-    arrStars:["GUKD2E","KARB2E","OLME2E","REBITY1","OLMEY1","OLME3C","GUKD3C","KARB3C","REBITH2","OLMEH2","GUKDH2","KARBH2","BISKIM2","GONAVM3"],
+    arrStars:["GUKD2E","KARB2E","OLME2E","REBITY1","OLMEY1","OLME3C","GUKD3C","KARB3C","REBITH2","OLMEH2","GUKDH2","KARBH2","BISKIM2","GONAVM3","MAKSAM2"],
     arrApps:["ILS 33R","ILS 15L","ILS Z 15L","ILS 33L","RNAV 34L"],
     // Weather data for EFB (fixed, not editable)
     wx:{wind:"340/08",oat:"18",qnh:"1013"},
@@ -19487,7 +19487,7 @@ const FLIGHT_DB = {
               RKPC:{dist:170,route:"DIRECT TO",alt:"FL200",eta:35,fuel:5.2}},
     depSids:["IKLEN3","IKLEN3_33L","IKLEN3_15","IKLEN3_05","IKLEN3_23","IKLEN3_24"],
     depRwys:["05","06L","06R","15L","15R","23","24L","24R","33L","33R"],
-    arrStars:["GUKD2E","KARB2E","OLME2E","REBITY1","OLMEY1","OLME3C","GUKD3C","KARB3C","REBITH2","OLMEH2","GUKDH2","KARBH2","BISKIM2","GONAVM3"], arrApps:["ILS 33R","ILS 15L","ILS Z 15L","ILS 33L","RNAV 34L"],
+    arrStars:["GUKD2E","KARB2E","OLME2E","REBITY1","OLMEY1","OLME3C","GUKD3C","KARB3C","REBITH2","OLMEH2","GUKDH2","KARBH2","BISKIM2","GONAVM3","MAKSAM2"], arrApps:["ILS 33R","ILS 15L","ILS Z 15L","ILS 33L","RNAV 34L"],
     dclText:"KAL074 CLRD TO RKSI\nOFF 33R, IKLEN3 TONNY TRANSITION\nTHEN AS FILED\nMAINTAIN 5000\nSQ 0203",
     dclData:{rwy:"33R",sid:"IKLEN3",sidTrans:"TONNY",initAlt:"5000",squawk:"0203"},
   },
@@ -19605,7 +19605,7 @@ const AIRPORT_DB = {
     pos:"N37°27.7 E126°26.6",
     gates:{A01:"N37°27.8 E126°26.4",A02:"N37°27.7 E126°26.5",B01:"N37°27.6 E126°26.7",B02:"N37°27.5 E126°26.8"},
     depSids:["OSPO2C","EGOB2C","BINIL2C","BOPTA2C","OSPO2E","EGOB2E","OSPOH2","EGOBH2","BINIL2H","BOPTA2H","OSPO2A","EGOB2A","NOPIK2A","BOPTA2A","OSPO2Y","EGOB2Y","NOPIK2Y","BOPTA2Y"],depRwys:["15L","15R","16L","16R","33L","33R","34L","34R"],
-    arrStars:["GUKD2E","KARB2E","OLME2E","REBITY1","OLMEY1","OLME3C","GUKD3C","KARB3C","REBITH2","OLMEH2","GUKDH2","KARBH2","BISKIM2","GONAVM3"],arrApps:["ILS33R","ILS33L","ILS16L","ILS16R","ILS34L","RNP34R","ILS15L","ILSZ15L","ILS15R","ILSZ15R","RNAV34L"]},
+    arrStars:["GUKD2E","KARB2E","OLME2E","REBITY1","OLMEY1","OLME3C","GUKD3C","KARB3C","REBITH2","OLMEH2","GUKDH2","KARBH2","BISKIM2","GONAVM3","MAKSAM2"],arrApps:["ILS33R","ILS33L","ILS16L","ILS16R","ILS34L","RNP34R","ILS15L","ILSZ15L","ILS15R","ILSZ15R","RNAV34L"]},
   RJFF:{
     pos:"N33°35.2 E130°27.1",
     gates:{1:"N33°35.3 E130°27.0",2:"N33°35.1 E130°27.2",3:"N33°35.2 E130°27.0"},
@@ -19689,128 +19689,131 @@ const NAV_DATA = {
     {wpt:"EGOBA",crs:"044°",dist:"10NM",spdAlt:"",pred:".780/FL230"}]},
   // ═══ RKSI SIDs RWY 33L/R (Jeppesen 20-3E, EGOBA 2E / OSPOT 2E) ═══
   OSPO2E:{type:"SID",rwy:"33R",forRwy:["33L","33R"],exit:"OSPOT",wpts:[
-    {wpt:"EG020",crs:"334°",dist:"5.6NM",spdAlt:"",pred:"230/ 2000"},
-    {wpt:"EG040",crs:"079°",dist:"5.2NM",spdAlt:"230KT/4000A",pred:"230/ 4000A"},
-    {wpt:"ASIDI",crs:"119°",dist:"5.0NM",spdAlt:"5500A",pred:"250/ 5500A"},
-    {wpt:"EG070",crs:"147°",dist:"5.0NM",spdAlt:"7000A",pred:"250/ 7000A"},
-    {wpt:"EG140",crs:"152°",dist:"18NM",spdAlt:"14000A",pred:"280/14000A"},
+    {wpt:"EG020",crs:"334°",dist:"5.5NM",spdAlt:"230KT",pred:"230"},
+    {wpt:"EG040",crs:"353°",dist:"5.1NM",spdAlt:"230KT/4000A",pred:"230/ 4000A"},
+    {wpt:"ASIDI",crs:"079°",dist:"5.2NM",spdAlt:"5500B",pred:"250/ 5500B"},
+    {wpt:"EG070",crs:"119°",dist:"5.0NM",spdAlt:"7000A",pred:"250/ 7000A"},
+    {wpt:"EG140",crs:"147°",dist:"18.5NM",spdAlt:"14000A",pred:"280/14000A"},
     {wpt:"EG160",crs:"152°",dist:"7.0NM",spdAlt:"FL160A",pred:".780/FL160A"},
-    {wpt:"OSPOT",crs:"180°",dist:"20NM",spdAlt:"FL210A",pred:".780/FL210A"}]},
+    {wpt:"OSPOT",crs:"152°",dist:"36.1NM",spdAlt:"FL210A",pred:".780/FL210A"}]},
   EGOB2E:{type:"SID",rwy:"33R",forRwy:["33L","33R"],exit:"EGOBA",wpts:[
-    {wpt:"EG020",crs:"334°",dist:"5.6NM",spdAlt:"",pred:"230/ 2000"},
-    {wpt:"EG040",crs:"079°",dist:"5.2NM",spdAlt:"230KT/4000A",pred:"230/ 4000A"},
-    {wpt:"ASIDI",crs:"119°",dist:"5.0NM",spdAlt:"5500A",pred:"250/ 5500A"},
-    {wpt:"EG070",crs:"147°",dist:"5.0NM",spdAlt:"7000A",pred:"250/ 7000A"},
-    {wpt:"EG140",crs:"152°",dist:"18NM",spdAlt:"14000A",pred:"280/14000A"},
+    {wpt:"EG020",crs:"334°",dist:"5.5NM",spdAlt:"230KT",pred:"230"},
+    {wpt:"EG040",crs:"353°",dist:"5.1NM",spdAlt:"230KT/4000A",pred:"230/ 4000A"},
+    {wpt:"ASIDI",crs:"079°",dist:"5.2NM",spdAlt:"5500B",pred:"250/ 5500B"},
+    {wpt:"EG070",crs:"119°",dist:"5.0NM",spdAlt:"7000A",pred:"250/ 7000A"},
+    {wpt:"EG140",crs:"147°",dist:"18.5NM",spdAlt:"14000A",pred:"280/14000A"},
     {wpt:"SEL",  crs:"099°",dist:"5.8NM",spdAlt:"FL160A",pred:".780/FL160A"},
     {wpt:"EGOBA",crs:"087°",dist:"22.0NM",spdAlt:"FL210A",pred:".780/FL210A"}]},
   // ═══ RKSI SIDs — RWY 15L (AIP 2-28) ═══
   BINIL2C:{type:"SID",rwy:"15L",exit:"BINIL",wpts:[
     {wpt:"CG050",crs:"140°",dist:"7.7NM",spdAlt:"5000B",pred:"250/ 5000B"},
-    {wpt:"CG100",crs:"170°",dist:"6.4NM",spdAlt:"10000B",pred:"250/10000B"},
+    {wpt:"CG100",crs:"170°",dist:"6.4NM",spdAlt:"8000B",pred:"250/ 8000B"},
     {wpt:"CP101",crs:"224°",dist:"12.1NM",spdAlt:"",pred:""},
     {wpt:"ATNER",crs:"278°",dist:"8.1NM",spdAlt:"",pred:""},
     {wpt:"HP121",crs:"278°",dist:"10.4NM",spdAlt:"",pred:""},
-    {wpt:"BELTU",crs:"302°",dist:"15.6NM",spdAlt:"",pred:""},
+    {wpt:"BELTU",crs:"302°",dist:"15.6NM",spdAlt:"FL180A",pred:".780/FL180A"},
     {wpt:"BINIL",crs:"302°",dist:"29.5NM",spdAlt:"",pred:""}]},
   BOPTA2C:{type:"SID",rwy:"15L",exit:"BOPTA",wpts:[
     {wpt:"CG050",crs:"140°",dist:"7.7NM",spdAlt:"5000B",pred:"250/ 5000B"},
-    {wpt:"CG100",crs:"170°",dist:"6.4NM",spdAlt:"10000B",pred:"250/10000B"},
+    {wpt:"CG100",crs:"170°",dist:"6.4NM",spdAlt:"8000B",pred:"250/ 8000B"},
     {wpt:"CD120",crs:"190°",dist:"8.8NM",spdAlt:"",pred:""},
     {wpt:"VIMER",crs:"189°",dist:"8.4NM",spdAlt:"",pred:""},
-    {wpt:"EXUTO",crs:"188°",dist:"5.9NM",spdAlt:"",pred:""},
-    {wpt:"BOPTA",crs:"191°",dist:"9.0NM",spdAlt:"",pred:""}]},
+    {wpt:"EXUTO",crs:"188°",dist:"5.9NM",spdAlt:"FL145A",pred:".780/FL145A"},
+    {wpt:"BOPTA",crs:"191°",dist:"9.0NM",spdAlt:"FL170A",pred:".780/FL170A"}]},
   // ═══ RKSI SIDs — RWY 33L (AIP 2-30) ═══
   BINIL2H:{type:"SID",rwy:"33L",exit:"BINIL",wpts:[
     {wpt:"HD050",crs:"174°",dist:"4.0NM",spdAlt:"",pred:""},
     {wpt:"HD100",crs:"174°",dist:"6.6NM",spdAlt:"",pred:""},
     {wpt:"ATNER",crs:"232°",dist:"14.4NM",spdAlt:"",pred:""},
     {wpt:"HP121",crs:"278°",dist:"10.4NM",spdAlt:"",pred:""},
-    {wpt:"BELTU",crs:"302°",dist:"15.6NM",spdAlt:"",pred:""},
+    {wpt:"BELTU",crs:"302°",dist:"15.6NM",spdAlt:"FL180A",pred:".780/FL180A"},
     {wpt:"BINIL",crs:"302°",dist:"29.5NM",spdAlt:"",pred:""}]},
   BOPTA2H:{type:"SID",rwy:"33L",exit:"BOPTA",wpts:[
     {wpt:"HD050",crs:"174°",dist:"4.0NM",spdAlt:"",pred:""},
     {wpt:"HD100",crs:"174°",dist:"6.6NM",spdAlt:"",pred:""},
     {wpt:"CD120",crs:"160°",dist:"10.6NM",spdAlt:"",pred:""},
     {wpt:"VIMER",crs:"189°",dist:"8.4NM",spdAlt:"",pred:""},
-    {wpt:"EXUTO",crs:"188°",dist:"5.9NM",spdAlt:"",pred:""},
-    {wpt:"BOPTA",crs:"191°",dist:"9.0NM",spdAlt:"",pred:""}]},
+    {wpt:"EXUTO",crs:"188°",dist:"5.9NM",spdAlt:"FL145A",pred:".780/FL145A"},
+    {wpt:"BOPTA",crs:"191°",dist:"9.0NM",spdAlt:"FL170A",pred:".780/FL170A"}]},
   // ═══ RKSI SIDs — RWY 33R additional (AIP 2-32) ═══
   OSPOH2:{type:"SID",rwy:"16L",forRwy:["16L","16R"],exit:"OSPOT",wpts:[
     {wpt:"HD050",crs:"174°",dist:"4.0NM",spdAlt:"",pred:""},
     {wpt:"HD100",crs:"174°",dist:"6.6NM",spdAlt:"",pred:""},
     {wpt:"CG100",crs:"104°",dist:"5.2NM",spdAlt:"",pred:""},
     {wpt:"CG101",crs:"095°",dist:"12.5NM",spdAlt:"",pred:""},
-    {wpt:"CG130",crs:"157°",dist:"8.2NM",spdAlt:"",pred:""},
-    {wpt:"SOT",crs:"159°",dist:"5.1NM",spdAlt:"",pred:""},
-    {wpt:"CG200",crs:"157°",dist:"11.9NM",spdAlt:"",pred:""},
-    {wpt:"OSPOT",crs:"129°",dist:"10.4NM",spdAlt:"",pred:""}]},
+    {wpt:"CG130",crs:"157°",dist:"8.2NM",spdAlt:"13000A",pred:"280/13000A"},
+    {wpt:"SOT",crs:"159°",dist:"5.1NM",spdAlt:"FL150A",pred:".780/FL150A"},
+    {wpt:"CG200",crs:"157°",dist:"11.9NM",spdAlt:"FL200A",pred:".780/FL200A"},
+    {wpt:"OSPOT",crs:"129°",dist:"10.4NM",spdAlt:"FL230A",pred:".780/FL230A"}]},
   EGOBH2:{type:"SID",rwy:"16L",forRwy:["16L","16R"],exit:"EGOBA",wpts:[
     {wpt:"HD050",crs:"174°",dist:"4.0NM",spdAlt:"",pred:""},
     {wpt:"HD100",crs:"174°",dist:"6.6NM",spdAlt:"",pred:""},
     {wpt:"CG100",crs:"104°",dist:"5.2NM",spdAlt:"",pred:""},
     {wpt:"CG101",crs:"095°",dist:"12.5NM",spdAlt:"",pred:""},
     {wpt:"CK100",crs:"092°",dist:"11.2NM",spdAlt:"",pred:""},
-    {wpt:"CK099",crs:"081°",dist:"6.3NM",spdAlt:"",pred:""},
+    {wpt:"CK099",crs:"081°",dist:"6.3NM",spdAlt:"10000B",pred:"280/10000B"},
     {wpt:"EGOBA",crs:"044°",dist:"10.9NM",spdAlt:"",pred:""}]},
   // ═══ RKSI SIDs — RWY 34L (AIP 2-35) ═══
   NOPIK2A:{type:"SID",rwy:"34L",exit:"NOPIK",wpts:[
-    {wpt:"AD050",crs:"279°",dist:"7.0NM",spdAlt:"",pred:""},
-    {wpt:"AP140",crs:"253°",dist:"23.9NM",spdAlt:"",pred:""},
-    {wpt:"NOPIK",crs:"278°",dist:"5.1NM",spdAlt:"",pred:""}]},
+    {wpt:"AD020",crs:"279°",dist:"7.0NM",spdAlt:"2000A",pred:"230/ 2000A"},
+    {wpt:"AD050",crs:"279°",dist:"7.0NM",spdAlt:"5000A",pred:"250/ 5000A"},
+    {wpt:"AP140",crs:"253°",dist:"23.9NM",spdAlt:"14000A",pred:"280/14000A"},
+    {wpt:"NOPIK",crs:"278°",dist:"5.1NM",spdAlt:"FL160A",pred:".780/FL160A"}]},
   BOPTA2A:{type:"SID",rwy:"34L",exit:"BOPTA",wpts:[
-    {wpt:"AD020",crs:"279°",dist:"7.0NM",spdAlt:"",pred:""},
-    {wpt:"AD050",crs:"279°",dist:"7.0NM",spdAlt:"",pred:""},
-    {wpt:"YD070",crs:"208°",dist:"10.8NM",spdAlt:"",pred:""},
-    {wpt:"YD100",crs:"140°",dist:"7.5NM",spdAlt:"",pred:""},
-    {wpt:"YD130",crs:"140°",dist:"12.0NM",spdAlt:"",pred:""},
-    {wpt:"YD160",crs:"168°",dist:"10.0NM",spdAlt:"",pred:""},
-    {wpt:"YD190",crs:"174°",dist:"10.0NM",spdAlt:"",pred:""},
+    {wpt:"AD020",crs:"279°",dist:"7.0NM",spdAlt:"2000A",pred:"230/ 2000A"},
+    {wpt:"AD050",crs:"279°",dist:"7.0NM",spdAlt:"5000A",pred:"250/ 5000A"},
+    {wpt:"YD070",crs:"208°",dist:"10.8NM",spdAlt:"9000A",pred:"250/ 9000A"},
+    {wpt:"YD100",crs:"140°",dist:"7.5NM",spdAlt:"11000A",pred:"280/11000A"},
+    {wpt:"YD130",crs:"140°",dist:"12.0NM",spdAlt:"FL150A",pred:".780/FL150A"},
+    {wpt:"YD160",crs:"168°",dist:"10.0NM",spdAlt:"FL180A",pred:".780/FL180A"},
+    {wpt:"YD190",crs:"174°",dist:"10.0NM",spdAlt:"FL190A",pred:".780/FL190A"},
     {wpt:"BOPTA",crs:"174°",dist:"8.8NM",spdAlt:"",pred:""}]},
   OSPO2A:{type:"SID",rwy:"33L",forRwy:["33L","33R"],exit:"OSPOT",wpts:[
-    {wpt:"AD050",crs:"279°",dist:"7.0NM",spdAlt:"",pred:""},
-    {wpt:"YD070",crs:"208°",dist:"10.8NM",spdAlt:"",pred:""},
-    {wpt:"YD100",crs:"140°",dist:"7.5NM",spdAlt:"",pred:""},
-    {wpt:"YD130",crs:"140°",dist:"12.0NM",spdAlt:"",pred:""},
-    {wpt:"YG160",crs:"125°",dist:"10.0NM",spdAlt:"",pred:""},
+    {wpt:"AD020",crs:"279°",dist:"7.0NM",spdAlt:"2000A",pred:"230/ 2000A"},
+    {wpt:"AD050",crs:"279°",dist:"7.0NM",spdAlt:"5000A",pred:"250/ 5000A"},
+    {wpt:"YD070",crs:"208°",dist:"10.8NM",spdAlt:"9000A",pred:"250/ 9000A"},
+    {wpt:"YD100",crs:"140°",dist:"7.5NM",spdAlt:"11000A",pred:"280/11000A"},
+    {wpt:"YD130",crs:"140°",dist:"12.0NM",spdAlt:"FL150A",pred:".780/FL150A"},
+    {wpt:"YG160",crs:"125°",dist:"10.0NM",spdAlt:"FL180A",pred:".780/FL180A"},
     {wpt:"OSPOT",crs:"125°",dist:"38.5NM",spdAlt:"",pred:""}]},
   EGOB2A:{type:"SID",rwy:"33L",forRwy:["33L","33R"],exit:"EGOBA",wpts:[
-    {wpt:"AD050",crs:"279°",dist:"7.0NM",spdAlt:"",pred:""},
-    {wpt:"YD070",crs:"208°",dist:"10.8NM",spdAlt:"",pred:""},
-    {wpt:"YD100",crs:"140°",dist:"7.5NM",spdAlt:"",pred:""},
-    {wpt:"YK130",crs:"099°",dist:"9.8NM",spdAlt:"",pred:""},
+    {wpt:"AD020",crs:"279°",dist:"7.0NM",spdAlt:"2000A",pred:"230/ 2000A"},
+    {wpt:"AD050",crs:"279°",dist:"7.0NM",spdAlt:"5000A",pred:"250/ 5000A"},
+    {wpt:"YD070",crs:"208°",dist:"10.8NM",spdAlt:"9000A",pred:"250/ 9000A"},
+    {wpt:"YD100",crs:"140°",dist:"7.5NM",spdAlt:"11000A",pred:"280/11000A"},
+    {wpt:"YK130",crs:"099°",dist:"9.8NM",spdAlt:"13000A",pred:"280/13000A"},
     {wpt:"YK170",crs:"100°",dist:"12.1NM",spdAlt:"",pred:""},
     {wpt:"YK210",crs:"100°",dist:"14.3NM",spdAlt:"",pred:""},
     {wpt:"EGOBA",crs:"069°",dist:"20.4NM",spdAlt:"",pred:""}]},
   // ═══ RKSI SIDs — RWY 34R (AIP 2-38) ═══
   NOPIK2Y:{type:"SID",rwy:"34R",forRwy:["34L","34R"],exit:"NOPIK",wpts:[
-    {wpt:"YD020",crs:"281°",dist:"2.9NM",spdAlt:"",pred:""},
-    {wpt:"YD040",crs:"281°",dist:"8.9NM",spdAlt:"",pred:""},
-    {wpt:"YP080",crs:"246°",dist:"11.0NM",spdAlt:"",pred:""},
-    {wpt:"NOPIK",crs:"278°",dist:"16.2NM",spdAlt:"",pred:""}]},
+    {wpt:"YD020",crs:"281°",dist:"2.9NM",spdAlt:"230KT",pred:"230"},
+    {wpt:"YD040",crs:"281°",dist:"8.9NM",spdAlt:"4000A",pred:"250/ 4000A"},
+    {wpt:"YP080",crs:"246°",dist:"11.0NM",spdAlt:"8000A",pred:"250/ 8000A"},
+    {wpt:"NOPIK",crs:"278°",dist:"16.2NM",spdAlt:"13000A",pred:"280/13000A"}]},
   BOPTA2Y:{type:"SID",rwy:"34R",forRwy:["34L","34R"],exit:"BOPTA",wpts:[
-    {wpt:"YD020",crs:"281°",dist:"2.9NM",spdAlt:"",pred:""},
-    {wpt:"YD040",crs:"281°",dist:"8.9NM",spdAlt:"",pred:""},
-    {wpt:"YD070",crs:"209°",dist:"6.4NM",spdAlt:"",pred:""},
-    {wpt:"YD100",crs:"140°",dist:"7.5NM",spdAlt:"",pred:""},
-    {wpt:"YD130",crs:"140°",dist:"12.0NM",spdAlt:"",pred:""},
-    {wpt:"YD160",crs:"168°",dist:"10.0NM",spdAlt:"",pred:""},
-    {wpt:"YD190",crs:"174°",dist:"10.0NM",spdAlt:"",pred:""},
+    {wpt:"YD020",crs:"281°",dist:"2.9NM",spdAlt:"230KT",pred:"230"},
+    {wpt:"YD040",crs:"281°",dist:"8.9NM",spdAlt:"4000A",pred:"250/ 4000A"},
+    {wpt:"YD070",crs:"209°",dist:"6.4NM",spdAlt:"7000A",pred:"250/ 7000A"},
+    {wpt:"YD100",crs:"140°",dist:"7.5NM",spdAlt:"10000A",pred:"280/10000A"},
+    {wpt:"YD130",crs:"140°",dist:"12.0NM",spdAlt:"13000A",pred:"280/13000A"},
+    {wpt:"YD160",crs:"168°",dist:"10.0NM",spdAlt:"FL160A",pred:".780/FL160A"},
+    {wpt:"YD190",crs:"174°",dist:"10.0NM",spdAlt:"FL190A",pred:".780/FL190A"},
     {wpt:"BOPTA",crs:"174°",dist:"8.8NM",spdAlt:"",pred:""}]},
   OSPO2Y:{type:"SID",rwy:"34R",forRwy:["34L","34R"],exit:"OSPOT",wpts:[
-    {wpt:"YD020",crs:"281°",dist:"2.9NM",spdAlt:"",pred:""},
-    {wpt:"YD040",crs:"281°",dist:"8.9NM",spdAlt:"",pred:""},
-    {wpt:"YD070",crs:"209°",dist:"6.4NM",spdAlt:"",pred:""},
-    {wpt:"YD100",crs:"140°",dist:"7.5NM",spdAlt:"",pred:""},
-    {wpt:"YD130",crs:"140°",dist:"12.0NM",spdAlt:"",pred:""},
-    {wpt:"YG160",crs:"125°",dist:"10.0NM",spdAlt:"",pred:""},
+    {wpt:"YD020",crs:"281°",dist:"2.9NM",spdAlt:"230KT",pred:"230"},
+    {wpt:"YD040",crs:"281°",dist:"8.9NM",spdAlt:"4000A",pred:"250/ 4000A"},
+    {wpt:"YD070",crs:"209°",dist:"6.4NM",spdAlt:"7000A",pred:"250/ 7000A"},
+    {wpt:"YD100",crs:"140°",dist:"7.5NM",spdAlt:"10000A",pred:"280/10000A"},
+    {wpt:"YD130",crs:"140°",dist:"12.0NM",spdAlt:"13000A",pred:"280/13000A"},
+    {wpt:"YG160",crs:"125°",dist:"10.0NM",spdAlt:"FL160A",pred:".780/FL160A"},
     {wpt:"OSPOT",crs:"125°",dist:"38.5NM",spdAlt:"",pred:""}]},
   EGOB2Y:{type:"SID",rwy:"34R",forRwy:["34L","34R"],exit:"EGOBA",wpts:[
-    {wpt:"YD020",crs:"281°",dist:"2.9NM",spdAlt:"",pred:""},
-    {wpt:"YD040",crs:"281°",dist:"8.9NM",spdAlt:"",pred:""},
-    {wpt:"YD070",crs:"209°",dist:"6.4NM",spdAlt:"",pred:""},
-    {wpt:"YD100",crs:"140°",dist:"7.5NM",spdAlt:"",pred:""},
-    {wpt:"YK130",crs:"099°",dist:"9.8NM",spdAlt:"",pred:""},
+    {wpt:"YD020",crs:"281°",dist:"2.9NM",spdAlt:"230KT",pred:"230"},
+    {wpt:"YD040",crs:"281°",dist:"8.9NM",spdAlt:"4000A",pred:"250/ 4000A"},
+    {wpt:"YD070",crs:"209°",dist:"6.4NM",spdAlt:"7000A",pred:"250/ 7000A"},
+    {wpt:"YD100",crs:"140°",dist:"7.5NM",spdAlt:"10000A",pred:"280/10000A"},
+    {wpt:"YK130",crs:"099°",dist:"9.8NM",spdAlt:"13000A",pred:"280/13000A"},
     {wpt:"YK170",crs:"100°",dist:"12.1NM",spdAlt:"",pred:""},
     {wpt:"YK210",crs:"100°",dist:"14.3NM",spdAlt:"",pred:""},
     {wpt:"EGOBA",crs:"069°",dist:"20.4NM",spdAlt:"",pred:""}]},
@@ -19820,45 +19823,45 @@ const NAV_DATA = {
     {wpt:"KAKSO",crs:"314°",dist:"11.5NM",spdAlt:"250KT",pred:"250/FL170"},
     {wpt:"GE046",crs:"279°",dist:"13.4NM",spdAlt:"",pred:"250/FL170"},
     {wpt:"ELMAP",crs:"279°",dist:"13.3NM",spdAlt:"250/13000",pred:"250/13000"},
-    {wpt:"TESIK",crs:"270°",dist:"7.5NM",spdAlt:"10000",pred:"250/10000"},
+    {wpt:"TESIK",crs:"270°",dist:"7.5NM",spdAlt:"210/10000",pred:"250/10000"},
     {wpt:"GE023",crs:"199°",dist:"8NM",spdAlt:"210KT",pred:"210/ 9500"},
-    {wpt:"GE022",crs:"337°",dist:"3.7NM",spdAlt:"",pred:"210/ 9000"},
-    {wpt:"GE016",crs:"244°",dist:"4.1NM",spdAlt:"",pred:"210/ 8500"},
-    {wpt:"GE017",crs:"180°",dist:"5NM",spdAlt:"",pred:"210/ 8500"},
-    {wpt:"GE020",crs:"210°",dist:"4NM",spdAlt:"",pred:"210/ 8000"},
+    {wpt:"GE022",crs:"337°",dist:"3.7NM",spdAlt:"210KT",pred:"210/ 9000"},
+    {wpt:"GE016",crs:"244°",dist:"4.1NM",spdAlt:"210KT",pred:"210/ 8500"},
+    {wpt:"GE017",crs:"180°",dist:"5NM",spdAlt:"210KT",pred:"210/ 8500"},
+    {wpt:"GE020",crs:"210°",dist:"4NM",spdAlt:"210KT",pred:"210/ 8000"},
     {wpt:"GE024",crs:"244°",dist:"6NM",spdAlt:"210/8000B",pred:"210/ 8000"},
-    {wpt:"GE028",crs:"150°",dist:"6.8NM",spdAlt:"",pred:"210/ 7500"},
-    {wpt:"GE027",crs:"230°",dist:"5NM",spdAlt:"",pred:"210/ 7000"},
+    {wpt:"GE028",crs:"150°",dist:"6.8NM",spdAlt:"210KT",pred:"210/ 7500"},
+    {wpt:"GE027",crs:"230°",dist:"5NM",spdAlt:"210KT",pred:"210/ 7000"},
     {wpt:"ENPIL",crs:"340°",dist:"3NM",spdAlt:"7000",pred:"210/ 7000"}]},
   KARB2E:{type:"STAR",entry:"KARBU",wpts:[
     {wpt:"KARBU",crs:"268°",dist:"",spdAlt:"",pred:".780/FL180"},
     {wpt:"EGOBA",crs:"268°",dist:"6.2NM",spdAlt:"250KT",pred:"250/FL170"},
     {wpt:"KE044",crs:"272°",dist:"8.4NM",spdAlt:"13000",pred:"250/13000"},
     {wpt:"ELMAP",crs:"279°",dist:"13NM",spdAlt:"250/13000",pred:"250/13000"},
-    {wpt:"TESIK",crs:"270°",dist:"7.5NM",spdAlt:"10000",pred:"250/10000"},
+    {wpt:"TESIK",crs:"270°",dist:"7.5NM",spdAlt:"210/10000",pred:"250/10000"},
     {wpt:"GE023",crs:"199°",dist:"8NM",spdAlt:"210KT",pred:"210/ 9500"},
-    {wpt:"GE022",crs:"337°",dist:"3.7NM",spdAlt:"",pred:"210/ 9000"},
-    {wpt:"GE016",crs:"244°",dist:"4.1NM",spdAlt:"",pred:"210/ 8500"},
-    {wpt:"GE017",crs:"180°",dist:"5NM",spdAlt:"",pred:"210/ 8500"},
-    {wpt:"GE020",crs:"210°",dist:"4NM",spdAlt:"",pred:"210/ 8000"},
+    {wpt:"GE022",crs:"337°",dist:"3.7NM",spdAlt:"210KT",pred:"210/ 9000"},
+    {wpt:"GE016",crs:"244°",dist:"4.1NM",spdAlt:"210KT",pred:"210/ 8500"},
+    {wpt:"GE017",crs:"180°",dist:"5NM",spdAlt:"210KT",pred:"210/ 8500"},
+    {wpt:"GE020",crs:"210°",dist:"4NM",spdAlt:"210KT",pred:"210/ 8000"},
     {wpt:"GE024",crs:"244°",dist:"6NM",spdAlt:"210/8000B",pred:"210/ 8000"},
-    {wpt:"GE028",crs:"150°",dist:"6.8NM",spdAlt:"",pred:"210/ 7500"},
-    {wpt:"GE027",crs:"230°",dist:"5NM",spdAlt:"",pred:"210/ 7000"},
+    {wpt:"GE028",crs:"150°",dist:"6.8NM",spdAlt:"210KT",pred:"210/ 7500"},
+    {wpt:"GE027",crs:"230°",dist:"5NM",spdAlt:"210KT",pred:"210/ 7000"},
     {wpt:"ENPIL",crs:"340°",dist:"3NM",spdAlt:"7000",pred:"210/ 7000"}]},
   OLME2E:{type:"STAR",entry:"OLMEN",wpts:[
     {wpt:"OLMEN",crs:"052°",dist:"",spdAlt:"",pred:".780/FL160"},
     {wpt:"DY037",crs:"052°",dist:"12NM",spdAlt:"12000",pred:"250/12000"},
     {wpt:"BOBIB",crs:"320°",dist:"8NM",spdAlt:"250KT",pred:"250/11000"},
     {wpt:"DE031",crs:"310°",dist:"7.5NM",spdAlt:"250KT",pred:"250/10000"},
-    {wpt:"TESIK",crs:"270°",dist:"7NM",spdAlt:"10000",pred:"250/10000"},
+    {wpt:"TESIK",crs:"270°",dist:"7NM",spdAlt:"210/10000",pred:"250/10000"},
     {wpt:"GE023",crs:"199°",dist:"8NM",spdAlt:"210KT",pred:"210/ 9500"},
-    {wpt:"GE022",crs:"337°",dist:"3.7NM",spdAlt:"",pred:"210/ 9000"},
-    {wpt:"GE016",crs:"244°",dist:"4.1NM",spdAlt:"",pred:"210/ 8500"},
-    {wpt:"GE017",crs:"180°",dist:"5NM",spdAlt:"",pred:"210/ 8500"},
-    {wpt:"GE020",crs:"210°",dist:"4NM",spdAlt:"",pred:"210/ 8000"},
+    {wpt:"GE022",crs:"337°",dist:"3.7NM",spdAlt:"210KT",pred:"210/ 9000"},
+    {wpt:"GE016",crs:"244°",dist:"4.1NM",spdAlt:"210KT",pred:"210/ 8500"},
+    {wpt:"GE017",crs:"180°",dist:"5NM",spdAlt:"210KT",pred:"210/ 8500"},
+    {wpt:"GE020",crs:"210°",dist:"4NM",spdAlt:"210KT",pred:"210/ 8000"},
     {wpt:"GE024",crs:"244°",dist:"6NM",spdAlt:"210/8000B",pred:"210/ 8000"},
-    {wpt:"GE028",crs:"150°",dist:"6.8NM",spdAlt:"",pred:"210/ 7500"},
-    {wpt:"GE027",crs:"230°",dist:"5NM",spdAlt:"",pred:"210/ 7000"},
+    {wpt:"GE028",crs:"150°",dist:"6.8NM",spdAlt:"210KT",pred:"210/ 7500"},
+    {wpt:"GE027",crs:"230°",dist:"5NM",spdAlt:"210KT",pred:"210/ 7000"},
     {wpt:"ENPIL",crs:"340°",dist:"3NM",spdAlt:"7000",pred:"210/ 7000"}]},
   // ═══ RKSI STARs — RWY 33L/R, 34L/R (AIP 2-48) ═══
   REBITY1:{type:"STAR",entry:"REBIT",wpts:[
@@ -19867,25 +19870,25 @@ const NAV_DATA = {
     {wpt:"PY036",crs:"105°",dist:"10.4NM",spdAlt:"",pred:""},
     {wpt:"LAPOP",crs:"098°",dist:"5NM",spdAlt:"",pred:""},
     {wpt:"PY031",crs:"098°",dist:"6.2NM",spdAlt:"7000",pred:""},
-    {wpt:"DY025",crs:"063°",dist:"6.5NM",spdAlt:"@7000",pred:"210/ 7000"},
-    {wpt:"NOKEB",crs:"334°",dist:"4.1NM",spdAlt:"",pred:"210"},
+    {wpt:"DY025",crs:"063°",dist:"6.5NM",spdAlt:"210/@7000",pred:"210/ 7000"},
+    {wpt:"NOKEB",crs:"334°",dist:"4.1NM",spdAlt:"210KT",pred:"210"},
     {wpt:"EMSOS",crs:"333°",dist:"4NM",spdAlt:"5000/6000",pred:"210/ 5500"},
     {wpt:"DY020",crs:"063°",dist:"8NM",spdAlt:"2600/3600",pred:"210/ 3000"},
-    {wpt:"DY017",crs:"154°",dist:"4NM",spdAlt:"",pred:"210"},
-    {wpt:"DY016",crs:"154°",dist:"4NM",spdAlt:"",pred:"210"},
+    {wpt:"DY017",crs:"154°",dist:"4NM",spdAlt:"210KT",pred:"210"},
+    {wpt:"DY016",crs:"154°",dist:"4NM",spdAlt:"210KT",pred:"210"},
     {wpt:"PAMBI",crs:"154°",dist:"4NM",spdAlt:"3600/2600",pred:"210/ 3000"}]},
   OLMEY1:{type:"STAR",entry:"OLMEN",wpts:[
     {wpt:"OLMEN",crs:"",dist:"",spdAlt:"",pred:""},
     {wpt:"DY037",crs:"346°",dist:"13NM",spdAlt:"12000",pred:"250/12000"},
-    {wpt:"DY034",crs:"290°",dist:"5.7NM",spdAlt:"",pred:"250"},
+    {wpt:"DY034",crs:"290°",dist:"5.7NM",spdAlt:"12000B",pred:"250"},
     {wpt:"LEGOP",crs:"290°",dist:"10.2NM",spdAlt:"10000",pred:"250/10000"},
     {wpt:"DY027",crs:"323°",dist:"11.1NM",spdAlt:"9000",pred:"250/ 9000"},
-    {wpt:"DY025",crs:"334°",dist:"3NM",spdAlt:"8000",pred:"210/ 8000"},
-    {wpt:"NOKEB",crs:"334°",dist:"4.1NM",spdAlt:"",pred:"210"},
+    {wpt:"DY025",crs:"334°",dist:"3NM",spdAlt:"210/8000",pred:"210/ 8000"},
+    {wpt:"NOKEB",crs:"334°",dist:"4.1NM",spdAlt:"210KT",pred:"210"},
     {wpt:"EMSOS",crs:"333°",dist:"4NM",spdAlt:"5000/6000",pred:"210/ 5500"},
     {wpt:"DY020",crs:"063°",dist:"8NM",spdAlt:"2600/3600",pred:"210/ 3000"},
-    {wpt:"DY017",crs:"154°",dist:"4NM",spdAlt:"",pred:"210"},
-    {wpt:"DY016",crs:"154°",dist:"4NM",spdAlt:"",pred:"210"},
+    {wpt:"DY017",crs:"154°",dist:"4NM",spdAlt:"210KT",pred:"210"},
+    {wpt:"DY016",crs:"154°",dist:"4NM",spdAlt:"210KT",pred:"210"},
     {wpt:"PAMBI",crs:"154°",dist:"4NM",spdAlt:"3600/2600",pred:"210/ 3000"}]},
   // ═══ RKSI STARs — RWY 15L/R, 16L/R (AIP 2-43) ═══
   OLME3C:{type:"STAR",entry:"OLMEN",wpts:[
@@ -19894,57 +19897,57 @@ const NAV_DATA = {
     {wpt:"UDIDA",crs:"323°",dist:"10.3NM",spdAlt:"FL150",pred:"250/FL150"},
     {wpt:"DH047",crs:"285°",dist:"5.2NM",spdAlt:"",pred:"250"},
     {wpt:"SANLA",crs:"333°",dist:"14NM",spdAlt:"12000",pred:"250/12000"},
-    {wpt:"MABLO",crs:"051°",dist:"17NM",spdAlt:"12000",pred:"210/12000"},
-    {wpt:"DC036",crs:"321°",dist:"5NM",spdAlt:"",pred:"210"},
-    {wpt:"DC035",crs:"321°",dist:"5NM",spdAlt:"",pred:"210"},
-    {wpt:"DC031",crs:"051°",dist:"5NM",spdAlt:"",pred:"210"},
-    {wpt:"DC032",crs:"141°",dist:"5NM",spdAlt:"",pred:"210"},
-    {wpt:"DC037",crs:"141°",dist:"6.5NM",spdAlt:"10000",pred:"210/10000"},
-    {wpt:"GC036",crs:"051°",dist:"5NM",spdAlt:"9000",pred:"210/ 9000"},
-    {wpt:"ANPEM",crs:"321°",dist:"7.4NM",spdAlt:"6500",pred:"210/ 6500"},
-    {wpt:"GC022",crs:"301°",dist:"3NM",spdAlt:"5500",pred:"210/ 5500"},
-    {wpt:"GC021",crs:"301°",dist:"3.8NM",spdAlt:"4500",pred:"210/ 4500"},
+    {wpt:"MABLO",crs:"051°",dist:"17NM",spdAlt:"210/12000",pred:"210/12000"},
+    {wpt:"DC036",crs:"321°",dist:"5NM",spdAlt:"210KT",pred:"210"},
+    {wpt:"DC035",crs:"321°",dist:"5NM",spdAlt:"210KT",pred:"210"},
+    {wpt:"DC031",crs:"051°",dist:"5NM",spdAlt:"210KT",pred:"210"},
+    {wpt:"DC032",crs:"141°",dist:"5NM",spdAlt:"210KT",pred:"210"},
+    {wpt:"DC037",crs:"141°",dist:"6.5NM",spdAlt:"210/10000",pred:"210/10000"},
+    {wpt:"GC036",crs:"051°",dist:"5NM",spdAlt:"210/9000",pred:"210/ 9000"},
+    {wpt:"ANPEM",crs:"321°",dist:"7.4NM",spdAlt:"210/6500",pred:"210/ 6500"},
+    {wpt:"GC022",crs:"301°",dist:"3NM",spdAlt:"210/5500",pred:"210/ 5500"},
+    {wpt:"GC021",crs:"301°",dist:"3.8NM",spdAlt:"210/4500",pred:"210/ 4500"},
     {wpt:"BITIM",crs:"286°",dist:"4.2NM",spdAlt:"3000/3500",pred:"210/ 3000"}]},
   GUKD3C:{type:"STAR",entry:"GUKDO",wpts:[
     {wpt:"GUKDO",crs:"",dist:"",spdAlt:"FL180",pred:".780/FL180"},
     {wpt:"KAKSO",crs:"314°",dist:"11.5NM",spdAlt:"",pred:"250"},
-    {wpt:"NODUN",crs:"314°",dist:"6NM",spdAlt:"",pred:"250"},
-    {wpt:"GC072",crs:"032°",dist:"9.6NM",spdAlt:"",pred:"250"},
-    {wpt:"GC071",crs:"009°",dist:"9.6NM",spdAlt:"",pred:"250"},
+    {wpt:"NODUN",crs:"314°",dist:"6NM",spdAlt:"250KT",pred:"250"},
+    {wpt:"GC072",crs:"032°",dist:"9.6NM",spdAlt:"250KT",pred:"250"},
+    {wpt:"GC071",crs:"009°",dist:"9.6NM",spdAlt:"250KT",pred:"250"},
     {wpt:"SEL",crs:"268°",dist:"24NM",spdAlt:"13000",pred:"250/13000"},
-    {wpt:"GC036",crs:"321°",dist:"11.8NM",spdAlt:"9000",pred:"210/ 9000"},
-    {wpt:"ANPEM",crs:"321°",dist:"7.4NM",spdAlt:"6500",pred:"210/ 6500"},
-    {wpt:"GC022",crs:"301°",dist:"3NM",spdAlt:"5500",pred:"210/ 5500"},
-    {wpt:"GC021",crs:"301°",dist:"3.8NM",spdAlt:"4500",pred:"210/ 4500"},
+    {wpt:"GC036",crs:"321°",dist:"11.8NM",spdAlt:"210/9000",pred:"210/ 9000"},
+    {wpt:"ANPEM",crs:"321°",dist:"7.4NM",spdAlt:"210/6500",pred:"210/ 6500"},
+    {wpt:"GC022",crs:"301°",dist:"3NM",spdAlt:"210/5500",pred:"210/ 5500"},
+    {wpt:"GC021",crs:"301°",dist:"3.8NM",spdAlt:"210/4500",pred:"210/ 4500"},
     {wpt:"BITIM",crs:"286°",dist:"4.2NM",spdAlt:"3000/3500",pred:"210/ 3000"}]},
   KARB3C:{type:"STAR",entry:"KARBU",wpts:[
     {wpt:"KARBU",crs:"",dist:"",spdAlt:"FL180",pred:".780/FL180"},
-    {wpt:"UPSOM",crs:"268°",dist:"16.9NM",spdAlt:"",pred:"250"},
-    {wpt:"KC067",crs:"189°",dist:"7.6NM",spdAlt:"",pred:"250"},
-    {wpt:"KC066",crs:"212°",dist:"7.6NM",spdAlt:"",pred:"250"},
+    {wpt:"UPSOM",crs:"268°",dist:"16.9NM",spdAlt:"250KT",pred:"250"},
+    {wpt:"KC067",crs:"189°",dist:"7.6NM",spdAlt:"250KT",pred:"250"},
+    {wpt:"KC066",crs:"212°",dist:"7.6NM",spdAlt:"250KT",pred:"250"},
     {wpt:"SEL",crs:"314°",dist:"19NM",spdAlt:"13000",pred:"250/13000"},
-    {wpt:"GC036",crs:"321°",dist:"11.8NM",spdAlt:"9000",pred:"210/ 9000"},
-    {wpt:"ANPEM",crs:"321°",dist:"7.4NM",spdAlt:"6500",pred:"210/ 6500"},
-    {wpt:"GC022",crs:"301°",dist:"3NM",spdAlt:"5500",pred:"210/ 5500"},
-    {wpt:"GC021",crs:"301°",dist:"3.8NM",spdAlt:"4500",pred:"210/ 4500"},
+    {wpt:"GC036",crs:"321°",dist:"11.8NM",spdAlt:"210/9000",pred:"210/ 9000"},
+    {wpt:"ANPEM",crs:"321°",dist:"7.4NM",spdAlt:"210/6500",pred:"210/ 6500"},
+    {wpt:"GC022",crs:"301°",dist:"3NM",spdAlt:"210/5500",pred:"210/ 5500"},
+    {wpt:"GC021",crs:"301°",dist:"3.8NM",spdAlt:"210/4500",pred:"210/ 4500"},
     {wpt:"BITIM",crs:"286°",dist:"4.2NM",spdAlt:"3000/3500",pred:"210/ 3000"}]},
   // ═══ RKSI STARs — RWY 15L/R, 16L/R (AIP 2-44, H2 series) ═══
   REBITH2:{type:"STAR",entry:"REBIT",wpts:[
     {wpt:"REBIT",crs:"",dist:"",spdAlt:"FL170",pred:".780/FL170"},
-    {wpt:"ELGUK",crs:"067°",dist:"15.2NM",spdAlt:"13000",pred:"250/13000"},
+    {wpt:"ELGUK",crs:"067°",dist:"15.2NM",spdAlt:"13000B",pred:"250/13000"},
     {wpt:"PH036",crs:"108°",dist:"7.6NM",spdAlt:"",pred:"250"},
-    {wpt:"PH037",crs:"138°",dist:"7.6NM",spdAlt:"9000",pred:"250/ 9000"},
-    {wpt:"POMIM",crs:"063°",dist:"6NM",spdAlt:"3000",pred:"210/ 3000"},
-    {wpt:"DH030",crs:"333°",dist:"4NM",spdAlt:"",pred:"210"},
-    {wpt:"DH029",crs:"333°",dist:"4NM",spdAlt:"",pred:"210"},
-    {wpt:"DH028",crs:"333°",dist:"4NM",spdAlt:"",pred:"210"},
-    {wpt:"DH021",crs:"063°",dist:"6NM",spdAlt:"",pred:"210"},
-    {wpt:"DH022",crs:"153°",dist:"4NM",spdAlt:"",pred:"210"},
-    {wpt:"DH024",crs:"153°",dist:"4NM",spdAlt:"",pred:"210"},
-    {wpt:"DH027",crs:"153°",dist:"4NM",spdAlt:"",pred:"210"},
-    {wpt:"DH023",crs:"063°",dist:"6NM",spdAlt:"",pred:"210"},
-    {wpt:"DH020",crs:"333°",dist:"4NM",spdAlt:"",pred:"210"},
-    {wpt:"DH017",crs:"333°",dist:"4NM",spdAlt:"",pred:"210"},
+    {wpt:"PH037",crs:"138°",dist:"7.6NM",spdAlt:"9000B",pred:"250/ 9000"},
+    {wpt:"POMIM",crs:"063°",dist:"6NM",spdAlt:"210/3000",pred:"210/ 3000"},
+    {wpt:"DH030",crs:"333°",dist:"4NM",spdAlt:"210KT",pred:"210"},
+    {wpt:"DH029",crs:"333°",dist:"4NM",spdAlt:"210KT",pred:"210"},
+    {wpt:"DH028",crs:"333°",dist:"4NM",spdAlt:"210KT",pred:"210"},
+    {wpt:"DH021",crs:"063°",dist:"6NM",spdAlt:"210KT",pred:"210"},
+    {wpt:"DH022",crs:"153°",dist:"4NM",spdAlt:"210KT",pred:"210"},
+    {wpt:"DH024",crs:"153°",dist:"4NM",spdAlt:"210KT",pred:"210"},
+    {wpt:"DH027",crs:"153°",dist:"4NM",spdAlt:"210KT",pred:"210"},
+    {wpt:"DH023",crs:"063°",dist:"6NM",spdAlt:"210KT",pred:"210"},
+    {wpt:"DH020",crs:"333°",dist:"4NM",spdAlt:"210KT",pred:"210"},
+    {wpt:"DH017",crs:"333°",dist:"4NM",spdAlt:"210KT",pred:"210"},
     {wpt:"MUNAN",crs:"333°",dist:"4NM",spdAlt:"1600/3000",pred:"210/ 2000"}]},
   OLMEH2:{type:"STAR",entry:"OLMEN",wpts:[
     {wpt:"OLMEN",crs:"",dist:"",spdAlt:"",pred:""},
@@ -19953,60 +19956,60 @@ const NAV_DATA = {
     {wpt:"DH047",crs:"285°",dist:"5.2NM",spdAlt:"12000",pred:"250/12000"},
     {wpt:"SANLA",crs:"333°",dist:"14NM",spdAlt:"12000",pred:"250/12000"},
     {wpt:"DH034",crs:"283°",dist:"7.5NM",spdAlt:"",pred:""},
-    {wpt:"POMIM",crs:"333°",dist:"4NM",spdAlt:"3000",pred:"210/ 3000"},
-    {wpt:"DH030",crs:"333°",dist:"4NM",spdAlt:"",pred:"210"},
-    {wpt:"DH029",crs:"333°",dist:"4NM",spdAlt:"",pred:"210"},
-    {wpt:"DH028",crs:"333°",dist:"4NM",spdAlt:"",pred:"210"},
-    {wpt:"DH021",crs:"063°",dist:"6NM",spdAlt:"",pred:"210"},
-    {wpt:"DH022",crs:"153°",dist:"4NM",spdAlt:"",pred:"210"},
-    {wpt:"DH024",crs:"153°",dist:"4NM",spdAlt:"",pred:"210"},
-    {wpt:"DH027",crs:"153°",dist:"4NM",spdAlt:"",pred:"210"},
-    {wpt:"DH023",crs:"063°",dist:"6NM",spdAlt:"",pred:"210"},
-    {wpt:"DH020",crs:"333°",dist:"4NM",spdAlt:"",pred:"210"},
-    {wpt:"DH017",crs:"333°",dist:"4NM",spdAlt:"",pred:"210"},
+    {wpt:"POMIM",crs:"333°",dist:"4NM",spdAlt:"210/3000",pred:"210/ 3000"},
+    {wpt:"DH030",crs:"333°",dist:"4NM",spdAlt:"210KT",pred:"210"},
+    {wpt:"DH029",crs:"333°",dist:"4NM",spdAlt:"210KT",pred:"210"},
+    {wpt:"DH028",crs:"333°",dist:"4NM",spdAlt:"210KT",pred:"210"},
+    {wpt:"DH021",crs:"063°",dist:"6NM",spdAlt:"210KT",pred:"210"},
+    {wpt:"DH022",crs:"153°",dist:"4NM",spdAlt:"210KT",pred:"210"},
+    {wpt:"DH024",crs:"153°",dist:"4NM",spdAlt:"210KT",pred:"210"},
+    {wpt:"DH027",crs:"153°",dist:"4NM",spdAlt:"210KT",pred:"210"},
+    {wpt:"DH023",crs:"063°",dist:"6NM",spdAlt:"210KT",pred:"210"},
+    {wpt:"DH020",crs:"333°",dist:"4NM",spdAlt:"210KT",pred:"210"},
+    {wpt:"DH017",crs:"333°",dist:"4NM",spdAlt:"210KT",pred:"210"},
     {wpt:"MUNAN",crs:"333°",dist:"4NM",spdAlt:"1600/3000",pred:"210/ 2000"}]},
   GUKDH2:{type:"STAR",entry:"GUKDO",wpts:[
     {wpt:"GUKDO",crs:"",dist:"",spdAlt:"FL180",pred:".780/FL180"},
     {wpt:"KAKSO",crs:"314°",dist:"11.5NM",spdAlt:"",pred:"250"},
-    {wpt:"NODUN",crs:"314°",dist:"6NM",spdAlt:"",pred:"250"},
-    {wpt:"GC072",crs:"032°",dist:"9.6NM",spdAlt:"",pred:"250"},
-    {wpt:"GC071",crs:"009°",dist:"9.6NM",spdAlt:"",pred:"250"},
+    {wpt:"NODUN",crs:"314°",dist:"6NM",spdAlt:"250KT",pred:"250"},
+    {wpt:"GC072",crs:"032°",dist:"9.6NM",spdAlt:"250KT",pred:"250"},
+    {wpt:"GC071",crs:"009°",dist:"9.6NM",spdAlt:"250KT",pred:"250"},
     {wpt:"SEL",crs:"268°",dist:"24NM",spdAlt:"13000",pred:"250/13000"},
     {wpt:"GH034",crs:"257°",dist:"24.1NM",spdAlt:"12000",pred:"210/12000"},
     {wpt:"SANLA",crs:"257°",dist:"6NM",spdAlt:"",pred:"210"},
     {wpt:"DH034",crs:"283°",dist:"7.5NM",spdAlt:"",pred:"210"},
-    {wpt:"POMIM",crs:"333°",dist:"4NM",spdAlt:"3000",pred:"210/ 3000"},
-    {wpt:"DH030",crs:"333°",dist:"4NM",spdAlt:"",pred:"210"},
-    {wpt:"DH029",crs:"333°",dist:"4NM",spdAlt:"",pred:"210"},
-    {wpt:"DH028",crs:"333°",dist:"4NM",spdAlt:"",pred:"210"},
-    {wpt:"DH021",crs:"063°",dist:"6NM",spdAlt:"",pred:"210"},
-    {wpt:"DH022",crs:"153°",dist:"4NM",spdAlt:"",pred:"210"},
-    {wpt:"DH024",crs:"153°",dist:"4NM",spdAlt:"",pred:"210"},
-    {wpt:"DH027",crs:"153°",dist:"4NM",spdAlt:"",pred:"210"},
-    {wpt:"DH023",crs:"063°",dist:"6NM",spdAlt:"",pred:"210"},
-    {wpt:"DH020",crs:"333°",dist:"4NM",spdAlt:"",pred:"210"},
-    {wpt:"DH017",crs:"333°",dist:"4NM",spdAlt:"",pred:"210"},
+    {wpt:"POMIM",crs:"333°",dist:"4NM",spdAlt:"210/3000",pred:"210/ 3000"},
+    {wpt:"DH030",crs:"333°",dist:"4NM",spdAlt:"210KT",pred:"210"},
+    {wpt:"DH029",crs:"333°",dist:"4NM",spdAlt:"210KT",pred:"210"},
+    {wpt:"DH028",crs:"333°",dist:"4NM",spdAlt:"210KT",pred:"210"},
+    {wpt:"DH021",crs:"063°",dist:"6NM",spdAlt:"210KT",pred:"210"},
+    {wpt:"DH022",crs:"153°",dist:"4NM",spdAlt:"210KT",pred:"210"},
+    {wpt:"DH024",crs:"153°",dist:"4NM",spdAlt:"210KT",pred:"210"},
+    {wpt:"DH027",crs:"153°",dist:"4NM",spdAlt:"210KT",pred:"210"},
+    {wpt:"DH023",crs:"063°",dist:"6NM",spdAlt:"210KT",pred:"210"},
+    {wpt:"DH020",crs:"333°",dist:"4NM",spdAlt:"210KT",pred:"210"},
+    {wpt:"DH017",crs:"333°",dist:"4NM",spdAlt:"210KT",pred:"210"},
     {wpt:"MUNAN",crs:"333°",dist:"4NM",spdAlt:"1600/3000",pred:"210/ 2000"}]},
   KARBH2:{type:"STAR",entry:"KARBU",wpts:[
     {wpt:"KARBU",crs:"",dist:"",spdAlt:"FL180",pred:".780/FL180"},
-    {wpt:"UPSOM",crs:"268°",dist:"16.9NM",spdAlt:"",pred:"250"},
-    {wpt:"KC067",crs:"189°",dist:"7.6NM",spdAlt:"",pred:"250"},
-    {wpt:"KC066",crs:"212°",dist:"7.6NM",spdAlt:"",pred:"250"},
+    {wpt:"UPSOM",crs:"268°",dist:"16.9NM",spdAlt:"250KT",pred:"250"},
+    {wpt:"KC067",crs:"189°",dist:"7.6NM",spdAlt:"250KT",pred:"250"},
+    {wpt:"KC066",crs:"212°",dist:"7.6NM",spdAlt:"250KT",pred:"250"},
     {wpt:"SEL",crs:"314°",dist:"19NM",spdAlt:"13000",pred:"250/13000"},
     {wpt:"GH034",crs:"257°",dist:"24.1NM",spdAlt:"12000",pred:"210/12000"},
     {wpt:"SANLA",crs:"257°",dist:"6NM",spdAlt:"",pred:"210"},
     {wpt:"DH034",crs:"283°",dist:"7.5NM",spdAlt:"",pred:"210"},
-    {wpt:"POMIM",crs:"333°",dist:"4NM",spdAlt:"3000",pred:"210/ 3000"},
-    {wpt:"DH030",crs:"333°",dist:"4NM",spdAlt:"",pred:"210"},
-    {wpt:"DH029",crs:"333°",dist:"4NM",spdAlt:"",pred:"210"},
-    {wpt:"DH028",crs:"333°",dist:"4NM",spdAlt:"",pred:"210"},
-    {wpt:"DH021",crs:"063°",dist:"6NM",spdAlt:"",pred:"210"},
-    {wpt:"DH022",crs:"153°",dist:"4NM",spdAlt:"",pred:"210"},
-    {wpt:"DH024",crs:"153°",dist:"4NM",spdAlt:"",pred:"210"},
-    {wpt:"DH027",crs:"153°",dist:"4NM",spdAlt:"",pred:"210"},
-    {wpt:"DH023",crs:"063°",dist:"6NM",spdAlt:"",pred:"210"},
-    {wpt:"DH020",crs:"333°",dist:"4NM",spdAlt:"",pred:"210"},
-    {wpt:"DH017",crs:"333°",dist:"4NM",spdAlt:"",pred:"210"},
+    {wpt:"POMIM",crs:"333°",dist:"4NM",spdAlt:"210/3000",pred:"210/ 3000"},
+    {wpt:"DH030",crs:"333°",dist:"4NM",spdAlt:"210KT",pred:"210"},
+    {wpt:"DH029",crs:"333°",dist:"4NM",spdAlt:"210KT",pred:"210"},
+    {wpt:"DH028",crs:"333°",dist:"4NM",spdAlt:"210KT",pred:"210"},
+    {wpt:"DH021",crs:"063°",dist:"6NM",spdAlt:"210KT",pred:"210"},
+    {wpt:"DH022",crs:"153°",dist:"4NM",spdAlt:"210KT",pred:"210"},
+    {wpt:"DH024",crs:"153°",dist:"4NM",spdAlt:"210KT",pred:"210"},
+    {wpt:"DH027",crs:"153°",dist:"4NM",spdAlt:"210KT",pred:"210"},
+    {wpt:"DH023",crs:"063°",dist:"6NM",spdAlt:"210KT",pred:"210"},
+    {wpt:"DH020",crs:"333°",dist:"4NM",spdAlt:"210KT",pred:"210"},
+    {wpt:"DH017",crs:"333°",dist:"4NM",spdAlt:"210KT",pred:"210"},
     {wpt:"MUNAN",crs:"333°",dist:"4NM",spdAlt:"1600/3000",pred:"210/ 2000"}]},
   // ═══ RKSI STARs — Special entry (AIP 2-46, 2-47) ═══
   BISKIM2:{type:"STAR",entry:"BIKSI",wpts:[
@@ -20023,6 +20026,13 @@ const NAV_DATA = {
     {wpt:"PE048",crs:"098°",dist:"6.3NM",spdAlt:"12000",pred:"250/12000"},
     {wpt:"PE029",crs:"119°",dist:"18.7NM",spdAlt:"8500",pred:"210/ 8500"},
     {wpt:"ENPIL",crs:"070°",dist:"7.4NM",spdAlt:"7000",pred:"210/ 7000"}]},
+  MAKSAM2:{type:"STAR",entry:"MAKSA",wpts:[
+    {wpt:"MAKSA",crs:"",dist:"",spdAlt:"",pred:""},
+    {wpt:"ATASO",crs:"013°",dist:"23.6NM",spdAlt:"FL220",pred:".780/FL220"},
+    {wpt:"PEBRI",crs:"014°",dist:"29.5NM",spdAlt:"FL180",pred:"250/FL180"},
+    {wpt:"OLMEN",crs:"007°",dist:"21NM",spdAlt:"FL150",pred:"250/FL150"},
+    {wpt:"DE030",crs:"342°",dist:"20.4NM",spdAlt:"9500",pred:"250/ 9500"},
+    {wpt:"ENPIL",crs:"343°",dist:"8NM",spdAlt:"7000",pred:"210/ 7000"}]},
   // ═══ RJFF STARs ═══
   ISKUPE:{type:"STAR",entry:"ISKUP",wpts:[
     {wpt:"ISKUP",crs:"204°",dist:"30NM",spdAlt:"",pred:".780/FL200"},
@@ -20087,7 +20097,7 @@ const NAV_DATA = {
       MUNAN:[{wpt:"MUNAN",crs:"",dist:"",spdAlt:"3000",pred:"210/ 3000"},
              {wpt:"PUDIM",crs:"063°",dist:"6.5NM",spdAlt:"3000",pred:"210/ 3000"}],
       BITIM:[{wpt:"BITIM",crs:"",dist:"",spdAlt:"3500/3000",pred:"210/ 3000"},
-             {wpt:"OLTEM",crs:"270°",dist:"3.1NM",spdAlt:"3000",pred:"180/ 3000"},
+             {wpt:"OLTEM",crs:"270°",dist:"3.1NM",spdAlt:"180/3000",pred:"180/ 3000"},
              {wpt:"PUDIM",crs:"226°",dist:"3.0NM",spdAlt:"3000",pred:"210/ 3000"}]
     },
     missedApproach:[
@@ -20102,12 +20112,12 @@ const NAV_DATA = {
   // ═══ RKSI APPs — ILS/LOC RWY 33L (AIP 2-62) ═══
   ILS33L:{type:"APP",trans:["ENPIL","PAMBI"],ifWpt:"LEGUN",wpts:[
     {wpt:"LEGUN",crs:"334°",dist:"",spdAlt:"5000",pred:"210/ 5000"},
-    {wpt:"KE008",crs:"334°",dist:"3.1NM",spdAlt:"",pred:""},
-    {wpt:"KIDAB",crs:"334°",dist:"3.1NM",spdAlt:"",pred:""},
+    {wpt:"KE008",crs:"334°",dist:"3.1NM",spdAlt:"2600",pred:"210/ 2600"},
+    {wpt:"KIDAB",crs:"334°",dist:"3.1NM",spdAlt:"1600",pred:"180/ 1600"},
     {wpt:"RW33L",crs:"334°",dist:"4.7NM",spdAlt:"",pred:"Vref+5",isDest:true}],
     transLegs:{
       ENPIL:[{wpt:"ENPIL",crs:"",dist:"",spdAlt:"7000",pred:"210/ 7000"},
-             {wpt:"KE019",crs:"329°",dist:"3.0NM",spdAlt:"",pred:""},
+             {wpt:"KE019",crs:"329°",dist:"3.0NM",spdAlt:"6000",pred:"210/ 6000"},
              {wpt:"POSOK",crs:"334°",dist:"3.1NM",spdAlt:"5000",pred:"210/ 5000"},
              {wpt:"LEGUN",crs:"334°",dist:"4.6NM",spdAlt:"5000",pred:"210/ 5000"}],
       PAMBI:[{wpt:"PAMBI",crs:"",dist:"",spdAlt:"",pred:""},
@@ -20122,14 +20132,14 @@ const NAV_DATA = {
   // ═══ RKSI APPs — ILS/LOC RWY 16L (AIP 2-58) ═══
   ILS16L:{type:"APP",trans:["MUNAN","BITIM"],ifWpt:"RUMRI",wpts:[
     {wpt:"RUMRI",crs:"153°",dist:"",spdAlt:"3000",pred:"210/ 3000"},
-    {wpt:"PH002",crs:"153°",dist:"2.4NM",spdAlt:"",pred:""},
+    {wpt:"PH002",crs:"153°",dist:"2.4NM",spdAlt:"820",pred:"180/ 820"},
     {wpt:"RW16L",crs:"153°",dist:"2.3NM",spdAlt:"",pred:"Vref+5",isDest:true}],
     transLegs:{
       MUNAN:[{wpt:"MUNAN",crs:"",dist:"",spdAlt:"3000",pred:"210/ 3000"},
              {wpt:"IPKOL",crs:"063°",dist:"5.1NM",spdAlt:"",pred:""},
              {wpt:"RUMRI",crs:"153°",dist:"6.0NM",spdAlt:"3000",pred:"210/ 3000"}],
       BITIM:[{wpt:"BITIM",crs:"",dist:"",spdAlt:"3500",pred:"210/ 3500"},
-             {wpt:"ATKON",crs:"270°",dist:"5.0NM",spdAlt:"",pred:""},
+             {wpt:"ATKON",crs:"270°",dist:"5.0NM",spdAlt:"180/3000",pred:"180/ 3000"},
              {wpt:"IPKOL",crs:"208°",dist:"3.0NM",spdAlt:"",pred:""},
              {wpt:"RUMRI",crs:"153°",dist:"6.0NM",spdAlt:"3000",pred:"210/ 3000"}]
     },
@@ -20140,14 +20150,14 @@ const NAV_DATA = {
   // ═══ RKSI APPs — ILS/LOC RWY 16R (AIP 2-60) ═══
   ILS16R:{type:"APP",trans:["MUNAN","BITIM"],ifWpt:"OSERI",wpts:[
     {wpt:"OSERI",crs:"153°",dist:"",spdAlt:"3000",pred:"210/ 3000"},
-    {wpt:"DH002",crs:"153°",dist:"2.4NM",spdAlt:"",pred:""},
+    {wpt:"DH002",crs:"153°",dist:"2.4NM",spdAlt:"820",pred:"180/ 820"},
     {wpt:"RW16R",crs:"153°",dist:"2.3NM",spdAlt:"",pred:"Vref+5",isDest:true}],
     transLegs:{
       MUNAN:[{wpt:"MUNAN",crs:"",dist:"",spdAlt:"3000",pred:"210/ 3000"},
              {wpt:"OLKIK",crs:"063°",dist:"4.9NM",spdAlt:"",pred:""},
              {wpt:"OSERI",crs:"153°",dist:"6.1NM",spdAlt:"3000",pred:"210/ 3000"}],
       BITIM:[{wpt:"BITIM",crs:"",dist:"",spdAlt:"3500",pred:"210/ 3500"},
-             {wpt:"ATKON",crs:"270°",dist:"5.0NM",spdAlt:"",pred:""},
+             {wpt:"ATKON",crs:"270°",dist:"5.0NM",spdAlt:"180/3000",pred:"180/ 3000"},
              {wpt:"OLKIK",crs:"210°",dist:"3.2NM",spdAlt:"",pred:""},
              {wpt:"OSERI",crs:"153°",dist:"6.1NM",spdAlt:"3000",pred:"210/ 3000"}]
     },
@@ -20158,12 +20168,12 @@ const NAV_DATA = {
   // ═══ RKSI APPs — ILS/LOC RWY 34L (AIP 2-68) ═══
   ILS34L:{type:"APP",trans:["ENPIL","PAMBI"],ifWpt:"LENBI",wpts:[
     {wpt:"LENBI",crs:"334°",dist:"",spdAlt:"5000",pred:"210/ 5000"},
-    {wpt:"BODEK",crs:"334°",dist:"6.3NM",spdAlt:"",pred:""},
+    {wpt:"BODEK",crs:"334°",dist:"6.3NM",spdAlt:"1600",pred:"180/ 1600"},
     {wpt:"RW34L",crs:"334°",dist:"4.7NM",spdAlt:"",pred:"Vref+5",isDest:true}],
     transLegs:{
       ENPIL:[{wpt:"ENPIL",crs:"",dist:"",spdAlt:"7000",pred:"210/ 7000"},
-             {wpt:"DY019",crs:"306°",dist:"3.4NM",spdAlt:"",pred:""},
-             {wpt:"KAGOK",crs:"334°",dist:"3.1NM",spdAlt:"",pred:""},
+             {wpt:"DY019",crs:"306°",dist:"3.4NM",spdAlt:"6000",pred:"210/ 6000"},
+             {wpt:"KAGOK",crs:"334°",dist:"3.1NM",spdAlt:"5000",pred:"210/ 5000"},
              {wpt:"LENBI",crs:"334°",dist:"4.6NM",spdAlt:"5000",pred:"210/ 5000"}],
       PAMBI:[{wpt:"PAMBI",crs:"",dist:"",spdAlt:"",pred:""},
              {wpt:"KAGOK",crs:"064°",dist:"4.9NM",spdAlt:"",pred:""},
@@ -20176,12 +20186,12 @@ const NAV_DATA = {
   // ═══ RKSI APPs — RNP RWY 34R (AIP 2-70) ═══
   RNP34R:{type:"APP",trans:["ENPIL","PAMBI"],ifWpt:"DALKA",wpts:[
     {wpt:"DALKA",crs:"334°",dist:"",spdAlt:"5000",pred:"210/ 5000"},
-    {wpt:"PIPAN",crs:"334°",dist:"6.3NM",spdAlt:"",pred:""},
+    {wpt:"PIPAN",crs:"334°",dist:"6.3NM",spdAlt:"1600",pred:"180/ 1600"},
     {wpt:"RW34R",crs:"334°",dist:"4.7NM",spdAlt:"",pred:"Vref+5",isDest:true}],
     transLegs:{
       ENPIL:[{wpt:"ENPIL",crs:"",dist:"",spdAlt:"7000",pred:"210/ 7000"},
-             {wpt:"PY019",crs:"310°",dist:"3.3NM",spdAlt:"",pred:""},
-             {wpt:"NIPUT",crs:"334°",dist:"3.1NM",spdAlt:"",pred:""},
+             {wpt:"PY019",crs:"310°",dist:"3.3NM",spdAlt:"6000",pred:"210/ 6000"},
+             {wpt:"NIPUT",crs:"334°",dist:"3.1NM",spdAlt:"5000",pred:"210/ 5000"},
              {wpt:"DALKA",crs:"334°",dist:"4.6NM",spdAlt:"5000",pred:"210/ 5000"}],
       PAMBI:[{wpt:"PAMBI",crs:"",dist:"",spdAlt:"",pred:""},
              {wpt:"NIPUT",crs:"064°",dist:"5.1NM",spdAlt:"",pred:""},
@@ -26583,7 +26593,8 @@ function NDView({fms,setFms,hideControls}){
         }
         // Detect FAF (Final Approach Fix)
         if(wn.match(/^FI/)||lg.isFaf)isFaf=true;
-        var ptEntry={name:wn,lat:ll.lat,lon:ll.lon,via:lg.via||"",isAprt:false,alt:altStr,spd:spdStr,isFaf:isFaf};
+        var isChart=!!(sa&&(sa.match(/\d{3,5}[AB]?$/)||sa.match(/^FL\d/)||sa.match(/^\d{3}KT/)));
+        var ptEntry={name:wn,lat:ll.lat,lon:ll.lon,via:lg.via||"",isAprt:false,alt:altStr,spd:spdStr,isFaf:isFaf,isChart:isChart};
         // Mark route break: DISC occurred before this waypoint
         if(_pendingDisc){ptEntry._discBefore=true;_pendingDisc=false;}
         pts.push(ptEntry);
@@ -26737,21 +26748,23 @@ function NDView({fms,setFms,hideControls}){
     }
     // ═══ Helper: draw constraint annotation (FCOM 10.40.16) ═══
     // Altitude/speed text below/beside waypoint symbol (magenta = constraint)
-    function drawConstraint(x,y,alt,spd,color){
+    function drawConstraint(x,y,alt,spd,color,isChart){
       var ty=y+20;
-      ctx.font="10px "+M;ctx.textAlign="center";
+      var bigFont="bold 11px "+M;
+      var smallFont="8px "+M;
+      ctx.textAlign="center";
       if(alt){
-        // FCOM 10.40.16: altitude in green when met, magenta when command
         ctx.fillStyle=color||NC.mag;
+        ctx.font=isChart?bigFont:smallFont;
         var altDisp=alt;
-        // Convert to FL if ≥ transition alt
         var altNum=parseInt(alt);
         if(!isNaN(altNum)&&altNum>=10000){altDisp="FL"+Math.round(altNum/100);}
         else if(!isNaN(altNum)){altDisp=String(altNum);}
-        ctx.fillText(altDisp,x,ty);ty+=9;
+        ctx.fillText(altDisp,x,ty);ty+=isChart?11:8;
       }
       if(spd){
         ctx.fillStyle=NC.mag;
+        ctx.font=isChart?bigFont:smallFont;
         ctx.fillText(spd+"KT",x,ty);
       }
     }
@@ -26964,7 +26977,7 @@ function NDView({fms,setFms,hideControls}){
           }
           // FCOM 10.40.16: Altitude/speed constraint annotation
           if(pt.alt||pt.spd){
-            drawConstraint(sp.x,sp.y,pt.alt,pt.spd,isAct?NC.mag:NC.mag);
+            drawConstraint(sp.x,sp.y,pt.alt,pt.spd,isAct?NC.mag:NC.mag,pt.isChart);
           }
         }
       }
@@ -27343,7 +27356,7 @@ function NDView({fms,setFms,hideControls}){
             ctx.fillText(pt2.name,sp2.x+10,sp2.y+4);
           }
           if(pt2.alt||pt2.spd){
-            drawConstraint(sp2.x,sp2.y,pt2.alt,pt2.spd,isAct2?NC.mag:NC.mag);
+            drawConstraint(sp2.x,sp2.y,pt2.alt,pt2.spd,isAct2?NC.mag:NC.mag,pt2.isChart);
           }
         }
       }
@@ -27520,9 +27533,9 @@ function NDView({fms,setFms,hideControls}){
       , React.createElement('canvas', { ref: ref, width: cvSize.w, height: cvSize.h, style: {position:"absolute",top:0,left:0,width:"100%",height:"100%"},})
     )
     // PLN step buttons (bottom bar) — also jumps airplane when simActive
-    , !hideControls&&(plnIdx>=0||fms.simActive)&&React.createElement('div', { style: {display:"flex",gap:3,justifyContent:"center",padding:"2px 0",flexShrink:0},}
+    , !hideControls&&(ndMode==="PLN"||fms.simActive)&&React.createElement('div', { style: {display:"flex",gap:3,justifyContent:"center",padding:"2px 0",flexShrink:0},}
       , React.createElement('button', { onClick: function(){
-          var ni=Math.max(0,plnIdx-1); setPlnIdx(ni);
+          var ni=plnIdx<0?0:Math.max(0,plnIdx-1); setPlnIdx(ni);
           if(fms.simActive&&setFms){setFms(function(p){
             var legs=p.computedLegs||[];var pts=[];
             if(p.origin){var oc=getWptLL(p.origin);if(oc)pts.push({name:p.origin,lat:oc.lat,lon:oc.lon});}
@@ -27537,9 +27550,9 @@ function NDView({fms,setFms,hideControls}){
             return{...p,simLegIdx:ni,simLat:np.lat,simLon:np.lon,simHdg:Math.round(hdg),simFuelUsed:fuelUsed,simTimeMin:timeMin};
           });}
         }, style: {background:"#1a1a1a",color:C.green,border:"1px solid #444",borderRadius:2,padding:"2px 8px",cursor:"pointer",fontSize:9,fontFamily:M},}, "◄ PREV")
-      , React.createElement('span', { style: {color:C.white,fontSize:9,fontFamily:M,padding:"2px 4px",alignSelf:"center"},}, "WPT "+(plnIdx+1))
+      , React.createElement('span', { style: {color:C.white,fontSize:9,fontFamily:M,padding:"2px 4px",alignSelf:"center"},}, plnIdx<0?"ALL":"WPT "+(plnIdx+1))
       , React.createElement('button', { onClick: function(){
-          var ni=Math.min(maxIdx-1,plnIdx+1); setPlnIdx(ni);
+          var ni=plnIdx<0?1:Math.min(maxIdx-1,plnIdx+1); setPlnIdx(ni);
           if(fms.simActive&&setFms){setFms(function(p){
             var legs=p.computedLegs||[];var pts=[];
             if(p.origin){var oc=getWptLL(p.origin);if(oc)pts.push({name:p.origin,lat:oc.lat,lon:oc.lon});}
@@ -28519,22 +28532,23 @@ function B787Cockpit(){
         React.createElement('div', {style:{color:"#00cccc",fontSize:33,fontWeight:"bold",letterSpacing:4,marginBottom:4}}, "B787 DREAMLINER"),
         React.createElement('div', {style:{color:"#aaa",fontSize:14,letterSpacing:2}}, "COCKPIT PROCEDURE SIMULATOR"),
         React.createElement('div', {style:{color:"#777",fontSize:14,marginTop:4}}, "FOR TRAINING PURPOSE ONLY"),
-        React.createElement('div', {style:{color:"#00bb00",fontSize:11,marginTop:12,letterSpacing:1}}, "v2.15.5 \u00a0|\u00a0 by SH Lee \u00a0 s.lee@koreanair.com"),
+        React.createElement('div', {style:{color:"#00bb00",fontSize:11,marginTop:12,letterSpacing:1}}, "v2.15.6 \u00a0|\u00a0 by SH Lee \u00a0 s.lee@koreanair.com"),
         React.createElement('div', {style:{color:"#888",fontSize:11,marginTop:6}}, "\uc624\ub958\uac00 \uc788\uc744 \uc2dc \uc704 \uba54\uc77c\ub85c \uc54c\ub824\uc8fc\uc2dc\uae30 \ubc14\ub78d\ub2c8\ub2e4.")
       ),
       React.createElement('div', {style:{display:"flex",gap:20,borderTop:"1px solid #333",borderBottom:"1px solid #333",padding:"14px 0",marginBottom:16}},
         React.createElement('div', {style:{flex:1,minWidth:0}},
           React.createElement('div', {style:{marginBottom:14}},
             React.createElement(ChkRow, {checked:ckIPad,onToggle:function(){setCkIPad(function(p){return!p;});}},
-              React.createElement('div', {style:{color:"#00cccc",fontSize:17,fontWeight:"bold",marginBottom:8,letterSpacing:1}}, "PATCH NOTES v2.15.5"),
+              React.createElement('div', {style:{color:"#00cccc",fontSize:17,fontWeight:"bold",marginBottom:8,letterSpacing:1}}, "PATCH NOTES v2.15.6"),
               React.createElement('div', {style:{color:"#aaa",fontSize:14,fontWeight:"bold",lineHeight:1.8}},
-                React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginBottom:2}}, "v2.15.5"),
+                React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginBottom:2}}, "v2.15.6"),
+                React.createElement('div', null, "\u2022 RKSI STAR: AIP chart \uc18d\ub3c4/\uace0\ub3c4 \uc81c\ud55c\uac12 \ucd94\uac00 (E/C/H/Y series)"),
+                React.createElement('div', null, "\u2022 RKSI APP: OLTEM/ATKON 180kt, step-down fix \uace0\ub3c4 \ucd94\uac00"),
+                React.createElement('div', null, "\u2022 MAKSA 2M STAR \uc2e0\uaddc \ucd94\uac00"),
+                React.createElement('div', null, "\u2022 ND: chart restriction Large font / predicted Small font \uad6c\ubd84 \uac1c\uc120"),
+                React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginTop:8,marginBottom:2}}, "v2.15.5"),
                 React.createElement('div', null, "\u2022 \ucd08\uae30\ud654 \ubc84\ud2bc: \uce90\uc2dc \uc0ad\uc81c + \uac15\uc81c \uc0c8\ub85c\uace0\uce68"),
                 React.createElement('div', null, "\u2022 Firebase \ub85c\ub529 \uc624\ub958 \uc218\uc815 / \uc790\ub3d9 \ubc84\uc804 \uac31\uc2e0 \uac1c\uc120"),
-                React.createElement('div', {style:{color:"#00cccc",fontSize:13,marginTop:8,marginBottom:2}}, "v2.15.4"),
-                React.createElement('div', null, "\u2022 KAL853/854 (RKSI\u2194ZBAA) \ube44\ud589 \ub370\uc774\ud130 \ucd94\uac00"),
-                React.createElement('div', null, "\u2022 \ud55c\uad6d AIP ENR 3.2 \ud56d\uacf5\ub85c 27\uac1c \ucd94\uac00 (\ucd1d 51\uac1c)"),
-                React.createElement('div', null, "\u2022 \uc6e8\uc774\ud3ec\uc778\ud2b8 \uc88c\ud45c \uc815\ud655\ub3c4 \uac1c\uc120 (HCH, DOVIV \ub4f1 8\uac1c)"),
               )
             )
           ),
@@ -28849,14 +28863,14 @@ if('serviceWorker' in navigator){
 }
 // Version check: force reload if stale
 (function(){
-  var CV="2.15.5";
+  var CV="2.15.6";
   var lv=localStorage.getItem("cdu_ver");
   if(lv&&lv!==CV){localStorage.setItem("cdu_ver",CV);location.reload(true);}
   else{localStorage.setItem("cdu_ver",CV);}
 })();
 // Firebase live version check: force reload when server version changes
 (function(){
-  var CV="2.15.5";
+  var CV="2.15.6";
   function startVersionWatch(){
     if(typeof firebase==="undefined")return;
     try{
